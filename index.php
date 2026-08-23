@@ -348,11 +348,11 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <title>
 
 <?= $isMuseum
-    ? 'Simbacher Computer Museum – Sammlung'
-    : 'Jungsis Corner Sammlungsverwaltung'; ?>
+    ? htmlspecialchars(APP_TITLE_MUSEUM)
+    : htmlspecialchars(APP_TITLE); ?>
 </title>
 
-<link rel="manifest" href="/sammlung/manifest.json">
+<link rel="manifest" href="/sammlung/manifest.php">
 <meta name="theme-color" content="<?= $isMuseum ? '#000000' : '#111111'; ?>">
 
 <link rel="apple-touch-icon" href="/sammlung/icons/apple-touch-icon.png">
@@ -567,8 +567,8 @@ html { scroll-behavior: smooth; } /* iPadOS 15+ kann das */
 
 <h1>
   <?= !empty($_SESSION['museum_mode'])
-      ? 'Simbacher Computer Museum – Sammlung'
-      : 'Jungsis Corner Sammlungsverwaltung'; ?>
+      ? htmlspecialchars(APP_TITLE_MUSEUM)
+      : htmlspecialchars(APP_TITLE); ?>
 </h1>
 
 <?php if (($_GET['msg'] ?? '') === 'deleted'): ?>

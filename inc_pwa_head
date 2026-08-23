@@ -1,5 +1,5 @@
 <!-- PWA -->
-<link rel="manifest" href="/sammlung/manifest.json">
+<link rel="manifest" href="/sammlung/manifest.php">
 <meta name="theme-color" content="#111111">
 
 <!-- iOS PWA -->

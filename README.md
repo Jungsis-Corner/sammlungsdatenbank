@@ -37,7 +37,8 @@ Dieses Projekt ist **aus einem konkreten, persönlichen Anwendungsfall gewachsen
 
 - Feldnamen und Oberfläche sind **auf Deutsch** und an eine Retro-Computing-Sammlung angepasst (z. B. „Datenträger", „Verpackung", „Original/Homebrew"). Für andere Sammelgebiete musst du Felder/Kategorien anpassen.
 - Getestet auf klassischem Shared-Hosting (Apache + PHP + MySQL). Für andere Umgebungen (nginx, Docker, …) sind ggf. Anpassungen an `.htaccess` nötig.
-- Die PWA-Konfiguration (`manifest.json`, `sw.js`) enthält fest eincodierte Pfade (`/sammlung/…`), die beim Fork an den eigenen Installationsort angepasst werden müssen.
+- Die PWA-Konfiguration (`sw.js`) enthält fest eincodierte Pfade (`/sammlung/…`), die beim Fork an den eigenen Installationsort angepasst werden müssen.
+- Anwendungstitel, Museum-Titel und PWA-App-Name sind zentral in `config.php` als `APP_TITLE`, `APP_TITLE_MUSEUM`, `APP_PWA_NAME` und `APP_PWA_SHORT_NAME` definiert (`manifest.php` und `index.php` lesen diese Werte automatisch aus).
 - Es gibt (noch) keine automatisierten Tests.
 
 Betrachte es als **Vorlage zum Forken und Anpassen**, nicht als fertiges Produkt zum 1:1-Deployen.

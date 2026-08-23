@@ -28,4 +28,10 @@ if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 // --- Pfad zur Error-Logdatei (für logview.php) ---
 // Falls leer/nicht gesetzt, nutzt logview.php ersatzweise php-error.log im Projektordner.
 if (!defined('ERROR_LOG_PATH')) define('ERROR_LOG_PATH', '');
+
+// --- App-Titel (zentral an EINER Stelle änderbar) ---
+if (!defined('APP_TITLE'))          define('APP_TITLE', 'Meine Sammlung');
+if (!defined('APP_TITLE_MUSEUM'))   define('APP_TITLE_MUSEUM', 'Meine Sammlung (Gast-Ansicht)');
+if (!defined('APP_PWA_NAME'))       define('APP_PWA_NAME', 'Meine Sammlung');
+if (!defined('APP_PWA_SHORT_NAME')) define('APP_PWA_SHORT_NAME', 'Sammlung');
 ?>
