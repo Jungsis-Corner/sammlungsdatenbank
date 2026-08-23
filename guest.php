@@ -1,19 +1,7 @@
 <?php
 // guest.php
-// --- Session Cookie-Parameter VOR session_start() setzen ---
-$cookieParams = session_get_cookie_params();
-// Passe Domain/Path an deine tatsächliche Live-Domain an:
-$domain = 'www.jungsi.de';     // erlaubt www.jungsi.de und jungsi.de
-$path   = '/sammlung/';              // oder '/sammlung/' wenn deine App ausschließlich dort lebt
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => $path,
-    'domain'   => $domain,
-    'secure'   => true,      // bei https
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-session_start();
+// Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
+require_once __DIR__ . '/boot.php';
 
 // --- base64url-decode ---
 function b64url_decode(string $s): string {

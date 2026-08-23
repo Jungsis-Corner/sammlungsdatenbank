@@ -1,17 +1,7 @@
 <?php
 // ==================== login.php ====================
-// 1) Session-Cookie-Parameter (ggf. Domain/Path anpassen)
-$domain = '.jungsi.de';   // vereinheitlicht www.jungsi.de / jungsi.de
-$path   = '/sammlung/';   // App lebt unter /sammlung/
-session_set_cookie_params([
-  'lifetime' => 0,
-  'path'     => $path,
-  'domain'   => $domain,
-  'secure'   => true,     // HTTPS empfohlen
-  'httponly' => true,
-  'samesite' => 'Lax'
-]);
-session_start();
+// 1) Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
+require_once __DIR__ . '/boot.php';
 
 // 2) Zugangsdaten aus config.php laden (Admin gehasht, niemals im Code selbst)
 require_once __DIR__ . '/config.php';

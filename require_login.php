@@ -1,20 +1,7 @@
 <?php
 // ==================== require_login.php ====================
-// Einheitliche Session-Cookie-Parameter (wie in login.php)
-$domain = '.jungsi.de';         // ggf. anpassen/leer lassen, falls Probleme mit Subdomains
-$path   = '/sammlung/';
-
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_set_cookie_params([
-      'lifetime' => 0,
-      'path'     => $path,
-      'domain'   => $domain,
-      'secure'   => true,
-      'httponly' => true,
-      'samesite' => 'Lax'
-    ]);
-    session_start();
-}
+// Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
+require_once __DIR__ . '/boot.php';
 
 // ---- Hilfsfunktionen (werden von view.php / edit.php genutzt) ----
 if (!function_exists('is_logged_in')) {
