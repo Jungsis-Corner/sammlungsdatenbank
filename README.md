@@ -16,6 +16,8 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 - CSV-Export der aktuell gefilterten/sortierten Liste
 - Statistik-Seite mit Verteilungen nach Standort, Material, Kategorie, Einkaufsjahr etc.
 - **Museum-Modus** (`museum/index.php`): Ein Kurzlink, der Besucher automatisch als Gast einloggt und direkt zur Sammlung weiterleitet – gedacht für den Vor-Ort-Einsatz, z. B. per QR-Code an einem Regal oder einer Vitrine (siehe auch `go.php` für numerische Kurzcodes zu gefilterten Ansichten). Kein Passwort nötig, da nur Lesezugriff.
+- **Verkaufsmarkierung**: Duplikate/Mehrfachexemplare lassen sich als „Zum Verkauf“ kennzeichnen, inkl. Schnellfilter in der Listenansicht.
+- **Admin-Log-Viewer** (`logview.php`): Die letzten Zeilen des PHP-Error-Logs direkt im Browser einsehen, ohne FTP-Zugriff – mit einfacher Passwort-/Token-Maskierung.
 
 ## ⚠️ Wichtig, bevor du startest
 
@@ -27,6 +29,13 @@ Dieses Projekt ist **aus einem konkreten, persönlichen Anwendungsfall gewachsen
 - Es gibt (noch) keine automatisierten Tests.
 
 Betrachte es als **Vorlage zum Forken und Anpassen**, nicht als fertiges Produkt zum 1:1-Deployen.
+
+## 🔒 Sicherheitshinweise
+
+- **Admin-Passwort sofort selbst setzen** – den Hash in `config.php` niemals aus einer Anleitung/einem Beispiel übernehmen, siehe Setup-Schritt 2.
+- `config.php` niemals committen (ist per `.gitignore` bereits ausgeschlossen) – sie enthält Datenbank-Zugangsdaten, API-Keys und den Admin-Passwort-Hash.
+- Bevor du eigene Debug-/Testskripte im Projektordner ablegst (z. B. um mal eben eine API oder einen Datenbank-Query auszuprobieren): entweder mit `is_admin()` absichern wie `logview.php`, oder nach Gebrauch konsequent wieder löschen. Unauthentifizierte Skripte mit Datenbankzugriff oder fest eincodierten Zugangsdaten sind ein leicht vermeidbares, aber ernstes Risiko.
+- Bei Secrets, die versehentlich committet wurden: nicht nur die Datei löschen, sondern das jeweilige Secret beim Anbieter widerrufen/neu generieren (der alte Wert bleibt sonst in der Git-Historie sichtbar) und bei Bedarf die Git-Historie bereinigen.
 
 ## Setup
 
