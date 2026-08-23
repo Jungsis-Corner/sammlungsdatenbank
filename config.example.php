@@ -24,4 +24,8 @@ if (!defined('DEEPL_API_KEY_CONST')) define('DEEPL_API_KEY_CONST', '');
 // Ergebnis unten einfügen. NIEMALS das Klartext-Passwort hier eintragen.
 if (!defined('ADMIN_USERNAME'))      define('ADMIN_USERNAME', 'admin');
 if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
+
+// --- Pfad zur Error-Logdatei (für logview.php) ---
+// Falls leer/nicht gesetzt, nutzt logview.php ersatzweise php-error.log im Projektordner.
+if (!defined('ERROR_LOG_PATH')) define('ERROR_LOG_PATH', '');
 ?>

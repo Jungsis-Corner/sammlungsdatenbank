@@ -3,7 +3,8 @@
 require_once __DIR__ . '/require_login.php';
 if (!function_exists('is_admin') || !is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
-$file = '/mnt/web213/c0/35/5754435/htdocs/private/php-error.log';  // Pfad anpassen
+require_once __DIR__ . '/config.php';
+$file = (defined('ERROR_LOG_PATH') && ERROR_LOG_PATH !== '') ? ERROR_LOG_PATH : __DIR__ . '/php-error.log';
 $n = isset($_GET['n']) ? max(10, min(2000, (int)$_GET['n'])) : 400; // 10..2000 Zeilen
 if (!is_readable($file)) { http_response_code(404); exit('Logdatei nicht lesbar.'); }
 
