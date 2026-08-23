@@ -13,11 +13,8 @@ session_set_cookie_params([
 ]);
 session_start();
 
-// 2) Benutzerliste (Demo)
-$users = [
-  'admin' => 'admin',
-  'gast'  => 'gast'
-];
+// 2) Zugangsdaten aus config.php laden (Admin gehasht, niemals im Code selbst)
+require_once __DIR__ . '/config.php';
 
 // 3) Zielberechnung: nur interne absolute Pfade, niemals login.php
 function safe_target(?string $to): string {
@@ -68,15 +65,28 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $u = $_POST['username'] ?? '';
   $p = $_POST['password'] ?? '';
-  if (isset($users[$u]) && hash_equals($users[$u], $p)) {
+
+  $loginOk = false;
+  $role = null;
+
+  if ($u === ADMIN_USERNAME && password_verify($p, ADMIN_PASSWORD_HASH)) {
+      $loginOk = true;
+      $role = 'admin';
+  } elseif ($u === 'gast' && $p === 'gast') {
+      // Gast-Zugang bewusst einfach gehalten (nur Lesezugriff, kein Risiko)
+      $loginOk = true;
+      $role = 'guest';
+  }
+
+  if ($loginOk) {
     session_regenerate_id(true);
     // neu + alt-kompatible Flags setzen
     $_SESSION['logged_in'] = true;
     $_SESSION['loggedin']  = true;        // alt
-    $_SESSION['user_id']   = ($u === 'admin') ? 1 : 0;
+    $_SESSION['user_id']   = ($role === 'admin') ? 1 : 0;
     $_SESSION['username']  = $u;
-    $_SESSION['role']      = ($u === 'admin') ? 'admin' : 'guest';
-    $_SESSION['is_guest']  = ($u !== 'admin');
+    $_SESSION['role']      = $role;
+    $_SESSION['is_guest']  = ($role !== 'admin');
     $_SESSION['login_method'] = 'password';
 
     header('Location: ' . safe_target($_POST['to'] ?? null));

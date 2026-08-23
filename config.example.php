@@ -17,4 +17,11 @@ if (!defined('TWITCH_CLIENT_SECRET_CONST')) define('TWITCH_CLIENT_SECRET_CONST',
 // --- Optional: automatische Übersetzung (DeepL) ---
 // Kostenloser API-Key: https://www.deepl.com/de/pro-api
 if (!defined('DEEPL_API_KEY_CONST')) define('DEEPL_API_KEY_CONST', '');
+
+// --- Admin-Login ---
+// Passwort-Hash selbst erzeugen (z.B. lokal per PHP CLI):
+//   php -r "echo password_hash('DEIN-PASSWORT', PASSWORD_DEFAULT);"
+// Ergebnis unten einfügen. NIEMALS das Klartext-Passwort hier eintragen.
+if (!defined('ADMIN_USERNAME'))      define('ADMIN_USERNAME', 'admin');
+if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 ?>
