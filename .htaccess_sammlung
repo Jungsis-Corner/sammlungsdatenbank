@@ -1,0 +1,14 @@
+# /sammlung/.htaccess
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /sammlung/
+
+# Falls du "schöne" URLs brauchst, hier eigene Regeln eintragen.
+# Standard: vorhandene Dateien/Ordner ausliefern, sonst index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
+</IfModule>
+
+# Optional, aber praktisch:
+DirectoryIndex index.php

@@ -1,0 +1,28 @@
+# --- Geheimnisse: NIEMALS committen ---
+config.php
+wp-config.php
+.user.ini
+wa_audio_worker_http.php
+curl.php
+mini-finder.php
+
+# --- Logs & Debug-/Testdateien ---
+php-error.log
+*.log
+debug_session.php
+token_test.php
+phpinfo.php
+
+# --- Alte Backup-/Testkopien ---
+*_o
+edit - Kopie.php
+
+# --- Laufzeit-/Cache-Verzeichnis ---
+var/
+
+# --- Fremde Datei (gehört zu WordPress, nicht zu diesem Projekt) ---
+readme.txt
+
+# --- Sonstiges ---
+.DS_Store
+Thumbs.db

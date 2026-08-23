@@ -1,0 +1,70 @@
+# /sammlung/.htaccess
+
+# ---- Rewrite (Routing) ----
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /sammlung/
+
+  # Vorhandene Dateien/Ordner ausliefern …
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # … alles andere an index.php (Fallback)
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+# ---- Security: Verzeichnisse/Dateien sperren ----
+# Keine Verzeichnisliste
+Options -Indexes
+
+# Standard-Startdatei
+DirectoryIndex index.php
+
+# Versteckte Dateien (+ sensible Dateitypen) sperren
+<FilesMatch "(^\.|\.ini$|\.log$|\.sh$|composer\.(json|lock)$|package\.json$|yarn\.lock$|^config\.php$|phpinfo\.php$)">
+  Require all denied
+</FilesMatch>
+
+# Typische Dev-/Backup-Ordner hart auf 404
+RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports)/
+
+# ---- Security-Header ----
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+  # Vorsichtige CSP (lässt inline Styles/Skripte der bestehenden Seiten zu)
+  Header set Content-Security-Policy "default-src 'self' https: data:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' https: 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';"
+</IfModule>
+
+# ---- Kompression ----
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ---- Caching statischer Dateien ----
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                 "access plus 7 days"
+  ExpiresByType application/javascript   "access plus 7 days"
+  ExpiresByType image/svg+xml            "access plus 30 days"
+  ExpiresByType image/png                "access plus 30 days"
+  ExpiresByType image/jpeg               "access plus 30 days"
+  ExpiresDefault                         "access plus 1 day"
+</IfModule>
+
+# Korrektes MIME für SVG
+AddType image/svg+xml .svg
+
+# ---- Optional: HTTPS erzwingen (falls nicht bereits global aktiv) ----
+# <IfModule mod_rewrite.c>
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+# phpinfo für den Moment erlauben
+<Files "phpinfo.php">
+  Require all granted
+</Files>

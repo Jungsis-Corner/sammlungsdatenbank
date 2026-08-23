@@ -1,0 +1,610 @@
+/* =========================
+   Jungsi Sammlung – app.css
+   Gültig für: edit.php + view.php
+   ========================= */
+
+/* --- Basis/Variablen --- */
+:root{
+  --label-col: 150px;   /* linke Label-Spalte */
+  --value-min: 350px;   /* Mindestbreite Werte-Spalte */
+  --tap: 44px;          /* empfohlene Touch-Zielhöhe iOS */
+}
+
+html, body { min-height: 100%; }
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  padding: 20px;
+  -webkit-text-size-adjust: 100%; /* iOS: keine Auto-Vergrößerung */
+}
+
+/* --- Toolbar / Buttons (sichtbar & kompakt) --- */
+.toolbar{
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 12px 0; padding-top: 8px;
+  position: sticky; top: 0; z-index: 10; background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+
+/* generischer Button (A-Tag in Toolbar + .btn in edit.php) */
+.toolbar a, .btn{
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+.toolbar a:hover, .btn:hover{ filter: brightness(0.94); }
+.toolbar a.disabled,
+.toolbar a[aria-disabled="true"],
+.btn.disabled,
+.btn[aria-disabled="true"]{
+  opacity: .45; pointer-events: none; cursor: default; filter: none;
+}
+
+/* Farbvarianten – gut sichtbar */
+.btn-back, .back    { background:#e74c3c; border-color:#c0392b; }
+.btn-edit, .save    { background:#2ecc71; border-color:#27ae60; }
+.btn-nav,  .nav     { background:#3498db; border-color:#2980b9; }
+.btn-wrap           { background:#8e44ad; border-color:#6f2f95; }
+.btn-search         { background:#16a085; border-color:#0f6f5d; }
+.new                { background:#6f42c1; border-color:#5832a4; }
+.dup                { background:#ff9800; border-color:#d68100; color:#fff; }
+.dupplus            { background:#17a2b8; border-color:#12889b; }
+.igdb               { background:#343a40; border-color:#23272b; }
+.view               { background:#795548; border-color:#5d4037; }
+.delete             { background:#8b0000; border-color:#5c0000; }
+
+/* Mini-Abstand direkt unter Toolbar zur Tabelle */
+.toolbar + .layout,
+.toolbar + .container { margin-top: 8px; }
+
+/* =========================
+   Zweispaltiges Seitenlayout
+   ========================= */
+/* edit.php nutzt .container, view.php nutzt .layout */
+.container, .layout{
+  display: flex; gap: 20px; align-items: flex-start;
+  width: 100%; max-width: 1280px;   /* linksbündig, nicht zentriert */
+  margin-left: 0; margin-right: auto;
+}
+
+/* Spalten: Tabelle links, Bild rechts */
+.fields, .meta { order: 1 !important; }  /* Tabelle */
+.image,  .pic  { order: 2 !important; }  /* Bild */
+
+/* Desktop-Grundaufteilung: Tabelle fix, Bild flexibel */
+@media (min-width: 901px){
+  .fields, .meta{
+    /* Label + Value + kleiner Puffer → feste Breite */
+    flex: 0 0 calc(var(--label-col) + var(--value-min) + 24px);
+    max-width: calc(var(--label-col) + var(--value-min) + 24px);
+  }
+  .image, .pic{
+    flex: 1 1 auto;          /* Bild nimmt den Rest */
+    min-width: 380px;
+  }
+  .container, .layout{ gap: 12px; } /* enger zusammen – weniger Lücke */
+}
+
+/* =========================
+   Bild
+   ========================= */
+.image img, .pic img{
+  max-width: 100%; height: auto;
+  max-height: 68vh;           /* Desktop: schön groß */
+  object-fit: contain;
+  border: 1px solid #ccc;
+  display: block;
+  cursor: zoom-in;
+}
+
+/* iPad (Portrait & Landscape) – Bildhöhe stabil & nicht zu klein */
+@media (min-width: 768px) and (max-width: 1366px){
+  .container, .layout{ gap: 10px; }
+  .image, .pic{ min-width: 420px; }
+  .image img, .pic img{
+    /* svh = stabiles iOS-Viewportmaß, vw-Deckel verhindert „Briefmarke“ */
+    max-height: min(52svh, 72vw);
+  }
+}
+/* iPad Portrait: etwas mehr Höhe ok */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: portrait){
+  .image img, .pic img{ max-height: min(56svh, 80vw); }
+}
+/* iPhone Landscape etwas höher */
+@media (max-width: 852px) and (orientation: landscape){
+  .image img, .pic img{ max-height: 60vh; }
+}
+
+/* Phone (≤900px): Reihenfolge beibehalten (Tabelle vor Bild) */
+@media (max-width: 900px){
+  .container, .layout{ flex-direction: column; gap: 12px; max-width: none; }
+  .fields, .meta, .image, .pic{ flex: 0 0 auto; width: 100%; min-width: 0; }
+  .toolbar{ margin-bottom: 10px; }
+}
+
+/* =========================
+   Datentabelle (view.php)
+   ========================= */
+table.meta{
+  border-collapse: collapse; width: 100%;
+  table-layout: fixed; /* stabil mit colgroup/Spaltenbreiten */
+}
+table.meta th, table.meta td{
+  border: 1px solid #bbb; padding: 6px; vertical-align: top;
+  word-break: break-word;
+}
+table.meta th{
+  width: 180px; background: #f5f5f5 !important; text-align: left;
+  border-bottom: 1px solid #bbb;
+}
+
+/* Kleine Phones: „Karten“-Layout */
+@media (max-width: 430px){
+  body{ font-size: 12pt; line-height: 1.5; padding: 12px; }
+  .toolbar{ gap: 10px; top: env(safe-area-inset-top); }
+  .toolbar a, .btn{ padding: 12px 16px; min-height: var(--tap); white-space: normal; }
+  .container, .layout{ width: 100% !important; max-width: none !important; }
+
+  table.meta{ border-collapse: separate; border-spacing: 0 8px; table-layout: auto; }
+  table.meta tr{
+    display: block; border: 1px solid #bbb; border-radius: 8px; overflow: hidden;
+  }
+  table.meta th, table.meta td{ display: block; border: 0; padding: 10px 12px; }
+  table.meta th{ background: #f5f5f5 !important; width: auto; border-bottom: 1px solid #e6e6e6; }
+  table.meta td a{ word-break: break-word; }
+}
+
+/* =========================
+   Formular (edit.php)
+   ========================= */
+.form-table{
+  display: block;
+  width: 100%;
+  border: 1px solid #bbb;      /* Außenrahmen */
+  background: #fafafa;
+  box-sizing: border-box;
+  overflow: hidden;            /* saubere Kanten */
+  margin-top: .2rem;           /* etwas Luft unter der Toolbar */
+}
+
+/* Jede „Zeile“ des Formulars als Grid mit Label|Value */
+.form-table .field{
+  display: grid;
+  grid-template-columns: var(--label-col) minmax(var(--value-min), 1fr);
+  align-items: stretch;
+}
+/* horizontale Linien zwischen den Zeilen */
+.form-table .field + .field{ border-top: 1px solid #bbb; }
+
+/* linke „Zelle“ (Label) */
+.form-table .field .label{
+  background: #f5f5f5;
+  border-right: 1px solid #bbb;
+  padding: 6px 8px;
+  font-weight: bold;
+}
+
+/* rechte „Zelle“ (Value) */
+.form-table .field > :last-child{
+  padding: 6px 8px;
+  box-sizing: border-box;
+  min-width: 0;                /* verhindert „Aufspreizen“ */
+}
+
+/* Eingaben kompakt & einheitlich */
+.form-table .field input,
+.form-table .field select,
+.form-table .field textarea{
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 0;
+  padding: 4px 8px;
+  line-height: 1.2;
+  height: 28px;
+  font: inherit;
+  background: #fff;
+}
+.form-table .field textarea{
+  height: auto; min-height: 96px;
+}
+
+/* Fokus gut sichtbar */
+.form-table .field input:focus,
+.form-table .field select:focus,
+.form-table .field textarea:focus{
+  outline: 2px solid #a6c8ff;
+  outline-offset: -2px;
+}
+
+/* Nur-Lesen-Zeilen (Zeitstempel) */
+.form-table .field.readonly input[readonly]{
+  background: #f7f7f7; color: #555;
+  height: 28px; padding: 4px 8px; line-height: 1.2;
+}
+
+/* Checkboxen etwas kleiner (nur Desktop) */
+@media (min-width: 901px){
+  .form-table .field input[type="checkbox"][name="Originalverpackung"],
+  .form-table .field input[type="checkbox"][name="Anleitung"],
+  .form-table .field input[type="checkbox"][name="Sonstiges"]{
+    transform: scale(0.78);
+    transform-origin: left center;
+    margin-right: 6px;
+  }
+}
+
+/* Mobile: Label oben, Value unten (1-Spalte) */
+@media (max-width: 900px){
+  .form-table .field{
+    grid-template-columns: 1fr;
+  }
+  .form-table .field .label{
+    border-right: none; border-bottom: 1px solid #ddd;
+  }
+  .toolbar a, .btn{ padding: 12px 16px; min-height: var(--tap); }
+}
+
+/* =========================
+   Lightbox (view.php)
+   ========================= */
+.lb[hidden]{ display:none; }
+.lb{
+  position: fixed; inset: 0; background: rgba(0,0,0,.85);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.lb img{ max-width: 92vw; max-height: 92vh; object-fit: contain; box-shadow: 0 0 24px rgba(0,0,0,.4); }
+.lb-close{
+  position: absolute; top: 10px; right: 16px;
+  font-size: 28px; line-height: 1;
+  color: #fff; background: transparent; border: 0; cursor: pointer;
+}
+/* ===== FINAL OVERRIDES ===== */
+
+/* Bild auf EDIT groß genug + Spaltenverhältnis klar */
+.edit-page .container{ gap:12px !important; }
+@media (min-width:901px){
+  .edit-page .fields{
+    /* feste Tabellenbreite: Label 150 + Value 350 + Puffer */
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    margin-left: 0 !important;
+  }
+  .edit-page .image{
+    /* Bildspalte soll den Rest bekommen */
+    flex: 1 1 auto !important;
+    min-width: 420px !important;
+  }
+  .edit-page .image img{
+    /* hier war das Bild bisher gedeckelt → jetzt groß */
+    max-height: 72vh !important;
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
+}
+
+/* VIEW bleibt: Tabelle links, Bild rechts (so wolltest du’s) */
+.view-page .layout{ gap:12px !important; }
+@media (min-width:901px){
+  .view-page .meta{
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+  }
+  .view-page .pic{
+    flex: 1 1 auto !important;
+    min-width: 420px !important;
+  }
+  .view-page .pic img{
+    max-height: 68vh !important;   /* gern auf 72vh anheben, falls du magst */
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
+}
+
+/* Etwas Luft zwischen Toolbar und Inhalt (falls noch knapp) */
+.toolbar + .container,
+.toolbar + .layout{ margin-top: 10px !important; }
+.edit-page .buttons { margin-bottom: 12px; }
+
+/* Abstand zwischen Buttons und Tabelle (edit.php) */
+.edit-page .buttons { 
+  margin-bottom: 14px !important; 
+}
+/* Falls das unmittelbare Geschwister ist: noch ein Sicherheitsnetz */
+.edit-page .buttons + .container {
+  margin-top: 10px !important;
+}
+/* === DESKTOP: Bildgröße und Spaltenverhältnis angleichen (view + edit) === */
+@media (min-width: 901px){
+  /* Tabelle links: feste Breite (Label 150 + Value 350 + Puffer) */
+  .view-page .meta,
+  .edit-page .fields{
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    margin-left: 0 !important;
+  }
+
+  /* Bild rechts: bekommt den gesamten Rest */
+  .view-page .pic,
+  .edit-page .image{
+    flex: 1 1 0 !important;
+    min-width: 520px !important;     /* etwas breiter als vorher */
+  }
+
+  /* Bildhöhe überall gleich (vorher war edit kleiner) */
+  .view-page .pic img,
+  .edit-page .image img{
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 72vh !important;     /* identisch auf beiden Seiten */
+    object-fit: contain !important;
+    display: block;
+  }
+
+  /* Gesamtbreite darf ruhig größer sein, damit das Bild Platz hat */
+  .view-page .layout,
+  .edit-page .container{
+    max-width: 1400px !important;    /* mehr Luft als 1280px */
+    gap: 12px !important;            /* schmale Lücke zwischen Tabelle & Bild */
+  }
+}
+
+/* === Abstand unter Toolbar/Buttons erhöhen === */
+.toolbar + .layout,
+.toolbar + .container{
+  margin-top: 14px !important;
+}
+
+/* Edit: zusätzlicher Abstand unter den Buttonreihen */
+.edit-page .buttons{
+  margin-bottom: 14px !important;
+}
+/* Abstand unter Toolbar (view.php) */
+.toolbar + .layout{ 
+  margin-top: 14px !important; 
+}
+/* Abstand unter Buttons (edit.php) */
+.edit-page .buttons{ 
+  margin-bottom: 14px !important; 
+}
+/* View: niemals umbrechen (Desktop) */
+@media (min-width: 901px){
+  .view-page .layout{
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    width: 100% !important;         /* falls alte 50vw-Reste existieren */
+    max-width: 1400px !important;
+  }
+  /* Tabelle links: feste, aber kompakte Breite */
+  .view-page .meta{
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    min-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+  }
+  /* Bild rechts: restlichen Platz, kleineres min-width um Umbruch zu vermeiden */
+  .view-page .pic{
+    flex: 1 1 0 !important;
+    min-width: 360px !important;    /* vorher 420px → reduziert Umbruchrisiko */
+  }
+  .view-page .pic img{
+    max-height: 72vh !important;    /* identisch zu edit.php */
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    display: block;
+  }
+}
+/* Edit: gleiche Bildlogik wie View */
+@media (min-width: 901px){
+  .edit-page .container{
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    max-width: 1400px !important;
+  }
+  .edit-page .fields{
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    min-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+  }
+  .edit-page .image{
+    flex: 1 1 0 !important;
+    min-width: 360px !important;
+  }
+  .edit-page .image img{
+    max-height: 72vh !important;
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    display: block;
+  }
+}
+/* --- View: niemals umbrechen (Desktop) --- */
+@media (min-width:901px){
+  .view-page .layout{
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 1400px !important;
+    gap: 12px !important;
+  }
+  .view-page .meta{
+    flex: 0 0 calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    min-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+    max-width: calc(var(--label-col,150px) + var(--value-min,350px) + 24px) !important;
+  }
+  .view-page .pic{
+    flex: 1 1 0 !important;
+    min-width: 360px !important; /* kleiner als 420px = weniger Umbruchrisiko */
+  }
+}
+
+/* Sichtbarer Abstand unter der Toolbar – sicher & simpel */
+.toolbar{ margin-bottom: 12px !important; }
+
+/* Abstand auch, wenn direkt .layout/.container folgt */
+.toolbar + .layout,
+.toolbar + .container{
+  margin-top: 12px !important;
+}
+/* edit.php: Abstand zwischen den zwei Button-Reihen erhöhen */
+.edit-page .buttons .row{
+  margin-bottom: 14px;   /* vorher 8px – gern 16–18 testen, wenn du noch mehr Luft willst */
+  gap: 10px;             /* Buttons in der Zeile etwas luftiger */
+}
+.edit-page .buttons .row:last-child{
+  margin-bottom: 0;      /* nur die Lücke ZWISCHEN den Reihen */
+}
+
+/* optional: minimal mehr Luft unter dem gesamten Button-Block */
+.edit-page .buttons{
+  margin-bottom: 16px !important;
+}
+
+/* Buttonleiste beim Scrollen oben sichtbar halten (edit.php) */
+.edit-page .buttons{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  padding-top: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+/* =========================================================
+   NEU (2026): Gruppierte Karten-Ansicht für edit.php + view.php
+   Ersetzt die alte flache .form-table-Zeilenliste bzw.
+   table.meta-Zeilenliste durch thematisch gruppierte Karten
+   mit kompaktem 2-Spalten-Grid (Label oben, Feld darunter).
+   Die alten .form-table/table.meta-Regeln bleiben oben
+   unangetastet, werden aber durch die neue Struktur nicht
+   mehr referenziert.
+   ========================================================= */
+
+/* Etwas mehr Platz für die linke Spalte, da Label jetzt ÜBER
+   dem Feld steht statt links davon - die 2-Spalten-Grids
+   brauchen mehr Breite pro Feld als die alte Label|Value-Zeile. */
+:root{
+  --card-col-width: 620px; /* Gesamtbreite der Formular-/Detailspalte */
+}
+@media (min-width: 901px){
+  .edit-page .fields,
+  .view-page .meta{
+    flex: 0 0 var(--card-col-width) !important;
+    max-width: var(--card-col-width) !important;
+    min-width: var(--card-col-width) !important;
+  }
+  .edit-page .image,
+  .view-page .pic{
+    min-width: 340px !important; /* etwas reduziert, damit die Karten Platz haben */
+  }
+}
+
+.form-groups{ display: flex; flex-direction: column; gap: 14px; }
+
+.form-group{
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+.form-group > h3{
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #333;
+  background: #f5f6f8;
+  border-bottom: 1px solid #ddd;
+  padding: 8px 14px;
+}
+
+.form-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  padding: 14px;
+}
+.form-grid .field{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-grid .field.wide{
+  grid-column: 1 / -1;
+}
+.form-grid .field .label{
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.form-grid .field input,
+.form-grid .field select,
+.form-grid .field textarea{
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  height: 34px;
+  background: #fff;
+}
+.form-grid .field textarea{
+  height: auto;
+  min-height: 90px;
+}
+.form-grid .field input:focus,
+.form-grid .field select:focus,
+.form-grid .field textarea:focus{
+  outline: 2px solid #a6c8ff;
+  outline-offset: -1px;
+  border-color: #a6c8ff;
+}
+.form-grid .field.readonly input[readonly]{
+  background: #f2f2f2;
+  color: #666;
+}
+.form-grid .field.checkbox-field{
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.form-grid .field.checkbox-field input[type="checkbox"]{
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.form-grid .field.checkbox-field .label{
+  text-transform: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Read-only Detailansicht (view.php): gleiche Optik, nur ohne Rahmen an den Feldern */
+.form-grid .field .value{
+  font-size: 0.95rem;
+  color: #222;
+  word-break: break-word;
+  display: block;
+  padding: 6px 0 2px;
+}
+.form-grid .field .value:empty::after{
+  content: "—";
+  color: #aaa;
+}
+
+/* Mobil: alles auf 1 Spalte */
+@media (max-width: 900px){
+  .form-grid{ grid-template-columns: 1fr; }
+}
