@@ -64,7 +64,3 @@ AddType image/svg+xml .svg
 #   RewriteCond %{HTTPS} !=on
 #   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # </IfModule>
-# phpinfo für den Moment erlauben
-<Files "phpinfo.php">
-  Require all granted
-</Files>
