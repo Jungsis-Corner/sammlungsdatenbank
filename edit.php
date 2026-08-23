@@ -275,7 +275,6 @@ function translate_to_de(string $text): string {
                ? 'https://api-free.deepl.com/v2/translate'
                : 'https://api.deepl.com/v2/translate';
     $post = http_build_query([
-      'auth_key'            => $deeplKey,
       'text'                => $text,
       'target_lang'         => 'DE',
       'source_lang'         => 'EN',
@@ -286,6 +285,9 @@ function translate_to_de(string $text): string {
     $ch = curl_init($deeplHost);
     curl_setopt_array($ch, [
       CURLOPT_POST           => true,
+      CURLOPT_HTTPHEADER     => [
+        'Authorization: DeepL-Auth-Key ' . $deeplKey,
+      ],
       CURLOPT_POSTFIELDS     => $post,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_TIMEOUT        => 20,
