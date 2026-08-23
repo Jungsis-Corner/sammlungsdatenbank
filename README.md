@@ -4,6 +4,18 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 
 📖 Hintergrund & Entwicklungs-Changelog: [jungsi.de/datenbank-changelog](https://www.jungsi.de/datenbank-changelog/)
 
+## Screenshots
+
+| Listenansicht | Bearbeiten |
+|---|---|
+| ![Listenansicht](docs/screenshots/index.png) | ![Bearbeiten](docs/screenshots/edit.png) |
+
+| Detailansicht | Statistik |
+|---|---|
+| ![Detailansicht](docs/screenshots/view.png) | ![Statistik](docs/screenshots/statistik.png) |
+
+<!-- Bilder einfach als index.png / edit.png / view.png / statistik.png in docs/screenshots/ ablegen, dann werden sie hier automatisch angezeigt. -->
+
 ## Was kann die App?
 
 - Vollständige CRUD-Verwaltung von Sammlungsobjekten (Bezeichnung, Kategorie, Hersteller, Zustand, Vollständigkeit, Standort, Kaufdaten, Testdaten, uvm.)
