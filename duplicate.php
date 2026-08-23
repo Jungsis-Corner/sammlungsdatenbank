@@ -28,11 +28,17 @@ function next_copy_title(string $t): string {
 }
 
 // Felder, die wir übernehmen (nur wenn sie existieren)
-// Bild, Wert, Einkaufsdatum werden bewusst geleert/neu gesetzt.
+// Bild wird bewusst geleert; Getestet am/Status, Zum Verkauf und Gehört zu (VerbautIn)
+// werden bewusst NICHT übernommen (Duplikat ist ja noch nicht getestet/zum Verkauf
+// markiert/einem bestimmten Gerät zugeordnet) - analog zur Logik in edit.php.
 $maybeFields = [
-  'Bezeichnung','Kategorie','Jahr','Original/Homebrew','Material','Zustand','Verpackung',
-  'Standort','Box','Hersteller','Publisher','Verkäufer','Serie','Plattform','System',
-  'SammlungBild1','Einkaufsdatum','Einkaufspreis','Wert','Bemerkung','Kommentar','Zubehör'
+  'Bezeichnung','Kategorie','Jahr','Original/Homebrew','Anzahl','Seriennummer',
+  'Hersteller','Publisher','Material',
+  'Zustand','Verpackung Status','Verpackung','Anleitung Status','Datentraeger',
+  'Datenträger Status','Sonstiges','Sonstiges Beschreibung',
+  'Standort','Box','ISBN','Barcode',
+  'Verkäufer','Einkaufsdatum','Einkaufspreis','Wert',
+  'Beschreibung','SammlungBild1','Link zum Blog','Link zu YouTube'
 ];
 
 // Dynamisch nur vorhandene Felder aus obiger Liste nehmen:
@@ -60,7 +66,7 @@ if (!$stmt) die('Prepare fehlgeschlagen: '.$conn->error);
 
 // Typen-String für bind_param bauen (i = int, d = double, s = string, b = blob)
 // Wir behandeln hier pragmatisch alles als string, außer bekannten Zahlenspalten:
-$intCols = ['Kategorie','Jahr','Material','Zustand','Verpackung','Standort','Hersteller','Publisher','Verkäufer'];
+$intCols = ['Kategorie','Jahr','Material','Zustand','Verpackung','Standort','Hersteller','Publisher','Verkäufer','Anzahl','Datentraeger','Sonstiges'];
 $doubleCols = ['Wert'];
 
 $types = '';
