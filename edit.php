@@ -874,7 +874,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=8">
+<link rel="stylesheet" href="/sammlung/assets/app.css?v=9">
 
 <style>
 .barcode-field {

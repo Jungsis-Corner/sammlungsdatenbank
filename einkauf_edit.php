@@ -344,7 +344,7 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=8">
+  <link rel="stylesheet" href="/sammlung/assets/app.css?v=9">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
 
   <style>

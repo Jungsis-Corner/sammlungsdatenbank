@@ -563,6 +563,20 @@ table.meta th{
   height: auto;
   min-height: 90px;
 }
+
+/* iOS/Safari rendert <input type="date"> mit einer eigenen internen
+   Darstellung, die Höhe/Padding aus der generischen Regel oben teilweise
+   ignoriert (Text erscheint dadurch vertikal versetzt, Feld wirkt kleiner
+   als die Nachbarfelder). Betrifft: Einkaufsdatum, Getestet am. */
+.form-grid .field input[type="date"]{
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 8px;
+  display: block;
+}
 .form-grid .field input:focus,
 .form-grid .field select:focus,
 .form-grid .field textarea:focus{
