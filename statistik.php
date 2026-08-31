@@ -82,15 +82,27 @@ if (!$is_guest) {
     a { text-decoration: none; color: #007bff; }
 
     /* =========================================================
-       DARK MODE
+       DARK MODE (echte Farben statt Invertierungs-Trick)
        ========================================================= */
-    html[data-theme="dark"] body{
-      filter: invert(1) hue-rotate(180deg);
-      background: #fff;
+    html[data-theme="dark"]{
+      background: #121212 !important;
     }
-    html[data-theme="dark"] img,
-    html[data-theme="dark"] video{
-      filter: invert(1) hue-rotate(180deg);
+    html[data-theme="dark"] body{
+      background: #121212 !important;
+      color: #e8e8e8 !important;
+    }
+    html[data-theme="dark"] table,
+    html[data-theme="dark"] th,
+    html[data-theme="dark"] td{
+      background: #1a1a1a !important;
+      color: #e8e8e8 !important;
+      border-color: #444 !important;
+    }
+    html[data-theme="dark"] th{
+      background: #2a2a2a !important;
+    }
+    html[data-theme="dark"] a{
+      color: #8ab4ff !important;
     }
     .theme-toggle{
       background: #555 !important;

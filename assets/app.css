@@ -624,21 +624,71 @@ table.meta th{
 }
 
 /* =========================================================
-   DARK MODE (alle Seiten, die app.css einbinden)
-   Technik: Filter-Invertierung auf <html>. Bilder werden
-   zurück-invertiert, damit Fotos/Screenshots normal aussehen.
-   Kompromiss: Farben nicht ganz so fein wie ein manuell
-   gestalteter Dark Mode, dafür deckt es ALLE bestehenden
-   Regeln oben automatisch mit ab, ohne jede Farbe einzeln
-   anfassen zu müssen.
+   DARK MODE (echte Farben statt Invertierungs-Trick - zuverlässiger)
    ========================================================= */
-html[data-theme="dark"] body{
-  filter: invert(1) hue-rotate(180deg);
-  background: #fff;
+html[data-theme="dark"]{
+  background: #121212 !important;
 }
-html[data-theme="dark"] img,
-html[data-theme="dark"] video{
-  filter: invert(1) hue-rotate(180deg);
+html[data-theme="dark"] body{
+  background: #121212 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .toolbar{
+  background: #1e1e1e !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4) !important;
+}
+html[data-theme="dark"] .form-group{
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+}
+html[data-theme="dark"] .form-group > h3{
+  background: #242424 !important;
+  border-color: #333 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .form-grid .field .label{
+  color: #999 !important;
+}
+html[data-theme="dark"] .form-grid .field input,
+html[data-theme="dark"] .form-grid .field select,
+html[data-theme="dark"] .form-grid .field textarea{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .form-grid .field.readonly input[readonly]{
+  background: #202020 !important;
+  color: #888 !important;
+}
+html[data-theme="dark"] .form-grid .field .value{
+  color: #e0e0e0 !important;
+}
+html[data-theme="dark"] .form-grid .field .value:empty::after{
+  color: #666 !important;
+}
+html[data-theme="dark"] .hint{
+  color: #999 !important;
+}
+html[data-theme="dark"] table.meta th,
+html[data-theme="dark"] table.meta td{
+  background: #1a1a1a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] table.meta th{
+  background: #2a2a2a !important;
+}
+html[data-theme="dark"] .image img,
+html[data-theme="dark"] .pic img{
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .barcode-scan-wrap{
+  background: #1a1a1a !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .barcode-hint,
+html[data-theme="dark"] .barcode-status{
+  color: #ccc !important;
 }
 
 .theme-toggle{

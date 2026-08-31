@@ -545,15 +545,82 @@ html { scroll-behavior: smooth; } /* iPadOS 15+ kann das */
 @media (max-width: 1366px){ .desktop-only { display:none !important; } }
 
 /* =========================================================
-   DARK MODE
+   DARK MODE (echte Farben statt Invertierungs-Trick - zuverlässiger)
    ========================================================= */
-html[data-theme="dark"] body{
-  filter: invert(1) hue-rotate(180deg);
-  background: #fff;
+html[data-theme="dark"]{
+  background: #121212 !important;
 }
-html[data-theme="dark"] img,
-html[data-theme="dark"] video{
-  filter: invert(1) hue-rotate(180deg);
+html[data-theme="dark"] body{
+  background: #121212 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] h1{
+  color: #a9b8ff !important;
+}
+html[data-theme="dark"] .logout a,
+html[data-theme="dark"] .logout{
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .toolbar{
+  background: #1e1e1e !important;
+  border-color: #333 !important;
+}
+html[data-theme="dark"] .toolbar-label{
+  color: #ccc !important;
+}
+html[data-theme="dark"] .searchbox input[type="text"]{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .stat{
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .stat .chip{
+  background: #2a2a2a !important;
+  border-color: #444 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .filter-summary{
+  background: #1a1a2e !important;
+  border-color: #33335a !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .filter-summary .badge{
+  background: #2a2a45 !important;
+  border-color: #44447a !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] table,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td{
+  background: #1a1a1a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] th{
+  background: #2a2a2a !important;
+}
+html[data-theme="dark"] th a.th-sort{
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] table.list td.click-open a.img-link:hover{
+  background: #2a2a3a !important;
+}
+html[data-theme="dark"] .pagination a{
+  background: #2a2a2a !important;
+  border-color: #555 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .pagination strong{
+  background: #3a3a3a !important;
+  border-color: #666 !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .toolbar-form select{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
 }
 .theme-toggle{
   background: #555 !important;

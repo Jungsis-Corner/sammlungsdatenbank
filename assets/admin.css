@@ -315,14 +315,54 @@ body.museum .toolbar-row1{
 
 /* =========================================================
    DARK MODE (manage_*.php über inc_head_admin.php)
+   echte Farben statt Invertierungs-Trick - zuverlässiger
    ========================================================= */
-html[data-theme="dark"] body{
-  filter: invert(1) hue-rotate(180deg);
-  background: #fff;
+html[data-theme="dark"]{
+  background: #121212 !important;
 }
-html[data-theme="dark"] img,
-html[data-theme="dark"] video{
-  filter: invert(1) hue-rotate(180deg);
+html[data-theme="dark"] body{
+  background: #121212 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .admin-header h1{
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .top-bar .top-bar-search input[type="text"],
+html[data-theme="dark"] .form-container input[type="text"],
+html[data-theme="dark"] .form-container select,
+html[data-theme="dark"] .admin-inline-form input[type="text"],
+html[data-theme="dark"] .admin-inline-form select{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .adm-table{
+  background: #1a1a1a !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .adm-table th,
+html[data-theme="dark"] .adm-table td{
+  border-color: #444 !important;
+}
+html[data-theme="dark"] .adm-table.is-striped tbody tr:nth-child(odd){
+  background: #222230 !important;
+}
+html[data-theme="dark"] .adm-table.is-hover tbody tr:hover{
+  background: #2a2a45 !important;
+}
+html[data-theme="dark"] .adm-table.is-sticky thead th{
+  background: #2a2a2a !important;
+  box-shadow: 0 1px 0 #444 !important;
+}
+html[data-theme="dark"] .pagination a{
+  background: #2a2a2a !important;
+  border-color: #555 !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .pagination strong{
+  background: #3a3a3a !important;
+  border-color: #666 !important;
+  color: #fff !important;
 }
 .theme-toggle{
   background: #555 !important;

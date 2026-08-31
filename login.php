@@ -97,12 +97,21 @@ $to = safe_target($_GET['to'] ?? null);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="/sammlung/assets/theme-toggle.js"></script>
   <style>
-    html[data-theme="dark"] body{
-      filter: invert(1) hue-rotate(180deg);
-      background: #fff;
+    html[data-theme="dark"]{
+      background: #121212 !important;
     }
-    html[data-theme="dark"] img{
-      filter: invert(1) hue-rotate(180deg);
+    html[data-theme="dark"] body{
+      background: #121212 !important;
+      color: #e8e8e8 !important;
+    }
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] button{
+      background: #2a2a2a !important;
+      color: #e8e8e8 !important;
+      border: 1px solid #444 !important;
+    }
+    html[data-theme="dark"] a{
+      color: #8ab4ff !important;
     }
     .theme-toggle-floating{
       position: fixed;

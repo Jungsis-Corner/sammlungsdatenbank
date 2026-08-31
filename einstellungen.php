@@ -37,15 +37,17 @@ require_once __DIR__ . '/config.php';
         .nav a:hover { background: #0056b3; }
 
         /* =========================================================
-           DARK MODE
+           DARK MODE (echte Farben statt Invertierungs-Trick)
            ========================================================= */
-        html[data-theme="dark"] body{
-          filter: invert(1) hue-rotate(180deg);
-          background: #fff;
+        html[data-theme="dark"]{
+          background: #121212 !important;
         }
-        html[data-theme="dark"] img,
-        html[data-theme="dark"] video{
-          filter: invert(1) hue-rotate(180deg);
+        html[data-theme="dark"] body{
+          background: #121212 !important;
+          color: #e8e8e8 !important;
+        }
+        html[data-theme="dark"] h1{
+          color: #e8e8e8 !important;
         }
         .theme-toggle{
           background: #555 !important;
