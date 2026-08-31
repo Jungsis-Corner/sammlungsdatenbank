@@ -637,6 +637,10 @@ html[data-theme="dark"] .toolbar{
   background: #1e1e1e !important;
   box-shadow: 0 2px 6px rgba(0,0,0,.4) !important;
 }
+html[data-theme="dark"] .buttons{
+  background: #1e1e1e !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4) !important;
+}
 html[data-theme="dark"] .form-group{
   background: #1a1a1a !important;
   border-color: #333 !important;
