@@ -1,0 +1,22 @@
+{
+  "name": "Simbacher Computer Museum",
+  "short_name": "Museum",
+  "start_url": "/sammlung/museum/start.php?museum=1",
+  "scope": "/sammlung/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "Read-Only Ansicht der Sammlung für Besucher (Gastmodus).",
+  "icons": [
+    {
+      "src": "/sammlung/icons/museum-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/sammlung/icons/museum-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

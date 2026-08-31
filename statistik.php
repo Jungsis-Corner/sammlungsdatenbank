@@ -64,6 +64,24 @@ if (!$is_guest) {
     $sum_res = $conn->query("SELECT SUM(Wert) AS s FROM Sammlung");
     $wert = $sum_res->fetch_assoc()['s'];
 }
+
+// 7) Gast-Login-Statistik (Museum-Zugang) - nur für Admin sichtbar
+$loginTotal   = null;
+$loginByMonth = [];
+if (!$is_guest) {
+    $lt = $conn->query("SELECT COUNT(*) AS cnt FROM Login_Log");
+    if ($lt) $loginTotal = (int)$lt->fetch_assoc()['cnt'];
+
+    $lm = $conn->query("
+        SELECT DATE_FORMAT(Zeitpunkt, '%Y-%m') AS Monat, COUNT(*) AS Anzahl
+        FROM Login_Log
+        GROUP BY Monat
+        ORDER BY Monat DESC
+    ");
+    if ($lm) {
+        while ($row = $lm->fetch_assoc()) $loginByMonth[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -173,6 +191,26 @@ if (!$is_guest) {
       </tr>
     <?php endforeach; ?>
   </table>
+
+  <!-- Gast-Logins (Museum-Zugriffe) -->
+  <?php if (!$is_guest && $loginTotal !== null): ?>
+    <h2>🏛️ Museum-Zugriffe (Gast-Logins)</h2>
+    <table>
+      <tr><th>Beschreibung</th><th>Anzahl</th></tr>
+      <tr><td>Gesamtanzahl Gast-Logins</td><td><?= htmlspecialchars((string)$loginTotal) ?></td></tr>
+    </table>
+    <?php if ($loginByMonth): ?>
+      <table>
+        <tr><th>Monat</th><th>Anzahl</th></tr>
+        <?php foreach ($loginByMonth as $lm): ?>
+          <tr>
+            <td><?= htmlspecialchars($lm['Monat']) ?></td>
+            <td><?= htmlspecialchars($lm['Anzahl']) ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    <?php endif; ?>
+  <?php endif; ?>
 
   <!-- Gesamtsumme -->
   <?php if (!$is_guest): ?>

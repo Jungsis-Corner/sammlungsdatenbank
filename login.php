@@ -6,6 +6,24 @@ require_once __DIR__ . '/boot.php';
 // 2) Zugangsdaten aus config.php laden (Admin gehasht, niemals im Code selbst)
 require_once __DIR__ . '/config.php';
 
+// 2b) Gast-Logins protokollieren (für die Statistik-Seite). Darf den
+//     eigentlichen Login-Vorgang niemals blockieren, daher robust/still.
+function log_guest_login(string $quelle): void {
+    try {
+        $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        if (!$conn || $conn->connect_errno) return;
+        $stmt = $conn->prepare("INSERT INTO Login_Log (Quelle) VALUES (?)");
+        if ($stmt) {
+            $stmt->bind_param('s', $quelle);
+            $stmt->execute();
+            $stmt->close();
+        }
+        $conn->close();
+    } catch (\Throwable $e) {
+        // bewusst ignorieren
+    }
+}
+
 // 3) Zielberechnung: nur interne absolute Pfade, niemals login.php
 function safe_target(?string $to): string {
   $target = $to ?: '/sammlung/index.php';
@@ -46,6 +64,8 @@ if (isset($_GET['autologin']) && $_GET['autologin'] === 'gast') {
   $_SESSION['is_guest']  = true;
   $_SESSION['login_method'] = 'guest';
 
+  log_guest_login('login_autologin');
+
   header('Location: ' . safe_target($_GET['to'] ?? null));
   exit;
 }
@@ -78,6 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['role']      = $role;
     $_SESSION['is_guest']  = ($role !== 'admin');
     $_SESSION['login_method'] = 'password';
+
+    if ($role === 'guest') {
+        log_guest_login('login_form');
+    }
 
     header('Location: ' . safe_target($_POST['to'] ?? null));
     exit;
