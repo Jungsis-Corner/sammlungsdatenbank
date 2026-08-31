@@ -312,3 +312,20 @@ body.museum .toolbar a{
 body.museum .toolbar-row1{
   gap: 12px;
 }
+
+/* =========================================================
+   DARK MODE (manage_*.php über inc_head_admin.php)
+   ========================================================= */
+html[data-theme="dark"] body{
+  filter: invert(1) hue-rotate(180deg);
+  background: #fff;
+}
+html[data-theme="dark"] img,
+html[data-theme="dark"] video{
+  filter: invert(1) hue-rotate(180deg);
+}
+.theme-toggle{
+  background: #555 !important;
+  border-color: #333 !important;
+  color: #fff !important;
+}

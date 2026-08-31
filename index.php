@@ -340,6 +340,7 @@ $build = function(array $overrides = []) use ($baseParams) {
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="/sammlung/assets/theme-toggle.js"></script>
 
 <?php
 $isMuseum = !empty($_SESSION['museum_mode']);
@@ -542,6 +543,39 @@ html { scroll-behavior: smooth; } /* iPadOS 15+ kann das */
 /* Button nur auf Desktop zeigen – iPad/Tablet & Phone ausblenden */
 .desktop-only { display:inline-block; }
 @media (max-width: 1366px){ .desktop-only { display:none !important; } }
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+html[data-theme="dark"] body{
+  filter: invert(1) hue-rotate(180deg);
+  background: #fff;
+}
+html[data-theme="dark"] img,
+html[data-theme="dark"] video{
+  filter: invert(1) hue-rotate(180deg);
+}
+.theme-toggle{
+  background: #555 !important;
+  border-color: #333 !important;
+  color: #fff !important;
+}
+.theme-toggle-floating{
+position: fixed;
+bottom: 76px;
+right: 16px;
+z-index: 9999;
+border-radius: 50%;
+width: 44px;
+height: 44px;
+padding: 0;
+font-size: 20px;
+line-height: 42px;
+text-align: center;
+box-shadow: 0 2px 8px rgba(0,0,0,.25);
+border: 1px solid #333;
+cursor: pointer;
+}
 
   </style>
 </head>

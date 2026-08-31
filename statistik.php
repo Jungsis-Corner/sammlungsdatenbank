@@ -70,6 +70,7 @@ if (!$is_guest) {
 <head>
   <meta charset="UTF-8">
   <title>Statistik</title>
+  <script src="/sammlung/assets/theme-toggle.js"></script>
   <style>
     body { font-family: Arial; font-size: 10pt; padding: 20px; }
     h1 { text-align: center; margin-bottom: 30px; }
@@ -79,6 +80,39 @@ if (!$is_guest) {
     th { background: #eee; }
     p.center { text-align: center; }
     a { text-decoration: none; color: #007bff; }
+
+    /* =========================================================
+       DARK MODE
+       ========================================================= */
+    html[data-theme="dark"] body{
+      filter: invert(1) hue-rotate(180deg);
+      background: #fff;
+    }
+    html[data-theme="dark"] img,
+    html[data-theme="dark"] video{
+      filter: invert(1) hue-rotate(180deg);
+    }
+    .theme-toggle{
+      background: #555 !important;
+      border-color: #333 !important;
+      color: #fff !important;
+    }
+    .theme-toggle-floating{
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 9999;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 42px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      border: 1px solid #333;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>

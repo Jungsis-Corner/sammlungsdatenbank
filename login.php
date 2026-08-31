@@ -95,6 +95,34 @@ $to = safe_target($_GET['to'] ?? null);
   <meta charset="utf-8">
   <title>Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="/sammlung/assets/theme-toggle.js"></script>
+  <style>
+    html[data-theme="dark"] body{
+      filter: invert(1) hue-rotate(180deg);
+      background: #fff;
+    }
+    html[data-theme="dark"] img{
+      filter: invert(1) hue-rotate(180deg);
+    }
+    .theme-toggle-floating{
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 9999;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 42px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      background: #555;
+      color: #fff;
+      border: 1px solid #333;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body style="font-family:system-ui,Arial,sans-serif; max-width:520px; margin:5vh auto; padding:0 16px;">
   <h1>Login</h1>
