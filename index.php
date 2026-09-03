@@ -30,6 +30,15 @@ $herstellerList = get_lookup('Hersteller',   'Hersteller');
 $publisherList  = get_lookup('Publisher',    'Publisher');
 $verkaeuferList = get_lookup('Verkäufer',    'Verkäufer');
 
+// Liste der tatsächlich verwendeten Box-Werte (fürs Dropdown)
+$boxList = [];
+$boxRes = $conn->query("SELECT DISTINCT Box FROM Sammlung WHERE Box IS NOT NULL AND Box <> '' ORDER BY Box");
+if ($boxRes) {
+    while ($r = $boxRes->fetch_row()) {
+        $boxList[] = $r[0];
+    }
+}
+
 // ---------------------- Parameter ----------------------
 $filter          = $_GET['filter']     ?? '';
 $oh              = $_GET['oh']         ?? '';
@@ -39,6 +48,7 @@ $herstellerId    = intval($_GET['hersteller'] ?? 0);
 $publisherId     = intval($_GET['publisher']  ?? 0);
 $verkaeuferId    = intval($_GET['verkaeufer'] ?? 0);
 $standortId      = intval($_GET['standort']   ?? 0);
+$boxId           = trim((string)($_GET['box'] ?? ''));
 $verkaufFilter   = ($_GET['verkauf'] ?? '') === '1';
 
 // Sortierspalte + Richtung
@@ -86,7 +96,7 @@ $order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
 
 // Basis-Params für Links (ohne page)
 $params = ['sort' => $sort, 'dir' => $dir];
-foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','verkauf'] as $p) {
+foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf'] as $p) {
     $val = $_GET[$p] ?? null;
     if ($val !== null && $val !== '') {
         $params[$p] = $val;
@@ -137,6 +147,9 @@ if ($verkaeuferId && isset($verkaeuferList[$verkaeuferId])) {
 if ($standortId && isset($standortList[$standortId])) {
     $activeBadges[] = ['label' => '📍 ' . $standortList[$standortId], 'remove' => ['standort' => '']];
 }
+if ($boxId !== '') {
+    $activeBadges[] = ['label' => '📦 Box ' . $boxId, 'remove' => ['box' => '']];
+}
 if ($verkaufFilter) {
     $activeBadges[] = ['label' => '🏷️ Zum Verkauf', 'remove' => ['verkauf' => '']];
 }
@@ -175,6 +188,9 @@ if ($verkaeuferId) {
 }
 if ($standortId) {
     $where[] = "Sammlung.Standort=$standortId";
+}
+if ($boxId !== '') {
+    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($boxId) . "'";
 }
 if ($verkaufFilter) {
     $where[] = "Sammlung.`Zum Verkauf` = '1'";
@@ -381,7 +397,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
     }
     .toolbar-row1 {
       display: grid;
-      grid-template-columns: minmax(180px, 300px) auto auto auto auto; /* Suche | Stat | Reset | Filter-Toggle | Statistik */
+      grid-template-columns: minmax(260px, 1fr) auto auto; /* Suche | Stat | Statistik */
       gap: 8px;
       align-items: center;
       margin-bottom: 10px;
@@ -698,7 +714,7 @@ cursor: pointer;
     <form class="searchbox" action="index.php" method="get">
       <?php
         // aktive Parameter erhalten
-        foreach (['filter','oh','material','hersteller','publisher','verkaeufer','standort','sort','dir'] as $keep) {
+        foreach (['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir'] as $keep) {
           if (!empty($_GET[$keep])) {
             echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
           }
@@ -726,14 +742,6 @@ cursor: pointer;
         </a>
       <?php endif; ?>
     </div>
-
-    <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','verkauf']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>">
-      Reset alle Filter
-    </a>
-
-    <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
-      <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
-    </button>
 
     <?php if (!$isMuseum): ?>
       <a class="btn-stat" href="statistik.php">📊 Statistik</a>
@@ -788,7 +796,7 @@ cursor: pointer;
 
       <form class="toolbar-form" method="get" style="grid-column: 1 / -1; display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px; align-items:center;">
         <?php
-          foreach (['q','sort','dir','filter','oh','material','hersteller','publisher','verkaeufer','standort'] as $keep) {
+          foreach (['q','sort','dir','filter','oh','material','hersteller','publisher','verkaeufer','standort','box'] as $keep) {
             if (isset($_GET[$keep]) && $_GET[$keep] !== '') {
               echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
             }
@@ -864,14 +872,36 @@ cursor: pointer;
               <?php endforeach; ?>
             </select>
           <?php endif; ?>
+
+          <!-- Box -->
+          <?php if ($boxId !== ''): ?>
+            <button onclick="location.href='<?= url_remove_only(['box']) ?>'">✖ Box entfernen</button>
+          <?php else: ?>
+            <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&box='+encodeURIComponent(this.value)+'&page=1'">
+              <option value="">Box filtern</option>
+              <?php foreach($boxList as $bVal): ?>
+                <option value="<?= htmlspecialchars($bVal) ?>"><?= htmlspecialchars($bVal) ?></option>
+              <?php endforeach; ?>
+            </select>
+          <?php endif; ?>
         <?php endif; ?>
 
-        <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','hersteller','publisher','verkaeufer','standort']) ?>" style="text-align:center;">
+        <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','hersteller','publisher','verkaeufer','standort','box']) ?>" style="text-align:center;">
           Reset Dropdowns
         </a>
       </form>
     </div>
   <?php endif; ?>
+
+  <div class="toolbar-block" style="margin-bottom:0;grid-template-columns:auto auto;justify-content:start;">
+    <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
+      <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
+    </button>
+
+    <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
+      Reset alle Filter
+    </a>
+  </div>
 
 </div>
 <!-- ===== Ende Toolbar ===== -->
@@ -896,7 +926,7 @@ $activeCount  = count($activeBadges);
       <span class="count">
         Treffer gesamt: <?= (int)$total ?> • Diese Seite: <?= (int)$visibleCount ?>
       </span>
-      <a class="badge" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','verkauf']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
+      <a class="badge" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
     <?php else: ?>
       <strong>Keine aktiven Filter.</strong>
       <span class="count">Gesamt: <?= (int)$total ?> Einträge</span>
@@ -981,7 +1011,7 @@ $activeCount  = count($activeBadges);
     </tr>
     <?php while($row = $result->fetch_assoc()):
       $rowP = ['id'=>$row['ID'],'page'=>$page,'sort'=>$sort,'dir'=>$dir];
-      foreach(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','verkauf'] as $p){
+      foreach(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf'] as $p){
         if (!empty($_GET[$p])) $rowP[$p]=$_GET[$p];
       }
     ?>

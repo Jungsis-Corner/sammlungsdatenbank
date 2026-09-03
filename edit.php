@@ -369,6 +369,7 @@ $hersteller_id  = intval($_GET['hersteller'] ?? 0);
 $publisher_id   = intval($_GET['publisher']  ?? 0);
 $verkaeufer_id  = intval($_GET['verkaeufer'] ?? 0);
 $standort_id    = intval($_GET['standort']   ?? 0);
+$box_id         = trim((string)($_GET['box'] ?? ''));
 $backUrl        = $_GET['back']             ?? null;
 
 // damit die Nav-Buttons nicht undefiniert sind, auch bei $id==0
@@ -388,6 +389,7 @@ if ($hersteller_id )       $params['hersteller'] = $hersteller_id;
 if ($publisher_id)         $params['publisher']  = $publisher_id;
 if ($verkaeufer_id)        $params['verkaeufer'] = $verkaeufer_id;
 if ($standort_id)          $params['standort']   = $standort_id;
+if ($box_id !== '')        $params['box']        = $box_id;
 $listUrl = 'index.php?' . http_build_query($params);
 $viewUrl = 'view.php?' . http_build_query(array_merge($params, ['id'=>$id]));
 // --- Navi-Variablen sicher initialisieren (auch für id==0) ---
@@ -606,7 +608,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Redirect zurück in edit (mit Kontext)
         $keep = [];
-        foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort'] as $k) {
+        foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box'] as $k) {
             if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
         }
         $keep['id']   = $newId;
@@ -652,7 +654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Redirect-Ziel bestimmen
     $baseParams = [];
-    foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort'] as $k) {
+    foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box'] as $k) {
         if (isset($_POST[$k]) && $_POST[$k] !== '') $baseParams[$k] = $_POST[$k];
     }
 
@@ -739,6 +741,7 @@ if ($id > 0) {
     if ($publisher_id)                  $where[] = "S.Publisher=$publisher_id";
     if ($verkaeufer_id)                 $where[] = "S.Verkäufer=$verkaeufer_id";
     if ($standort_id)                   $where[] = "S.Standort=$standort_id";
+    if ($box_id !== '')                 $where[] = "S.Box = '" . $conn->real_escape_string($box_id) . "'";
     $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
     // Prev/Next/First/Last IDs holen – gleiche JOINs wie index.php

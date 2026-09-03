@@ -40,6 +40,7 @@ $hersteller_id  = intval($_GET['hersteller'] ?? 0);
 $publisher_id   = intval($_GET['publisher']  ?? 0);
 $verkaeufer_id  = intval($_GET['verkaeufer'] ?? 0);
 $standort_id    = intval($_GET['standort']   ?? 0);
+$box_id         = trim((string)($_GET['box'] ?? ''));
 $backUrl        = $_GET['back']             ?? null;
 
 // ---- Sortierung wie index.php ----
@@ -80,6 +81,7 @@ if ($hersteller_id)                 $where[] = "S.Hersteller=$hersteller_id";
 if ($publisher_id)                  $where[] = "S.Publisher=$publisher_id";
 if ($verkaeufer_id)                 $where[] = "S.`Verkäufer`=$verkaeufer_id";
 if ($standort_id)                   $where[] = "S.Standort=$standort_id";
+if ($box_id !== '')                 $where[] = "S.Box = '" . $conn->real_escape_string($box_id) . "'";
 $where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
 
 // ---- Einheitliche FROM+JOINs (einmal definieren, überall nutzen) ----
@@ -94,7 +96,7 @@ $from_join = "
 
 // ---- Basis-Params für Links (FRÜH bauen, da evtl. beim Redirect genutzt) ----
 $params = ['page'=>$page,'sort'=>$sort,'dir'=>$dir];
-foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort'] as $k) {
+foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box'] as $k) {
     if (isset($_GET[$k]) && $_GET[$k] !== '') $params[$k] = $_GET[$k];
 }
 $listUrl = 'index.php?' . http_build_query($params);

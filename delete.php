@@ -16,7 +16,7 @@ $id   = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 
 // Diese Parameter zurück zu index.php geben (Filter/Sortierung/Seite)
-$keepKeys = ['page','sort','filter','oh','material','q','hersteller','publisher','verkaeufer','standort'];
+$keepKeys = ['page','sort','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box'];
 $return = [];
 foreach ($keepKeys as $k) {
   if (isset($_GET[$k]) && $_GET[$k] !== '') $return[$k] = $_GET[$k];
@@ -58,6 +58,9 @@ if (!empty($_GET['q'])) {
 }
 foreach (['hersteller'=>'Hersteller','publisher'=>'Publisher','verkaeufer'=>'Verkäufer','standort'=>'Standort'] as $qp=>$col) {
     if (!empty($_GET[$qp])) $where[] = "Sammlung.$col=".(int)$_GET[$qp];
+}
+if (!empty($_GET['box'])) {
+    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($_GET['box']) . "'";
 }
 $where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
 
