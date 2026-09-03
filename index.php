@@ -381,7 +381,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
     }
     .toolbar-row1 {
       display: grid;
-      grid-template-columns: 1fr auto auto auto; /* Suche | Stat | Reset | Statistik */
+      grid-template-columns: minmax(180px, 300px) auto auto auto auto; /* Suche | Stat | Reset | Filter-Toggle | Statistik */
       gap: 8px;
       align-items: center;
       margin-bottom: 10px;
@@ -732,7 +732,7 @@ cursor: pointer;
     </a>
 
     <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
-      <?= $filterPanelOpen ? '🔼 Filter ausblenden' : '🔽 Filter anzeigen' ?>
+      <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
     </button>
 
     <?php if (!$isMuseum): ?>
@@ -778,6 +778,8 @@ cursor: pointer;
     ?>
     <a class="btn-filter btn-gray <?= ($material_filter===''?'active':'') ?>" href="<?= $build(['material'=>null] + ($isMuseum?['museum'=>'1']:[])) ?>">Alle Materialien</a>
   </div>
+
+  </div><!-- Ende #filterPanel -->
 
   <!-- Zeile 4: Dropdown-Filter nur außerhalb Museum -->
   <?php if (!$isMuseum): ?>
@@ -870,8 +872,6 @@ cursor: pointer;
       </form>
     </div>
   <?php endif; ?>
-
-  </div><!-- Ende #filterPanel -->
 
 </div>
 <!-- ===== Ende Toolbar ===== -->
@@ -1054,7 +1054,7 @@ if (!empty($_SESSION['museum_mode'])) {
     var isOpen = panel.style.display !== 'none';
     var next   = !isOpen;
     panel.style.display = next ? '' : 'none';
-    btn.textContent = next ? '🔼 Filter ausblenden' : '🔽 Filter anzeigen';
+    btn.textContent = next ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen';
     document.cookie = 'filterPanelOpen=' + (next ? '1' : '0') + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
   });
 })();
