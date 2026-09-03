@@ -334,6 +334,9 @@ $build = function(array $overrides = []) use ($baseParams) {
   if (!isset($overrides['page'])) $p['page'] = 1;
   return 'index.php?' . htmlspecialchars(http_build_query($p));
 };
+
+// -------- Filterbereich ein-/ausklappbar (Zustand per Cookie gemerkt) --------
+$filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -385,13 +388,22 @@ $isMuseum = !empty($_SESSION['museum_mode']);
     }
     .toolbar-block {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0,1fr));
-      gap: 8px;
+      grid-template-columns: repeat(8, minmax(0,1fr));
+      gap: 6px;
       margin-bottom: 8px;
     }
-    @media (max-width: 1100px) { .toolbar-block { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 800px)  { .toolbar-block { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 1100px) { .toolbar-block { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 800px)  { .toolbar-block { grid-template-columns: repeat(3, 1fr); } }
     .toolbar-label { grid-column: 1 / -1; font-weight:700; color:#444; margin-top:4px; }
+
+    /* Ein-/Ausklappbarer Filterbereich */
+    .filter-panel { margin-top: 4px; }
+    .filter-toggle-btn{
+      display:inline-block; padding:8px 12px; border-radius:6px;
+      background:#34495e; color:#fff; border:1px solid #2c3e50;
+      cursor:pointer; font:inherit;
+    }
+    .filter-toggle-btn:hover{ filter:brightness(.96); }
 
     .searchbox { display:flex; gap:8px; align-items:center; }
     .searchbox input[type="text"]{
@@ -418,8 +430,9 @@ $isMuseum = !empty($_SESSION['museum_mode']);
     .btn-stat:hover { filter:brightness(.96); }
 
     .btn-filter {
-      display:block; text-align:center; padding:8px 10px; border-radius:6px;
+      display:block; text-align:center; padding:5px 8px; border-radius:5px;
       color:#fff; text-decoration:none; border:1px solid transparent; font-weight:600;
+      font-size:0.85em;
     }
     .btn-filter:hover { filter:brightness(.96); }
     .btn-filter.active { outline:2px solid rgba(0,0,0,.15); }
@@ -718,10 +731,16 @@ cursor: pointer;
       Reset alle Filter
     </a>
 
+    <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
+      <?= $filterPanelOpen ? '🔼 Filter ausblenden' : '🔽 Filter anzeigen' ?>
+    </button>
+
     <?php if (!$isMuseum): ?>
       <a class="btn-stat" href="statistik.php">📊 Statistik</a>
     <?php endif; ?>
   </div>
+
+  <div id="filterPanel" class="filter-panel"<?= $filterPanelOpen ? '' : ' style="display:none;"' ?>>
 
   <!-- Zeile 2: Schnellfilter (im Museum lassen wir das drin, aber kompakter) -->
   <div class="toolbar-block">
@@ -851,6 +870,8 @@ cursor: pointer;
       </form>
     </div>
   <?php endif; ?>
+
+  </div><!-- Ende #filterPanel -->
 
 </div>
 <!-- ===== Ende Toolbar ===== -->
@@ -1022,6 +1043,22 @@ if (!empty($_SESSION['museum_mode'])) {
   <?php endif; ?>
 
 <a href="#top-marker" class="back-to-top" aria-label="Nach oben">↑ Nach oben</a>
+
+<script>
+(function(){
+  var btn   = document.getElementById('filterToggleBtn');
+  var panel = document.getElementById('filterPanel');
+  if (!btn || !panel) return;
+
+  btn.addEventListener('click', function(){
+    var isOpen = panel.style.display !== 'none';
+    var next   = !isOpen;
+    panel.style.display = next ? '' : 'none';
+    btn.textContent = next ? '🔼 Filter ausblenden' : '🔽 Filter anzeigen';
+    document.cookie = 'filterPanelOpen=' + (next ? '1' : '0') + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
+  });
+})();
+</script>
 
 <script>
 (function(){
