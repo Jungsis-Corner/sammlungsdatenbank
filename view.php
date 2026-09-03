@@ -267,7 +267,7 @@ function tr_meta_close(): void {
 <meta name="format-detection" content="telephone=no">
 <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
 <script src="/sammlung/assets/theme-toggle.js"></script>
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=10">
+<link rel="stylesheet" href="/sammlung/assets/app.css?v=11">
 </head>
 <body class="view-page">
   <h1><?= htmlspecialchars($data['Bezeichnung'] ?? '') ?></h1>

@@ -875,7 +875,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <script src="/sammlung/assets/theme-toggle.js"></script>
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=10">
+<link rel="stylesheet" href="/sammlung/assets/app.css?v=11">
 
 <style>
 .barcode-field {
@@ -1041,9 +1041,9 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 
   <form id="f" method="post">
     <?php
-      foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort'] as $k) {
-        if (isset($$k) && $$k !== '') {
-          echo '<input type="hidden" name="'.htmlspecialchars($k).'" value="'.htmlspecialchars($$k).'">';
+      foreach ($params as $k => $v) {
+        if ($v !== '' && $v !== null) {
+          echo '<input type="hidden" name="'.htmlspecialchars($k).'" value="'.htmlspecialchars((string)$v).'">';
         }
       }
     ?>
