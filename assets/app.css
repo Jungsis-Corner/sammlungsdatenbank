@@ -216,6 +216,19 @@ table.meta th{
   height: auto; min-height: 96px;
 }
 
+/* iOS/Safari rendert <input type="date"> in der alten .form-table-Struktur
+   sonst mit eigener, breiterer interner Darstellung (Text erscheint
+   zentriert, verdrängt den Leeren-Button daneben). Analog zum Fix
+   für .form-grid weiter unten. */
+.form-table .field input[type="date"]{
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  line-height: 28px;
+  padding: 0 8px;
+  text-align: left;
+}
+
 /* Fokus gut sichtbar */
 .form-table .field input:focus,
 .form-table .field select:focus,
@@ -738,7 +751,7 @@ html[data-theme="dark"] .msg-box.error{
 .date-with-clear{ display:flex; gap:6px; align-items:center; }
 .date-with-clear input[type="date"]{ flex:1 1 auto; min-width:0; }
 .date-clear-btn{
-  flex:0 0 auto; padding:6px 10px; border-radius:6px;
+  flex:0 0 auto; padding:6px 10px; border-radius:6px; min-width:36px;
   border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-size:0.9em; line-height:1;
 }
 .date-clear-btn:hover{ background:#eee; }

@@ -65,14 +65,23 @@
 
     // ---- Text+Datalist-Suchfelder: verstecktes ID-Feld synchronisieren ----
     // Format der Datalist-Einträge: "Anzeigetext (#ID)" - wird per Regex
-    // ausgelesen und in das zugehörige Hidden-Feld geschrieben.
+    // ausgelesen und in das zugehörige Hidden-Feld geschrieben. Nach einer
+    // erfolgreichen Auswahl wird die "(#ID)"-Kennung aus der Anzeige wieder
+    // entfernt, damit nur noch der saubere Name sichtbar bleibt - die ID
+    // steckt weiterhin im versteckten Feld.
     document.querySelectorAll('.lookup-search[data-hidden-target]').forEach(function(searchInput){
       var hidden = document.getElementById(searchInput.getAttribute('data-hidden-target'));
       if (!hidden) return;
       function sync(){
-        var m = searchInput.value.match(/\(#(\d+)\)/);
-        hidden.value = m ? m[1] : '';
+        var m = searchInput.value.match(/\(#(\d+)\)\s*$/);
+        if (m) {
+          hidden.value = m[1];
+          searchInput.value = searchInput.value.replace(/\s*\(#\d+\)\s*$/, '');
+        } else {
+          hidden.value = '';
+        }
       }
+      sync(); // beim Laden: falls vorbelegt, Anzeige direkt bereinigen
       searchInput.addEventListener('input', sync);
       searchInput.addEventListener('change', sync);
     });
