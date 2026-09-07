@@ -878,7 +878,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <script src="/sammlung/assets/theme-toggle.js"></script>
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=11">
+<link rel="stylesheet" href="/sammlung/assets/app.css?v=12">
 
 <style>
 .barcode-field {

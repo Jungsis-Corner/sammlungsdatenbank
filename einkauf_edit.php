@@ -345,7 +345,7 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="/sammlung/assets/theme-toggle.js"></script>
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=11">
+  <link rel="stylesheet" href="/sammlung/assets/app.css?v=12">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
 
   <style>
@@ -365,6 +365,12 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
       background:#e9ecef;
       border:1px solid #cfd4da;
       color:#6c757d;
+    }
+
+    html[data-theme="dark"] span.btn.nav-disabled{
+      background:#2a2a2a !important;
+      border-color:#444 !important;
+      color:#777 !important;
     }
   </style>
 </head>

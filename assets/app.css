@@ -682,6 +682,30 @@ html[data-theme="dark"] table.meta td{
 html[data-theme="dark"] table.meta th{
   background: #2a2a2a !important;
 }
+
+/* Alte Formular-Struktur (.form-table), z.B. noch genutzt von einkauf_edit.php */
+html[data-theme="dark"] .form-table{
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+}
+html[data-theme="dark"] .form-table .field + .field{
+  border-color: #333 !important;
+}
+html[data-theme="dark"] .form-table .field .label{
+  background: #242424 !important;
+  border-color: #333 !important;
+  color: #ccc !important;
+}
+html[data-theme="dark"] .form-table .field input,
+html[data-theme="dark"] .form-table .field select,
+html[data-theme="dark"] .form-table .field textarea{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+}
+html[data-theme="dark"] .form-table .field.readonly input[readonly]{
+  background: #202020 !important;
+  color: #888 !important;
+}
 html[data-theme="dark"] .image img,
 html[data-theme="dark"] .pic img{
   border-color: #444 !important;

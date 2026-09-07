@@ -304,7 +304,7 @@ function build_href_with(array $set): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="/sammlung/assets/theme-toggle.js"></script>
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=11">
+  <link rel="stylesheet" href="/sammlung/assets/app.css?v=12">
   <title>Einkäufe – Sammlung</title>
 
   <style>
@@ -394,6 +394,42 @@ function build_href_with(array $set): string {
     .quickfilters .btn.off{
       background: #b42318;
       border-color: #8f1d14;
+    }
+
+    /* =========================================================
+       DARK MODE – einkauf.php-eigene Klassen (panel, table.list)
+       ========================================================= */
+    html[data-theme="dark"] .panel{
+      background: #1a1a1a !important;
+      border-color: #333 !important;
+      color: #e8e8e8 !important;
+    }
+    html[data-theme="dark"] .panel label{
+      color: #ccc !important;
+    }
+    html[data-theme="dark"] .filters input[type="text"],
+    html[data-theme="dark"] .filters select{
+      background: #2a2a2a !important;
+      color: #e8e8e8 !important;
+      border: 1px solid #444 !important;
+    }
+    html[data-theme="dark"] table.list th,
+    html[data-theme="dark"] table.list td{
+      background: #1a1a1a !important;
+      color: #e8e8e8 !important;
+      border-color: #444 !important;
+    }
+    html[data-theme="dark"] table.list thead th{
+      background: #2a2a2a !important;
+    }
+    html[data-theme="dark"] table.list tbody tr:nth-child(even) td{
+      background: #222 !important;
+    }
+    html[data-theme="dark"] table.list tbody tr:hover td{
+      background: #2a2a3a !important;
+    }
+    html[data-theme="dark"] table.list a{
+      color: #8ab4ff !important;
     }
   </style>
 </head>
