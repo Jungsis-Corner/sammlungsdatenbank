@@ -583,6 +583,11 @@ html[data-theme="dark"] body{
   background: #121212 !important;
   color: #e8e8e8 !important;
 }
+.msg-box{ padding:8px; margin:10px 0; border-radius:6px; }
+.msg-box.success{ background:#eaf9ea; border:1px solid #9cd49c; }
+html[data-theme="dark"] .msg-box.success{
+  background:#0f2a17 !important; border-color:#2d6b3f !important; color:#e8e8e8 !important;
+}
 html[data-theme="dark"] h1{
   color: #a9b8ff !important;
 }
@@ -702,7 +707,7 @@ cursor: pointer;
 </h1>
 
 <?php if (($_GET['msg'] ?? '') === 'deleted'): ?>
-  <div style="background:#eaf9ea;border:1px solid #9cd49c;padding:8px;margin:10px 0;text-align:center;">
+  <div class="msg-box success" style="text-align:center;">
     Eintrag wurde gelöscht.
   </div>
 <?php endif; ?>

@@ -951,7 +951,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
   <h1><?= $id===0 ? 'Neuer Eintrag' : 'Eintrag bearbeiten' ?></h1>
 
   <?php if (!empty($_GET['msg'])): ?>
-    <div style="background:#eef;border:1px solid #99f;padding:8px;margin:10px 0;">
+    <div class="msg-box info">
       <?= htmlspecialchars($_GET['msg'], ENT_QUOTES, 'UTF-8') ?>
     </div>
   <?php endif; ?>

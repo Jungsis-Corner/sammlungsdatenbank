@@ -338,6 +338,18 @@ $geaendert = !empty($data['Geaendert_am']) ? date('d.m.Y H:i:s', strtotime((stri
 
 $selKat  = (int)($data['Kategorie'] ?? 0);
 $selV    = (int)($data['Verkaeufer'] ?? 0);
+
+// Anzeige-Label für die Such-Textfelder (Kategorie/Verkäufer) ermitteln
+$selKatLabel = '';
+if ($selKat > 0) {
+    $r = $conn->query("SELECT Kategorie FROM Kategorie WHERE ID=" . $selKat)->fetch_row();
+    if ($r) $selKatLabel = $r[0] . ' (#' . $selKat . ')';
+}
+$selVLabel = '';
+if ($selV > 0) {
+    $r = $conn->query("SELECT `Verkäufer` FROM `Verkäufer` WHERE ID=" . $selV)->fetch_row();
+    if ($r) $selVLabel = $r[0] . ' (#' . $selV . ')';
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -379,13 +391,13 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
 <h1><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h1>
 
 <?php if (!empty($_GET['msg'])): ?>
-  <div style="background:#eef;border:1px solid #99f;padding:8px;margin:10px 0;">
+  <div class="msg-box info">
     <?= htmlspecialchars((string)$_GET['msg'], ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
 
 <?php if ($msg): ?>
-  <div style="background:#fee;border:1px solid #f99;padding:8px;margin:10px 0;">
+  <div class="msg-box error">
     <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
@@ -433,12 +445,42 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
 
         <div class="field">
           <span class="label">Kategorie</span>
-          <select name="Kategorie"><?= get_options($conn, 'Kategorie', 'Kategorie', $selKat) ?></select>
+          <input type="text"
+                 class="lookup-search"
+                 list="kategorieList"
+                 autocomplete="off"
+                 placeholder="Tippen zum Suchen…"
+                 value="<?= htmlspecialchars($selKatLabel, ENT_QUOTES, 'UTF-8') ?>"
+                 data-hidden-target="Kategorie_hidden">
+          <input type="hidden" name="Kategorie" id="Kategorie_hidden" value="<?= $selKat ?>">
+          <datalist id="kategorieList">
+            <?php
+              $katOpt = $conn->query("SELECT ID, Kategorie FROM Kategorie ORDER BY Kategorie");
+              while ($kr = $katOpt->fetch_assoc()):
+            ?>
+              <option value="<?= htmlspecialchars($kr['Kategorie'] . ' (#' . $kr['ID'] . ')', ENT_QUOTES, 'UTF-8') ?>">
+            <?php endwhile; ?>
+          </datalist>
         </div>
 
         <div class="field">
           <span class="label">Verkäufer</span>
-          <select name="Verkaeufer"><?= get_options($conn, 'Verkäufer', 'Verkäufer', $selV) ?></select>
+          <input type="text"
+                 class="lookup-search"
+                 list="verkaeuferList"
+                 autocomplete="off"
+                 placeholder="Tippen zum Suchen…"
+                 value="<?= htmlspecialchars($selVLabel, ENT_QUOTES, 'UTF-8') ?>"
+                 data-hidden-target="Verkaeufer_hidden">
+          <input type="hidden" name="Verkaeufer" id="Verkaeufer_hidden" value="<?= $selV ?>">
+          <datalist id="verkaeuferList">
+            <?php
+              $vOpt = $conn->query("SELECT ID, `Verkäufer` FROM `Verkäufer` ORDER BY `Verkäufer`");
+              while ($vr = $vOpt->fetch_assoc()):
+            ?>
+              <option value="<?= htmlspecialchars($vr['Verkäufer'] . ' (#' . $vr['ID'] . ')', ENT_QUOTES, 'UTF-8') ?>">
+            <?php endwhile; ?>
+          </datalist>
         </div>
 
         <div class="field">

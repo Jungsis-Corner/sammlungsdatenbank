@@ -719,6 +719,41 @@ html[data-theme="dark"] .barcode-status{
   color: #ccc !important;
 }
 
+/* Nachrichten-Boxen (Erfolg/Info/Fehler) - ersetzt fest eincodierte Inline-Farben */
+.msg-box{ padding:8px; margin:10px 0; border-radius:6px; }
+.msg-box.info{ background:#eef; border:1px solid #99f; }
+.msg-box.success{ background:#eaf9ea; border:1px solid #9cd49c; }
+.msg-box.error{ background:#fee; border:1px solid #f99; }
+html[data-theme="dark"] .msg-box.info{
+  background:#1a1a3a !important; border-color:#4444aa !important; color:#e8e8e8 !important;
+}
+html[data-theme="dark"] .msg-box.success{
+  background:#0f2a17 !important; border-color:#2d6b3f !important; color:#e8e8e8 !important;
+}
+html[data-theme="dark"] .msg-box.error{
+  background:#3a1414 !important; border-color:#aa4444 !important; color:#e8e8e8 !important;
+}
+
+/* Datumsfeld + Leeren-Button (iOS: Datum sonst nicht löschbar) */
+.date-with-clear{ display:flex; gap:6px; align-items:center; }
+.date-with-clear input[type="date"]{ flex:1 1 auto; min-width:0; }
+.date-clear-btn{
+  flex:0 0 auto; padding:6px 10px; border-radius:6px;
+  border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-size:0.9em; line-height:1;
+}
+.date-clear-btn:hover{ background:#eee; }
+html[data-theme="dark"] .date-clear-btn{
+  background:#2a2a2a !important; border-color:#444 !important; color:#e8e8e8 !important;
+}
+
+/* Text+Datalist-Suchfelder für Dropdowns (iPad: Tastatur statt Wheel-Picker) */
+.lookup-search{
+  width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid #ccc; border-radius:6px; font:inherit;
+}
+html[data-theme="dark"] .lookup-search{
+  background:#2a2a2a !important; color:#e8e8e8 !important; border-color:#444 !important;
+}
+
 .theme-toggle{
   background: #555 !important;
   border-color: #333 !important;

@@ -39,5 +39,42 @@
       var now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
       setTheme(now === 'dark' ? 'light' : 'dark');
     });
+
+    // ---- Datumsfelder: kleinen "✖"-Button zum Leeren ergänzen ----
+    // (iOS zeigt im nativen Datums-Picker keine zuverlässige Möglichkeit,
+    // ein bereits gesetztes Datum wieder auf leer zu setzen.)
+    document.querySelectorAll('input[type="date"]').forEach(function(inp){
+      if (inp.closest('.date-with-clear')) return; // schon verpackt
+      var wrapper = document.createElement('span');
+      wrapper.className = 'date-with-clear';
+      inp.parentNode.insertBefore(wrapper, inp);
+      wrapper.appendChild(inp);
+
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'date-clear-btn';
+      clearBtn.title = 'Datum leeren';
+      clearBtn.textContent = '✖';
+      clearBtn.addEventListener('click', function(){
+        inp.value = '';
+        inp.dispatchEvent(new Event('input',  { bubbles: true }));
+        inp.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      wrapper.appendChild(clearBtn);
+    });
+
+    // ---- Text+Datalist-Suchfelder: verstecktes ID-Feld synchronisieren ----
+    // Format der Datalist-Einträge: "Anzeigetext (#ID)" - wird per Regex
+    // ausgelesen und in das zugehörige Hidden-Feld geschrieben.
+    document.querySelectorAll('.lookup-search[data-hidden-target]').forEach(function(searchInput){
+      var hidden = document.getElementById(searchInput.getAttribute('data-hidden-target'));
+      if (!hidden) return;
+      function sync(){
+        var m = searchInput.value.match(/\(#(\d+)\)/);
+        hidden.value = m ? m[1] : '';
+      }
+      searchInput.addEventListener('input', sync);
+      searchInput.addEventListener('change', sync);
+    });
   });
 })();
