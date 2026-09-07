@@ -1,4 +1,4 @@
-const CACHE_NAME = "sammlung-pwa-v2";
+const CACHE_NAME = "sammlung-pwa-v3";
 
 // Nur wirklich statische Sachen cachen:
 const STATIC_ASSETS = [

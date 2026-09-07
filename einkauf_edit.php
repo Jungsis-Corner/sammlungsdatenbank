@@ -356,8 +356,8 @@ if ($selV > 0) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js"></script>
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=12">
+  <script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+  <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
 
   <style>

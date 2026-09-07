@@ -88,7 +88,7 @@ if (!$is_guest) {
 <head>
   <meta charset="UTF-8">
   <title>Statistik</title>
-  <script src="/sammlung/assets/theme-toggle.js"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=2"></script>
   <style>
     body { font-family: Arial; font-size: 10pt; padding: 20px; }
     h1 { text-align: center; margin-bottom: 30px; }
