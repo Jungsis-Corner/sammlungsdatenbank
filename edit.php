@@ -1132,9 +1132,11 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
   <?php elseif ($type === 'select'): ?>
 
     <?php if ($col === 'Datentraeger'): ?>
-      <?php render_lookup_search($htmlName, 'Datentraeger', 'Datentrager', $value); ?>
+      <select name="<?= $htmlName ?>">
+        <?= get_options('Datentraeger','Datentrager',$value) ?>
+      </select>
 
-    <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher','Zustand','Verpackung','Material','Standort','Verkäufer'], true)): ?>
+    <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher'], true)): ?>
       <?php render_lookup_search($htmlName, $col, $col, $value); ?>
 
     <?php elseif ($col === 'Original/Homebrew'): ?>
