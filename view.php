@@ -268,7 +268,7 @@ function tr_meta_close(): void {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-<script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=3"></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
 </head>
 <body class="view-page">

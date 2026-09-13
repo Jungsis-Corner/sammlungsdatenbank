@@ -359,7 +359,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=3"></script>
 
 <?php
 $isMuseum = !empty($_SESSION['museum_mode']);

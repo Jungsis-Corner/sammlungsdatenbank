@@ -354,6 +354,32 @@ function get_options($table, $field, $selected='') {
     return $opts;
 }
 
+// Text+Datalist-Suchfeld statt langem <select> fuer iPad (nativer Wheel-Picker
+// erzwingt sonst Scrollen durch die komplette Liste + keine Bildschirmtastatur).
+// Nutzt dieselbe generische Sync-Logik wie theme-toggle.js
+// (.lookup-search[data-hidden-target] -> Label wird nach Auswahl von "(#ID)" bereinigt).
+function render_lookup_search($htmlName, $table, $field, $selectedId) {
+    global $conn;
+    $selectedId = (int)$selectedId;
+    $curLabel = '';
+    if ($selectedId > 0) {
+        $lr = $conn->query("SELECT `$field` FROM `$table` WHERE ID=" . $selectedId)->fetch_row();
+        if ($lr) $curLabel = $lr[0] . ' (#' . $selectedId . ')';
+    }
+    $listId = 'lookupList_' . preg_replace('/[^a-zA-Z0-9]/', '', $htmlName);
+    echo '<input type="text" class="lookup-search" list="' . $listId . '" autocomplete="off"'
+       . ' placeholder="Tippen zum Suchen…"'
+       . ' value="' . htmlspecialchars($curLabel, ENT_QUOTES, 'UTF-8') . '"'
+       . ' data-hidden-target="' . $htmlName . '_hidden">';
+    echo '<input type="hidden" name="' . $htmlName . '" id="' . $htmlName . '_hidden" value="' . $selectedId . '">';
+    echo '<datalist id="' . $listId . '">';
+    $res = $conn->query("SELECT ID, `$field` FROM `$table` ORDER BY `$field`");
+    while ($r = $res->fetch_assoc()) {
+        echo '<option value="' . htmlspecialchars($r[$field] . ' (#' . $r['ID'] . ')', ENT_QUOTES, 'UTF-8') . '">';
+    }
+    echo '</datalist>';
+}
+
 // GET-Parameter
 $id             = intval($_GET['id']        ?? 0);
 $page           = intval($_GET['page']      ?? 1);
@@ -877,7 +903,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=3"></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
 
 <style>
@@ -1106,9 +1132,10 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
   <?php elseif ($type === 'select'): ?>
 
     <?php if ($col === 'Datentraeger'): ?>
-      <select name="<?= $htmlName ?>">
-        <?= get_options('Datentraeger','Datentrager',$value) ?>
-      </select>
+      <?php render_lookup_search($htmlName, 'Datentraeger', 'Datentrager', $value); ?>
+
+    <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher','Zustand','Verpackung','Material','Standort','Verkäufer'], true)): ?>
+      <?php render_lookup_search($htmlName, $col, $col, $value); ?>
 
     <?php elseif ($col === 'Original/Homebrew'): ?>
       <?php $sel = $value ?: 'Original'; ?>

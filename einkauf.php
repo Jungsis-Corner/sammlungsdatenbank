@@ -303,7 +303,7 @@ function build_href_with(array $set): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=3"></script>
   <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
   <title>Einkäufe – Sammlung</title>
 

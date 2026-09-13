@@ -20,6 +20,16 @@
   var stored = getCookie('theme');
   document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
 
+  // ---- iOS/WKWebView-Fix: Touch-Events zuverlaessig "aufwecken" ----
+  // Bekannter WebKit-Bug, v.a. bei installierten Home-Screen-Apps (PWA,
+  // "standalone"-Modus): Ohne mindestens einen registrierten Touch-Event-
+  // Listener im Dokument wertet iOS den allerersten Tap nach jedem Neustart
+  // der App teils nur als "Hover-Erkennung" statt als echten Klick - Buttons,
+  // Inputs und Selects reagieren dann erst beim zweiten Antippen. Ein leerer,
+  // passiver touchstart-Listener so frueh wie moeglich behebt das zuverlaessig,
+  // ohne das eigentliche Touch-Verhalten zu beeinflussen.
+  document.addEventListener('touchstart', function(){}, { passive: true });
+
   document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('themeToggle');
     if (!btn) {

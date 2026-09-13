@@ -8,7 +8,7 @@ require_once __DIR__ . '/config.php';
 <head>
     <meta charset="UTF-8">
     <title>Einstellungen</title>
-    <script src="/sammlung/assets/theme-toggle.js?v=2"></script>
+    <script src="/sammlung/assets/theme-toggle.js?v=3"></script>
     <style>
         body { font-family: Arial; font-size: 10pt; padding: 20px; }
         h1 { text-align: center; color: #333; margin-bottom: 20px; }
