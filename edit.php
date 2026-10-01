@@ -551,7 +551,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Akzeptiere dd.mm.yyyy oder yyyy-mm-dd, speichere als yyyy-mm-dd
             if ($raw === '') {
                 $vals[$col] = '';
-            } elseif (preg_match('~^\d{2}\.\d{2}\.\d{4}$~', $raw)) {
+            } elseif (preg_match('~^\d{1,2}\.\d{1,2}\.\d{4}$~', $raw)) {
                 [$d,$m,$y] = explode('.', $raw);
                 $vals[$col] = sprintf('%04d-%02d-%02d', (int)$y, (int)$m, (int)$d);
             } else {
@@ -1145,7 +1145,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
         <?= get_options('Datentraeger','Datentrager',$value) ?>
       </select>
 
-    <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher'], true)): ?>
+    <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher','Verkäufer'], true)): ?>
       <?php render_lookup_search($htmlName, $col, $col, $value); ?>
 
     <?php elseif ($col === 'Original/Homebrew'): ?>
@@ -1243,6 +1243,24 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 
       <div id="barcodeStatus" class="barcode-status" aria-live="polite"></div>
     </div>
+
+  <?php elseif ($col === 'Einkaufsdatum'): ?>
+
+    <?php
+      $ekdRaw = trim((string)$value);
+      $ekdDisplay = '';
+      if ($ekdRaw !== '' && $ekdRaw !== '0000-00-00') {
+          $ekdTs = strtotime($ekdRaw);
+          $ekdDisplay = $ekdTs ? date('d.m.Y', $ekdTs) : $ekdRaw;
+      }
+    ?>
+    <input type="text"
+           name="<?= $htmlName ?>"
+           value="<?= htmlspecialchars($ekdDisplay) ?>"
+           inputmode="numeric"
+           autocomplete="off"
+           placeholder="TT.MM.JJJJ"
+           pattern="\d{1,2}\.\d{1,2}\.\d{4}">
 
   <?php else: ?>
 
