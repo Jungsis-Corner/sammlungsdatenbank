@@ -685,6 +685,9 @@ html[data-theme="dark"] .toolbar-form input[type="date"]{
 }
 .toolbar-form .date-with-clear{ display:flex; gap:6px; align-items:center; }
 .toolbar-form .date-with-clear input[type="date"]{ flex:1 1 auto; min-width:0; }
+.toolbar-form .date-filter-wrap{ display:flex; gap:6px; align-items:center; }
+.toolbar-form .date-filter-wrap > .date-with-clear{ flex:1 1 auto; min-width:0; }
+.toolbar-form .date-filter-wrap > button{ flex:0 0 auto; }
 .toolbar-form .date-clear-btn{
   flex:0 0 auto; padding:8px 10px; border-radius:6px; min-width:38px;
   border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-size:0.9em; line-height:1;
@@ -943,7 +946,10 @@ cursor: pointer;
           <?php if ($einkaufsdatumFilter !== ''): ?>
             <button onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
           <?php else: ?>
-            <input type="date" name="einkaufsdatum" onchange="if(this.value.length===10) this.form.submit()" title="Nach Einkaufsdatum suchen">
+            <span class="date-filter-wrap">
+              <input type="date" name="einkaufsdatum" title="Nach Einkaufsdatum suchen">
+              <button type="submit" title="Nach Datum suchen">🔍</button>
+            </span>
           <?php endif; ?>
         <?php endif; ?>
 
