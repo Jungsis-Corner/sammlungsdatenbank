@@ -22,6 +22,12 @@ $verkaeuferId    = intval($_GET['verkaeufer'] ?? 0);
 $standortId      = intval($_GET['standort']   ?? 0);
 $boxId           = trim((string)($_GET['box'] ?? ''));
 
+// Einkaufsdatum-Suche (aus <input type="date">, liefert immer YYYY-MM-DD)
+$einkaufsdatumFilter = trim((string)($_GET['einkaufsdatum'] ?? ''));
+if ($einkaufsdatumFilter !== '' && !preg_match('~^\d{4}-\d{2}-\d{2}$~', $einkaufsdatumFilter)) {
+    $einkaufsdatumFilter = '';
+}
+
 $sort = $_GET['sort'] ?? 'Bezeichnung';
 $dir  = strtolower($_GET['dir'] ?? 'asc');
 if (!in_array($dir, ['asc','desc'], true)) $dir = 'asc';
@@ -73,6 +79,7 @@ if ($publisherId)                   $where[] = "Sammlung.Publisher=$publisherId"
 if ($verkaeuferId)                  $where[] = "Sammlung.`Verkäufer`=$verkaeuferId";
 if ($standortId)                    $where[] = "Sammlung.Standort=$standortId";
 if ($boxId !== '')                  $where[] = "Sammlung.Box = '" . $conn->real_escape_string($boxId) . "'";
+if ($einkaufsdatumFilter !== '')    $where[] = "Sammlung.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatumFilter) . "'";
 
 $where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
 
@@ -132,6 +139,7 @@ $add('publisher',  $_GET['publisher']  ?? null);
 $add('verkaeufer', $_GET['verkaeufer'] ?? null);
 $add('standort',   $_GET['standort']   ?? null);
 $add('box',         $_GET['box']         ?? null);
+$add('einkaufsdatum', $_GET['einkaufsdatum'] ?? null);
 $add('sort',       ($sort ?? null) . '-' . ($dir ?? 'asc'));
 
 $suffix   = implode('_', $parts);

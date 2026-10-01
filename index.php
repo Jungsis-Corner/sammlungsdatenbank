@@ -51,6 +51,12 @@ $standortId      = intval($_GET['standort']   ?? 0);
 $boxId           = trim((string)($_GET['box'] ?? ''));
 $verkaufFilter   = ($_GET['verkauf'] ?? '') === '1';
 
+// Einkaufsdatum-Suche (aus <input type="date">, liefert immer YYYY-MM-DD)
+$einkaufsdatumFilter = trim((string)($_GET['einkaufsdatum'] ?? ''));
+if ($einkaufsdatumFilter !== '' && !preg_match('~^\d{4}-\d{2}-\d{2}$~', $einkaufsdatumFilter)) {
+    $einkaufsdatumFilter = '';
+}
+
 // Sortierspalte + Richtung
 $sort = $_GET['sort'] ?? 'Bezeichnung';
 $dir  = strtolower($_GET['dir'] ?? 'asc');
@@ -96,7 +102,7 @@ $order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
 
 // Basis-Params für Links (ohne page)
 $params = ['sort' => $sort, 'dir' => $dir];
-foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf'] as $p) {
+foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p) {
     $val = $_GET[$p] ?? null;
     if ($val !== null && $val !== '') {
         $params[$p] = $val;
@@ -153,6 +159,9 @@ if ($boxId !== '') {
 if ($verkaufFilter) {
     $activeBadges[] = ['label' => '🏷️ Zum Verkauf', 'remove' => ['verkauf' => '']];
 }
+if ($einkaufsdatumFilter !== '') {
+    $activeBadges[] = ['label' => '📅 ' . date('d.m.Y', strtotime($einkaufsdatumFilter)), 'remove' => ['einkaufsdatum' => '']];
+}
 
 // ---------------------- WHERE ----------------------
 $where = [];
@@ -194,6 +203,9 @@ if ($boxId !== '') {
 }
 if ($verkaufFilter) {
     $where[] = "Sammlung.`Zum Verkauf` = '1'";
+}
+if ($einkaufsdatumFilter !== '') {
+    $where[] = "Sammlung.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatumFilter) . "'";
 }
 $where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
 
@@ -719,7 +731,7 @@ cursor: pointer;
     <form class="searchbox" action="index.php" method="get">
       <?php
         // aktive Parameter erhalten
-        foreach (['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir'] as $keep) {
+        foreach (['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir','einkaufsdatum'] as $keep) {
           if (!empty($_GET[$keep])) {
             echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
           }
@@ -801,7 +813,7 @@ cursor: pointer;
 
       <form class="toolbar-form" method="get" style="grid-column: 1 / -1; display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px; align-items:center;">
         <?php
-          foreach (['q','sort','dir','filter','oh','material','hersteller','publisher','verkaeufer','standort','box'] as $keep) {
+          foreach (['q','sort','dir','filter','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum'] as $keep) {
             if (isset($_GET[$keep]) && $_GET[$keep] !== '') {
               echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
             }
@@ -889,9 +901,16 @@ cursor: pointer;
               <?php endforeach; ?>
             </select>
           <?php endif; ?>
+
+          <!-- Einkaufsdatum -->
+          <?php if ($einkaufsdatumFilter !== ''): ?>
+            <button onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
+          <?php else: ?>
+            <input type="date" name="einkaufsdatum" onchange="this.form.submit()" title="Nach Einkaufsdatum suchen">
+          <?php endif; ?>
         <?php endif; ?>
 
-        <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','hersteller','publisher','verkaeufer','standort','box']) ?>" style="text-align:center;">
+        <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum']) ?>" style="text-align:center;">
           Reset Dropdowns
         </a>
       </form>
@@ -903,7 +922,7 @@ cursor: pointer;
       <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
     </button>
 
-    <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
+    <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
       Reset alle Filter
     </a>
   </div>
@@ -931,7 +950,7 @@ $activeCount  = count($activeBadges);
       <span class="count">
         Treffer gesamt: <?= (int)$total ?> • Diese Seite: <?= (int)$visibleCount ?>
       </span>
-      <a class="badge" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
+      <a class="badge" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
     <?php else: ?>
       <strong>Keine aktiven Filter.</strong>
       <span class="count">Gesamt: <?= (int)$total ?> Einträge</span>
@@ -1016,7 +1035,7 @@ $activeCount  = count($activeBadges);
     </tr>
     <?php while($row = $result->fetch_assoc()):
       $rowP = ['id'=>$row['ID'],'page'=>$page,'sort'=>$sort,'dir'=>$dir];
-      foreach(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf'] as $p){
+      foreach(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p){
         if (!empty($_GET[$p])) $rowP[$p]=$_GET[$p];
       }
     ?>
