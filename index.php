@@ -668,6 +668,43 @@ html[data-theme="dark"] .toolbar-form select{
   color: #e8e8e8 !important;
   border-color: #444 !important;
 }
+.toolbar-form input[type="date"]{
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
+  box-sizing: border-box;
+  height: 38px;
+}
+html[data-theme="dark"] .toolbar-form input[type="date"]{
+  background: #2a2a2a !important;
+  color: #e8e8e8 !important;
+  border-color: #444 !important;
+}
+.toolbar-form .date-with-clear{ display:flex; gap:6px; align-items:center; }
+.toolbar-form .date-with-clear input[type="date"]{ flex:1 1 auto; min-width:0; }
+.toolbar-form .date-clear-btn{
+  flex:0 0 auto; padding:8px 10px; border-radius:6px; min-width:38px;
+  border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-size:0.9em; line-height:1;
+}
+.toolbar-form .date-clear-btn:hover{ background:#eee; }
+html[data-theme="dark"] .toolbar-form .date-clear-btn{
+  background:#2a2a2a !important; border-color:#444 !important; color:#e8e8e8 !important;
+}
+.toolbar-form button{
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f5f5f5;
+  font: inherit;
+  cursor: pointer;
+}
+.toolbar-form button:hover{ background:#eee; }
+html[data-theme="dark"] .toolbar-form button{
+  background:#2a2a2a !important; border-color:#444 !important; color:#e8e8e8 !important;
+}
 .theme-toggle{
   background: #555 !important;
   border-color: #333 !important;
@@ -906,7 +943,7 @@ cursor: pointer;
           <?php if ($einkaufsdatumFilter !== ''): ?>
             <button onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
           <?php else: ?>
-            <input type="date" name="einkaufsdatum" onchange="this.form.submit()" title="Nach Einkaufsdatum suchen">
+            <input type="date" name="einkaufsdatum" onchange="if(this.value.length===10) this.form.submit()" title="Nach Einkaufsdatum suchen">
           <?php endif; ?>
         <?php endif; ?>
 
