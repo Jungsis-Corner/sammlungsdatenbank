@@ -920,7 +920,7 @@ cursor: pointer;
         <?php if (!$is_guest): ?>
           <!-- Standort -->
           <?php if ($standortId): ?>
-            <button onclick="location.href='<?= url_remove_only(['standort']) ?>'">✖ Standort entfernen</button>
+            <button type="button" onclick="location.href='<?= url_remove_only(['standort']) ?>'">✖ Standort entfernen</button>
           <?php else: ?>
             <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&standort='+this.value+'&page=1'">
               <option value="">Standort filtern</option>
@@ -932,7 +932,7 @@ cursor: pointer;
 
           <!-- Box -->
           <?php if ($boxId !== ''): ?>
-            <button onclick="location.href='<?= url_remove_only(['box']) ?>'">✖ Box entfernen</button>
+            <button type="button" onclick="location.href='<?= url_remove_only(['box']) ?>'">✖ Box entfernen</button>
           <?php else: ?>
             <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&box='+encodeURIComponent(this.value)+'&page=1'">
               <option value="">Box filtern</option>
@@ -944,7 +944,7 @@ cursor: pointer;
 
           <!-- Einkaufsdatum -->
           <?php if ($einkaufsdatumFilter !== ''): ?>
-            <button onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
+            <button type="button" onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
           <?php else: ?>
             <span class="date-filter-wrap">
               <input type="date" name="einkaufsdatum" title="Nach Einkaufsdatum suchen">
