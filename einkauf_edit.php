@@ -94,6 +94,27 @@ function get_options(mysqli $conn, string $table, string $field, int $selected =
 }
 
 /**
+ * ID aus Such-Textfeld (Kategorie/Verkäufer) ermitteln, falls das versteckte
+ * ID-Feld leer ankommt (z.B. veraltetes JavaScript im Browser-Cache).
+ * Reihenfolge: 1) Hidden-ID, 2) "(#ID)" im Text, 3) exakter Name in der Lookup-Tabelle.
+ */
+function resolve_lookup_id(mysqli $conn, string $table, string $field, string $idRaw, string $textRaw): string {
+  $id = (int)$idRaw;
+  if ($id > 0) return (string)$id;
+
+  $text = trim($textRaw);
+  if ($text === '') return '';
+
+  if (preg_match('/\(#(\d+)\)\s*$/', $text, $m)) return $m[1];
+
+  $stmt = $conn->prepare("SELECT ID FROM `$table` WHERE `$field` = ? LIMIT 1");
+  $stmt->bind_param('s', $text);
+  $stmt->execute();
+  $row = stmt_fetch_one_assoc($stmt);
+  return $row ? (string)(int)$row['ID'] : '';
+}
+
+/**
  * INSERT oder UPDATE.
  * Robust gegen leere Eingaben:
  * - FK-Spalten Kategorie/Verkaeufer: NULLIF(?,0)
@@ -184,8 +205,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $v = [
     'Bestelldatum'            => (string)($_POST['Bestelldatum'] ?? ''),
     'Bezeichnung'             => (string)($_POST['Bezeichnung'] ?? ''),
-    'Kategorie'               => (string)($_POST['Kategorie'] ?? ''),
-    'Verkaeufer'              => (string)($_POST['Verkaeufer'] ?? ''),
+    'Kategorie'               => resolve_lookup_id($conn, 'Kategorie', 'Kategorie', (string)($_POST['Kategorie'] ?? ''), (string)($_POST['Kategorie_text'] ?? '')),
+    'Verkaeufer'              => resolve_lookup_id($conn, 'Verkäufer', 'Verkäufer', (string)($_POST['Verkaeufer'] ?? ''), (string)($_POST['Verkaeufer_text'] ?? '')),
     'Preis'                   => (string)($_POST['Preis'] ?? ''),
     'Lieferdatum'             => (string)($_POST['Lieferdatum'] ?? ''),
     'Menge'                   => (string)($_POST['Menge'] ?? '1'),
@@ -446,6 +467,7 @@ if ($selV > 0) {
         <div class="field">
           <span class="label">Kategorie</span>
           <input type="text"
+                 name="Kategorie_text"
                  class="lookup-search"
                  list="kategorieList"
                  autocomplete="off"
@@ -466,6 +488,7 @@ if ($selV > 0) {
         <div class="field">
           <span class="label">Verkäufer</span>
           <input type="text"
+                 name="Verkaeufer_text"
                  class="lookup-search"
                  list="verkaeuferList"
                  autocomplete="off"

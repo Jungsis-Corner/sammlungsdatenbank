@@ -367,7 +367,7 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
         if ($lr) $curLabel = $lr[0] . ' (#' . $selectedId . ')';
     }
     $listId = 'lookupList_' . preg_replace('/[^a-zA-Z0-9]/', '', $htmlName);
-    echo '<input type="text" class="lookup-search" list="' . $listId . '" autocomplete="off"'
+    echo '<input type="text" name="' . $htmlName . '_text" class="lookup-search" list="' . $listId . '" autocomplete="off"'
        . ' placeholder="Tippen zum Suchen…"'
        . ' value="' . htmlspecialchars($curLabel, ENT_QUOTES, 'UTF-8') . '"'
        . ' data-hidden-target="' . $htmlName . '_hidden">';
@@ -378,6 +378,25 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
         echo '<option value="' . htmlspecialchars($r[$field] . ' (#' . $r['ID'] . ')', ENT_QUOTES, 'UTF-8') . '">';
     }
     echo '</datalist>';
+}
+
+// ID aus Such-Textfeld ermitteln, falls das versteckte ID-Feld leer ankommt
+// (z.B. veraltetes JavaScript im Browser-Cache): 1) Hidden-ID, 2) "(#ID)" im Text,
+// 3) exakter Name in der Lookup-Tabelle.
+function resolve_lookup_id($table, $field, $idRaw, $textRaw) {
+    global $conn;
+    $id = (int)$idRaw;
+    if ($id > 0) return $id;
+    $text = trim((string)$textRaw);
+    if ($text === '') return 0;
+    if (preg_match('/\(#(\d+)\)\s*$/', $text, $m)) return (int)$m[1];
+    $stmt = $conn->prepare("SELECT ID FROM `$table` WHERE `$field` = ? LIMIT 1");
+    $stmt->bind_param('s', $text);
+    $stmt->execute();
+    $stmt->bind_result($foundId);
+    $res = $stmt->fetch() ? (int)$foundId : 0;
+    $stmt->close();
+    return $res;
 }
 
 // GET-Parameter
@@ -572,7 +591,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $types     .= 's';
             } elseif (in_array($col, $selectIntCols, true)) {
                 // klassische FK-Selects -> als int
-                $vals[$col] = (int)($_POST[$name] ?? 0);
+                if (in_array($col, ['Kategorie','Hersteller','Publisher','Verkäufer'], true)) {
+                    // Such-Textfelder: ID notfalls aus dem sichtbaren Text nachschlagen
+                    $vals[$col] = resolve_lookup_id($col, $col, $_POST[$name] ?? '', $_POST[$name . '_text'] ?? '');
+                } else {
+                    $vals[$col] = (int)($_POST[$name] ?? 0);
+                }
                 $types     .= 'i';
             } else {
                 // übrige selects als string
