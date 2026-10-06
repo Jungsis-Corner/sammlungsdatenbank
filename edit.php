@@ -912,7 +912,7 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<script src="/sammlung/assets/theme-toggle.js?v=3"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=4"></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
 
 <style>

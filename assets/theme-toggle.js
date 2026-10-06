@@ -83,13 +83,42 @@
       var hidden = document.getElementById(searchInput.getAttribute('data-hidden-target'));
       if (!hidden) return;
       function sync(){
-        var m = searchInput.value.match(/\(#(\d+)\)\s*$/);
+        var val = searchInput.value;
+        var m = val.match(/\(#(\d+)\)\s*$/);
         if (m) {
+          // Auswahl aus der Datalist: ID merken, Anzeige bereinigen
+          var clean = val.replace(/\s*\(#\d+\)\s*$/, '').trim();
           hidden.value = m[1];
-          searchInput.value = searchInput.value.replace(/\s*\(#\d+\)\s*$/, '');
-        } else {
-          hidden.value = '';
+          searchInput.value = clean;
+          searchInput.dataset.cleanLabel = clean;
+          return;
         }
+        var trimmed = val.trim();
+        if (trimmed === '') {
+          hidden.value = '';
+          searchInput.dataset.cleanLabel = '';
+          return;
+        }
+        // Anzeige unveraendert (bereits bereinigter Name) -> ID beibehalten
+        if (hidden.value && searchInput.dataset.cleanLabel !== undefined &&
+            trimmed === searchInput.dataset.cleanLabel) {
+          return;
+        }
+        // Sonst: exakten Namen in der Datalist nachschlagen
+        var found = '';
+        var list = searchInput.list;
+        if (list) {
+          var opts = list.options;
+          for (var i = 0; i < opts.length; i++) {
+            var mm = opts[i].value.match(/^(.*?)\s*\(#(\d+)\)\s*$/);
+            if (mm && mm[1].toLowerCase() === trimmed.toLowerCase()) {
+              found = mm[2];
+              searchInput.dataset.cleanLabel = mm[1];
+              break;
+            }
+          }
+        }
+        hidden.value = found;
       }
       sync(); // beim Laden: falls vorbelegt, Anzeige direkt bereinigen
       searchInput.addEventListener('input', sync);
