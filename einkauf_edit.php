@@ -5,6 +5,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 require_once __DIR__ . '/config.php';
@@ -20,7 +21,7 @@ if (empty($_SESSION['csrf'])) {
 }
 
 $id      = (int)($_GET['id'] ?? 0);
-$backUrl = (string)($_GET['back'] ?? 'einkauf.php');
+$backUrl = safe_back_url($_GET['back'] ?? null, 'einkauf.php');
 
 /* =================== Helper: Statement als Array holen (mit/ohne mysqlnd) =================== */
 function stmt_fetch_all_assoc(mysqli_stmt $stmt): array {
@@ -200,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $id      = (int)($_POST['id'] ?? 0);
-  $backUrl = (string)($_POST['back'] ?? 'einkauf.php');
+  $backUrl = safe_back_url($_POST['back'] ?? null, 'einkauf.php');
 
   $v = [
     'Bestelldatum'            => (string)($_POST['Bestelldatum'] ?? ''),

@@ -17,6 +17,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // ---- Login prüfen & nur Admin zulassen ----
 require_once __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 // --- CSRF-Token initialisieren ---
@@ -420,7 +421,7 @@ $einkaufsdatum_filter = trim((string)($_GET['einkaufsdatum'] ?? ''));
 if ($einkaufsdatum_filter !== '' && !preg_match('~^\d{4}-\d{2}-\d{2}$~', $einkaufsdatum_filter)) {
     $einkaufsdatum_filter = '';
 }
-$backUrl        = $_GET['back']             ?? null;
+$backUrl        = safe_back_url($_GET['back'] ?? null, '');  // nur relative App-Ziele
 
 // damit die Nav-Buttons nicht undefiniert sind, auch bei $id==0
 $prev_id = null;

@@ -16,6 +16,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // ---- Login prüfen (Gäste erlaubt) ----
 require_once __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
 if (!function_exists('is_guest')) { function is_guest(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'guest'; } }
 if (!function_exists('is_admin')) { function is_admin(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; } }
 $is_guest = is_guest();
@@ -46,7 +47,7 @@ $einkaufsdatum_filter = trim((string)($_GET['einkaufsdatum'] ?? ''));
 if ($einkaufsdatum_filter !== '' && !preg_match('~^\d{4}-\d{2}-\d{2}$~', $einkaufsdatum_filter)) {
     $einkaufsdatum_filter = '';
 }
-$backUrl        = $_GET['back']             ?? null;
+$backUrl        = safe_back_url($_GET['back'] ?? null, '');  // nur relative App-Ziele
 
 // ---- Sortierung wie index.php ----
 $sort_map = [
