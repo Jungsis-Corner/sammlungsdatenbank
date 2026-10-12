@@ -605,8 +605,13 @@ function build_href_with(array $set): string {
 
           <td class="col-action">
             <a class="btn" href="einkauf_edit.php?id=<?= $id ?>&back=<?= urlencode($self) ?>">✏️</a>
-            <a class="btn" href="einkauf_delete.php?id=<?= $id ?>&back=<?= urlencode($self) ?>"
-               onclick="return confirm('Einkauf wirklich löschen?');">🗑️</a>
+            <form method="post" action="einkauf_delete.php" style="margin:0; display:inline;"
+                  onsubmit="return confirm('Einkauf wirklich löschen?');">
+              <?= csrf_field() ?>
+              <input type="hidden" name="id" value="<?= $id ?>">
+              <input type="hidden" name="back" value="<?= htmlspecialchars($self, ENT_QUOTES, 'UTF-8') ?>">
+              <button type="submit" class="btn" title="Einkauf löschen">🗑️</button>
+            </form>
             <a class="btn" href="<?= htmlspecialchars($transferHref, ENT_QUOTES, 'UTF-8') ?>"
                target="_blank" rel="noopener"
                title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Wert) – öffnet in neuem Tab">➡️ Sammlung</a>
