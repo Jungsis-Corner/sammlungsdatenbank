@@ -2,6 +2,7 @@
 require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/require_login.php';   // Login-Prüfung + Session (boot.php)
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_filter.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 require_post_csrf();                       // Löschen nur per POST mit CSRF-Token
 
@@ -29,38 +30,14 @@ $stmt->close();
 // 3) Optional: Seite anpassen, falls nach dem Löschen leer
 $limit = 50; // muss mit index.php übereinstimmen
 
-// WHERE wie in index.php nachbauen
-$where = [];
-// Hinweis: gleiche Logik/Spaltennamen wie in index.php
-if (!empty($_POST['filter'])) {
-    $f = $_POST['filter'];
-    if ($f === 'spiel') {
-        $where[] = "Kategorie.Kategorie LIKE '%Spiel%'";
-    } elseif ($f === 'spiel_original') {
-        $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Original'";
-    } elseif ($f === 'spiel_homebrew') {
-        $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Homebrew'";
-    } elseif (is_numeric($f)) {
-        $where[] = "Sammlung.Kategorie=" . (int)$f;
-    }
-}
-if (!empty($_POST['oh'])) {
-    if ($_POST['oh']==='Original')   $where[] = "Sammlung.`Original/Homebrew`='Original'";
-    if ($_POST['oh']==='Homebrew')   $where[] = "Sammlung.`Original/Homebrew`='Homebrew'";
-}
-if (!empty($_POST['material'])) {
-    $where[] = "Material.Material LIKE '" . $conn->real_escape_string($_POST['material']) . "%'";
-}
-if (!empty($_POST['q'])) {
-    $where[] = "Sammlung.Bezeichnung LIKE '%" . $conn->real_escape_string(trim($_POST['q'])) . "%'";
-}
-foreach (['hersteller'=>'Hersteller','publisher'=>'Publisher','verkaeufer'=>'Verkäufer','standort'=>'Standort'] as $qp=>$col) {
-    if (!empty($_POST[$qp])) $where[] = "Sammlung.$col=".(int)$_POST[$qp];
-}
-if (!empty($_POST['box'])) {
-    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($_POST['box']) . "'";
-}
-$where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
+// WHERE wie in index.php (gemeinsam in inc_filter.php, mit Prepared Statements)
+$flt = sammlung_filter_where([
+    'filter' => $_POST['filter'] ?? '', 'oh' => $_POST['oh'] ?? '', 'material' => $_POST['material'] ?? '',
+    'q' => $_POST['q'] ?? '', 'hersteller' => $_POST['hersteller'] ?? 0, 'publisher' => $_POST['publisher'] ?? 0,
+    'verkaeufer' => $_POST['verkaeufer'] ?? 0, 'standort' => $_POST['standort'] ?? 0,
+    'box' => $_POST['box'] ?? '', 'verkauf' => $_POST['verkauf'] ?? '', 'einkaufsdatum' => $_POST['einkaufsdatum'] ?? '',
+]);
+$where_sql = $flt['sql'];
 
 // Anzahl ermitteln
 $count_sql = "
@@ -73,7 +50,7 @@ $count_sql = "
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
   $where_sql
 ";
-$res = $conn->query($count_sql);
+$res = db_select($conn, $count_sql, $flt['types'], $flt['values']);
 $total = ($res && $r = $res->fetch_row()) ? (int)$r[0] : 0;
 $pages = max(1, (int)ceil($total / $limit));
 
