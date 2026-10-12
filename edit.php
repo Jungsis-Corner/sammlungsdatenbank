@@ -333,8 +333,9 @@ function platform_ids_for_row(array $row): array {
 // Hilfsfunktion für Dropdowns
 function get_options($table, $field, $selected='') {
     global $conn;
+    [$t, $f] = lookup_ident($table, $field);
     $opts = "<option value=''>— unbekannt —</option>\n";
-    $res  = $conn->query("SELECT ID, `$field` FROM `$table` ORDER BY `$field`");
+    $res  = $conn->query("SELECT ID, $f FROM $t ORDER BY $f");
     while ($r = $res->fetch_assoc()) {
         $sel = ($r['ID'] == $selected) ? ' selected' : '';
         $opts .= "<option value=\"{$r['ID']}\"{$sel}>"
@@ -349,10 +350,11 @@ function get_options($table, $field, $selected='') {
 // (.lookup-search[data-hidden-target] -> Label wird nach Auswahl von "(#ID)" bereinigt).
 function render_lookup_search($htmlName, $table, $field, $selectedId) {
     global $conn;
+    [$t, $f] = lookup_ident($table, $field);
     $selectedId = (int)$selectedId;
     $curLabel = '';
     if ($selectedId > 0) {
-        $lr = $conn->query("SELECT `$field` FROM `$table` WHERE ID=" . $selectedId)->fetch_row();
+        $lr = $conn->query("SELECT $f FROM $t WHERE ID=" . $selectedId)->fetch_row();
         if ($lr) $curLabel = $lr[0] . ' (#' . $selectedId . ')';
     }
     $listId = 'lookupList_' . preg_replace('/[^a-zA-Z0-9]/', '', $htmlName);
@@ -362,7 +364,7 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
        . ' data-hidden-target="' . $htmlName . '_hidden">';
     echo '<input type="hidden" name="' . $htmlName . '" id="' . $htmlName . '_hidden" value="' . $selectedId . '">';
     echo '<datalist id="' . $listId . '">';
-    $res = $conn->query("SELECT ID, `$field` FROM `$table` ORDER BY `$field`");
+    $res = $conn->query("SELECT ID, $f FROM $t ORDER BY $f");
     while ($r = $res->fetch_assoc()) {
         echo '<option value="' . htmlspecialchars($r[$field] . ' (#' . $r['ID'] . ')', ENT_QUOTES, 'UTF-8') . '">';
     }
@@ -379,7 +381,8 @@ function resolve_lookup_id($table, $field, $idRaw, $textRaw) {
     $text = trim((string)$textRaw);
     if ($text === '') return 0;
     if (preg_match('/\(#(\d+)\)\s*$/', $text, $m)) return (int)$m[1];
-    $stmt = $conn->prepare("SELECT ID FROM `$table` WHERE `$field` = ? LIMIT 1");
+    [$t, $f] = lookup_ident($table, $field);
+    $stmt = $conn->prepare("SELECT ID FROM $t WHERE $f = ? LIMIT 1");
     $stmt->bind_param('s', $text);
     $stmt->execute();
     $stmt->bind_result($foundId);

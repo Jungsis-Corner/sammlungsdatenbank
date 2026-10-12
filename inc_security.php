@@ -41,3 +41,30 @@ function safe_back_url(?string $url, string $fallback): string {
     }
     return $fallback;
 }
+
+/**
+ * Whitelist für Lookup-Tabellen (Tabelle => Namensspalte), damit Tabellen-/Spaltennamen
+ * nie ungeprüft in SQL landen. Liefert beide Namen in Backticks, z. B. ['`Material`', '`Material`'].
+ * Bei unbekannten Namen wird abgebrochen (Programmierfehler, nicht Benutzereingabe).
+ */
+function lookup_ident(string $table, string $field): array {
+    static $allowed = [
+        'Kategorie'    => 'Kategorie',
+        'Zustand'      => 'Zustand',
+        'Verpackung'   => 'Verpackung',
+        'Material'     => 'Material',
+        'Standort'     => 'Standort',
+        'Hersteller'   => 'Hersteller',
+        'Publisher'    => 'Publisher',
+        'Verkäufer'    => 'Verkäufer',
+        'Datentraeger' => 'Datentrager',   // Spalte heißt in der DB ohne "ä"
+    ];
+    if (!isset($allowed[$table]) || $allowed[$table] !== $field) {
+        if (function_exists('fail_db')) {
+            fail_db('Interner Fehler.', 'Unerlaubter Lookup: ' . $table . '.' . $field);
+        }
+        http_response_code(500);
+        exit('Interner Fehler.');
+    }
+    return ['`' . $table . '`', '`' . $field . '`'];
+}

@@ -12,7 +12,8 @@ if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->co
 // ---------------------- Lookups ----------------------
 function get_lookup($table, $field) {
     global $conn;
-    $res = $conn->query("SELECT ID, `$field` FROM `$table` ORDER BY `$field`");
+    [$t, $f] = lookup_ident($table, $field);
+    $res = $conn->query("SELECT ID, $f FROM $t ORDER BY $f");
     $lookup = [];
     while ($row = $res->fetch_assoc()) {
         $lookup[$row['ID']] = $row[$field];

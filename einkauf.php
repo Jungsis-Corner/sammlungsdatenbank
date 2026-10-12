@@ -201,7 +201,8 @@ $where_sql = $where ? ('WHERE '.implode(' AND ', $where)) : '';
 /* =================== Dropdown Optionen =================== */
 function options_from_table(mysqli $conn, string $table, string $field, int $selected = 0): string {
   $out = "<option value=\"0\">— alle —</option>\n";
-  $res = $conn->query("SELECT ID, `$field` AS label FROM `$table` ORDER BY `$field`");
+  [$t, $f] = lookup_ident($table, $field);
+  $res = $conn->query("SELECT ID, $f AS label FROM $t ORDER BY $f");
   while ($r = $res->fetch_assoc()) {
     $id = (int)$r['ID'];
     $sel = ($id === $selected) ? ' selected' : '';

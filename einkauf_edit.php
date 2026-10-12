@@ -84,7 +84,8 @@ function stmt_fetch_one_assoc(mysqli_stmt $stmt): ?array {
 function get_options(mysqli $conn, string $table, string $field, int $selected = 0): string {
   // value="" statt 0 -> damit später NULL gespeichert werden kann
   $out = "<option value=\"\">— unbekannt —</option>\n";
-  $res = $conn->query("SELECT ID, `$field` AS label FROM `$table` ORDER BY `$field`");
+  [$t, $f] = lookup_ident($table, $field);
+  $res = $conn->query("SELECT ID, $f AS label FROM $t ORDER BY $f");
   while ($r = $res->fetch_assoc()) {
     $rid = (int)$r['ID'];
     $sel = ($rid === $selected) ? ' selected' : '';
@@ -107,7 +108,8 @@ function resolve_lookup_id(mysqli $conn, string $table, string $field, string $i
 
   if (preg_match('/\(#(\d+)\)\s*$/', $text, $m)) return $m[1];
 
-  $stmt = $conn->prepare("SELECT ID FROM `$table` WHERE `$field` = ? LIMIT 1");
+  [$t, $f] = lookup_ident($table, $field);
+  $stmt = $conn->prepare("SELECT ID FROM $t WHERE $f = ? LIMIT 1");
   $stmt->bind_param('s', $text);
   $stmt->execute();
   $row = stmt_fetch_one_assoc($stmt);
