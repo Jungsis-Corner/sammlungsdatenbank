@@ -2,6 +2,7 @@
 require_once __DIR__ . '/inc_errors.php';
 
 require __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
@@ -60,26 +61,14 @@ if ($sort === 'Einkaufsdatum' || $sort === 'Getestet am') {
 }
 $order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
 
-// ---------- WHERE wie index.php ----------
-$where = [];
-if     ($filter==='spiel')          $where[] = "Kategorie.Kategorie LIKE '%Spiel%'";
-elseif ($filter==='spiel_original') $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Original'";
-elseif ($filter==='spiel_homebrew') $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Homebrew'";
-elseif (is_numeric($filter))        $where[] = "Sammlung.Kategorie=" . intval($filter);
-
-if     ($oh==='Original')           $where[] = "Sammlung.`Original/Homebrew`='Original'";
-elseif ($oh==='Homebrew')           $where[] = "Sammlung.`Original/Homebrew`='Homebrew'";
-
-if ($material_filter!=='')          $where[] = "Material.Material = '" . $conn->real_escape_string($material_filter) . "'";
-if ($search!=='')                   $where[] = "Sammlung.Bezeichnung LIKE '%" . $conn->real_escape_string($search) . "%'";
-if ($herstellerId)                  $where[] = "Sammlung.Hersteller=$herstellerId";
-if ($publisherId)                   $where[] = "Sammlung.Publisher=$publisherId";
-if ($verkaeuferId)                  $where[] = "Sammlung.`Verkäufer`=$verkaeuferId";
-if ($standortId)                    $where[] = "Sammlung.Standort=$standortId";
-if ($boxId !== '')                  $where[] = "Sammlung.Box = '" . $conn->real_escape_string($boxId) . "'";
-if ($einkaufsdatumFilter !== '')    $where[] = "Sammlung.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatumFilter) . "'";
-
-$where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
+// ---------- WHERE wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements) ----------
+$flt = sammlung_filter_where([
+    'filter' => $filter, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
+    'hersteller' => $herstellerId, 'publisher' => $publisherId, 'verkaeufer' => $verkaeuferId,
+    'standort' => $standortId, 'box' => $boxId, 'verkauf' => ($_GET['verkauf'] ?? '') === '1',
+    'einkaufsdatum' => $einkaufsdatumFilter,
+]);
+$where_sql = $flt['sql'];
 
 // ---------- Daten (wie index.php; gleiche Joins für „sprechende“ Namen) ----------
 $sql = "
@@ -99,7 +88,7 @@ $sql = "
   $where_sql
   ORDER BY $order_by
 ";
-$res = $conn->query($sql);
+$res = db_select($conn, $sql, $flt['types'], $flt['values']);
 
 // ---------- CSV-Header je nach Rolle (wie Tabellenliste; Bildspalte lassen wir weg) ----------
 $headers = [
