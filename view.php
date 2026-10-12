@@ -7,6 +7,7 @@ date_default_timezone_set('Europe/Berlin');
 // ---- Login prüfen (Gäste erlaubt) ----
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_filter.php';
 if (!function_exists('is_guest')) { function is_guest(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'guest'; } }
 if (!function_exists('is_admin')) { function is_admin(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; } }
 $is_guest = is_guest();
@@ -60,27 +61,14 @@ if ($sort === 'Einkaufsdatum' || $sort === 'Getestet am') $order_by_core = "S.`$
 $order_by = $order_by_core . ', S.Bezeichnung ASC';
 
 // ---- WHERE nach aktiven Filtern (EXAKT wie index.php) ----
-$where = [];
-if ($filter==='spiel')              $where[] = "K.Kategorie LIKE '%Spiel%'";
-elseif ($filter==='spiel_original') $where[] = "K.Kategorie LIKE '%Spiel%' AND S.`Original/Homebrew`='Original'";
-elseif ($filter==='spiel_homebrew') $where[] = "K.Kategorie LIKE '%Spiel%' AND S.`Original/Homebrew`='Homebrew'";
-elseif (is_numeric($filter))        $where[] = "S.Kategorie=" . (int)$filter;
-
-if     ($oh==='Original')           $where[] = "S.`Original/Homebrew`='Original'";
-elseif ($oh==='Homebrew')           $where[] = "S.`Original/Homebrew`='Homebrew'";
-
-// WICHTIG: wie index.php -> LIKE '…%'
-if ($material!=='')                 $where[] = "M.Material LIKE '" . $conn->real_escape_string($material) . "%'";
-
-if ($q!=='')                        $where[] = "S.Bezeichnung LIKE '%" . $conn->real_escape_string($q) . "%'";
-if ($hersteller_id)                 $where[] = "S.Hersteller=$hersteller_id";
-if ($publisher_id)                  $where[] = "S.Publisher=$publisher_id";
-if ($verkaeufer_id)                 $where[] = "S.`Verkäufer`=$verkaeufer_id";
-if ($standort_id)                   $where[] = "S.Standort=$standort_id";
-if ($box_id !== '')                 $where[] = "S.Box = '" . $conn->real_escape_string($box_id) . "'";
-if ($verkauf_filter)                $where[] = "S.`Zum Verkauf` = '1'";
-if ($einkaufsdatum_filter !== '')   $where[] = "S.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatum_filter) . "'";
-$where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
+// Filter wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements)
+$flt = sammlung_filter_where([
+    'filter' => $filter, 'oh' => $oh, 'material' => $material, 'q' => $q,
+    'hersteller' => $hersteller_id, 'publisher' => $publisher_id, 'verkaeufer' => $verkaeufer_id,
+    'standort' => $standort_id, 'box' => $box_id, 'verkauf' => $verkauf_filter,
+    'einkaufsdatum' => $einkaufsdatum_filter,
+], ['s' => 'S', 'k' => 'K', 'm' => 'M']);
+$where_sql = $flt['sql'];
 
 // ---- Einheitliche FROM+JOINs (einmal definieren, überall nutzen) ----
 $from_join = "
@@ -101,13 +89,13 @@ $listUrl = 'index.php?' . http_build_query($params);
 
 // ---- Fallback: Wenn id fehlt, zur ersten passenden ID der aktuellen Liste weiterleiten ----
 if ($id <= 0) {
-    $firstRow = $conn->query("
+    $firstRow = db_select($conn, "
       SELECT S.ID
       $from_join
       $where_sql
       ORDER BY $order_by
       LIMIT 1
-    ")->fetch_row();
+    ", $flt['types'], $flt['values'])->fetch_row();
     if ($firstRow) {
         $first_id = (int)$firstRow[0];
         header('Location: view.php?' . http_build_query(array_merge($params,['id'=>$first_id])));
@@ -163,12 +151,12 @@ $pageTitle = $bez !== '' ? $bez.' – Sammlung' : 'Sammlung';
 $standortName = trim((string)($data['StandortName'] ?? ''));
 
 // ---- IDs der aktuellen Liste (für Prev/Nächster/Erster/Letzter) ----
-$idres = $conn->query("
+$idres = db_select($conn, "
   SELECT S.ID
   $from_join
   $where_sql
   ORDER BY $order_by
-");
+", $flt['types'], $flt['values']);
 $ids = array_column($idres->fetch_all(MYSQLI_ASSOC), 'ID');
 
 $prev_id = $next_id = $first_id = $last_id = null;
