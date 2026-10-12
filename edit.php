@@ -897,27 +897,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'igdb'
         }
     }
 
-    // Diagnose anhängen (kompakt)
+    // Diagnose (kompakt) nur einmalig über die Session anzeigen und ins Log schreiben,
+    // nicht in die URL legen (Browser-Verlauf, Server-Logs)
+    $diag = '';
     if (!empty($IGDB_DIAG)) {
         $diag = implode(' | ', array_map(
             fn($s) => preg_replace('/\s+/', ' ', (string)$s),
             $IGDB_DIAG
         ));
-        $msg .= ' ['.$diag.']';
+        error_log('[edit.php IGDB] ' . $diag);
     }
+    $_SESSION['flash_msg']  = $msg;
+    $_SESSION['flash_diag'] = $diag;
 
-    // Redirect mit msg – falls möglich
-    $params_with_msg = $_GET;
-    $params_with_msg['msg'] = $msg;
-
+    // Zurück zur Seite (PRG), ohne Meldungstext in der URL
+    $params_back = $_GET;
+    unset($params_back['msg']);
     if (!headers_sent()) {
-        header('Location: edit.php?' . http_build_query($params_with_msg));
+        header('Location: edit.php?' . http_build_query($params_back));
         exit;
-    } else {
-        // Fallback, falls bereits Output gesendet wurde:
-        $_GET['msg'] = $msg;
     }
+    // Fallback, falls bereits Output gesendet wurde: Meldung wird unten im selben Aufruf angezeigt
 }
+
+// Einmalige Meldung (z. B. vom IGDB-Import) aus der Session holen und löschen
+$flashMsg  = (string)($_SESSION['flash_msg']  ?? '');
+$flashDiag = (string)($_SESSION['flash_diag'] ?? '');
+unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -998,9 +1004,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'igdb'
 <body class="edit-page">
   <h1><?= $id===0 ? 'Neuer Eintrag' : 'Eintrag bearbeiten' ?></h1>
 
-  <?php if (!empty($_GET['msg'])): ?>
+  <?php if ($flashMsg !== ''): ?>
     <div class="msg-box info">
-      <?= htmlspecialchars($_GET['msg'], ENT_QUOTES, 'UTF-8') ?>
+      <?= htmlspecialchars($flashMsg, ENT_QUOTES, 'UTF-8') ?>
+      <?php if ($flashDiag !== ''): ?>
+        <div style="font-size:.85em; opacity:.8; margin-top:4px;">Diagnose: <?= htmlspecialchars($flashDiag, ENT_QUOTES, 'UTF-8') ?></div>
+      <?php endif; ?>
     </div>
   <?php endif; ?>
 
