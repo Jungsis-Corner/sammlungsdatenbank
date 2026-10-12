@@ -32,3 +32,6 @@ Thumbs.db
 
 # --- Lokale Claude-Code-Einstellungen ---
 .claude/settings.local.json
+
+# --- Lokale Testskripte (nie hochladen/committen) ---
+logtest.php
