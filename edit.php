@@ -21,8 +21,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
 if ($conn->connect_errno) {
-    http_response_code(500);
-    exit('DB-Verbindungsfehler: '.$conn->connect_error);
+    fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 }
 // (Optional) MySQL-Session-Zeitzone setzen – wenn dein Hoster es unterstützt
 @$conn->query("SET time_zone = 'Europe/Berlin'");

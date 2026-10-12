@@ -226,7 +226,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header('Location: einkauf_edit.php?id='.$id.'&back='.urlencode($backUrl).'&msg='.urlencode('Gespeichert.'));
       exit;
     } catch (mysqli_sql_exception $e) {
-      $msg = 'Fehler: nicht gespeichert (DB): ' . $e->getMessage();
+      error_log('[einkauf_edit.php] Speichern: ' . $e->getMessage());
+      $msg = 'Fehler: nicht gespeichert (Datenbankfehler, Details im Log).';
     }
   }
 }

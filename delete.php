@@ -7,7 +7,7 @@ require_post_csrf();                       // Löschen nur per POST mit CSRF-Tok
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) die("Verbindungsfehler: " . $conn->connect_error);
+if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 
 // 1) Eingaben einsammeln
 $id   = isset($_POST['id']) ? (int)$_POST['id'] : 0;

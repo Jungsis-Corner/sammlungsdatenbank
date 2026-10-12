@@ -1,10 +1,11 @@
 <?php
+require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/require_login.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) die("DB-Verbindungsfehler: " . $conn->connect_error);
+if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 
 // 1) Gesamtanzahl aller Datensätze
 $total_res = $conn->query("SELECT COUNT(*) AS cnt FROM Sammlung");

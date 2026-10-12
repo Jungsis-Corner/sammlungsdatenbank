@@ -7,7 +7,7 @@ require_post_csrf();                       // Aktion nur per POST mit CSRF-Token
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) die("Verbindungsfehler: " . $conn->connect_error);
+if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 
 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
@@ -61,7 +61,7 @@ $colList = '`' . implode('`,`', $cols) . '`';
 
 $sql = "INSERT INTO Sammlung ($colList) VALUES ($placeholders)";
 $stmt = $conn->prepare($sql);
-if (!$stmt) die('Prepare fehlgeschlagen: '.$conn->error);
+if (!$stmt) fail_db('Duplizieren fehlgeschlagen.', 'Prepare: ' . $conn->error);
 
 // Typen-String für bind_param bauen (i = int, d = double, s = string, b = blob)
 // Wir behandeln hier pragmatisch alles als string, außer bekannten Zahlenspalten:
@@ -91,7 +91,7 @@ for ($i=0; $i<count($params); $i++) { $bind[] = &$params[$i]; }
 // Aufrufen
 call_user_func_array([$stmt, 'bind_param'], $bind);
 $stmt->execute();
-if ($stmt->errno) die('Insert fehlgeschlagen: '.$stmt->error);
+if ($stmt->errno) fail_db('Duplizieren fehlgeschlagen.', 'Insert: ' . $stmt->error);
 
 $newId = $stmt->insert_id;
 $stmt->close();

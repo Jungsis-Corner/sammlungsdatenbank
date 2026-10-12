@@ -7,7 +7,7 @@ $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) die("Verbindungsfehler: " . $conn->connect_error);
+if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 
 // ---------------------- Lookups ----------------------
 function get_lookup($table, $field) {
