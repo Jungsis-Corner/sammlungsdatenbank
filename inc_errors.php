@@ -45,7 +45,7 @@ register_shutdown_function(function (): void {
 /**
  * Datenbank- oder Statement-Fehler: Detail ins Log, Besucher bekommt nur $public (HTTP 500).
  */
-function fail_db(string $public = 'Datenbankfehler.', ?string $detail = null): never {
+function fail_db(string $public = 'Datenbankfehler.', ?string $detail = null) {
     if ($detail !== null && $detail !== '') {
         error_log('[' . basename($_SERVER['SCRIPT_NAME'] ?? '?') . '] ' . $detail);
     }
