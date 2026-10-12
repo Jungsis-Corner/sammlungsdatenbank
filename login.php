@@ -119,7 +119,7 @@ $to = safe_target($_GET['to'] ?? null);
   <meta charset="utf-8">
   <title>Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="/sammlung/assets/theme-toggle.js"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
   <style>
     html[data-theme="dark"]{
       background: #121212 !important;
