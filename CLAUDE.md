@@ -18,7 +18,8 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - `boot.php`: zentrale Session-Konfiguration
 - `config.php`: Zugangsdaten, API-Keys, Konstanten wie `APP_TITLE` und `APP_DEBUG`. **Nie lesen, ändern oder committen.** Vorlage ist `config.example.php`.
 - `inc_errors.php`: zentrale Fehlerbehandlung (siehe Sicherheit). Als **erstes** in jeder Seite einbinden.
-- `inc_security.php`: `csrf_token()`, `csrf_field()`, `require_post_csrf()`, `safe_back_url()`
+- `inc_security.php`: `csrf_token()`, `csrf_field()`, `require_post_csrf()`, `safe_back_url()`, `lookup_ident()` (Whitelist für Lookup-Tabellen und -Spalten)
+- `inc_filter.php`: `sammlung_filter_where()` baut den WHERE-Teil der Sammlungsliste aus den 11 Filtern (Kategorie, Original/Homebrew, Material, Suche, Hersteller, Publisher, Verkäufer, Standort, Box, Zum Verkauf, Einkaufsdatum) mit `?`-Platzhaltern. `db_select()` führt die Abfrage als Prepared Statement aus. Wird von `index.php`, `view.php`, `edit.php`, `export.php` und `delete.php` genutzt. Die Suche `q` durchsucht Bezeichnung, Barcode und Beschreibung.
 - `inc_manage_lookup.php`: gemeinsame Logik und HTML für alle `manage_*.php` (Stammdaten wie Material, Standort, Hersteller). Die `manage_*.php` sind nur noch dünne Dateien, die ein Array `$cfg` setzen (Tabelle, Spalte, Beschriftungen, optional `post` für abweichende Formularfeld-Namen, `delete_errors`, `keep_page`). Besonderheiten: `Verkäufer` (Umlaut in Tabelle und Spalte, Formularfeld `verkaeufer`) und `Datentraeger` (Tabelle mit `ae`, Spalte `Datentrager` ohne `ä`). Neue Stammdaten-Seite = neue `manage_*.php` mit `$cfg`, keine Kopie der Logik.
 - `.gitattributes`: Zeilenenden auf LF vereinheitlicht (`* text=auto eol=lf`)
 - `schema.sql`: Datenbankstruktur (ohne Daten)
@@ -51,7 +52,9 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 
 - Schemaänderungen als nummerierte SQL-Datei in `migrations/` ablegen, z. B. `migrations/2026-10-12_beschreibung.sql`, und `schema.sql` entsprechend aktualisieren.
 - Migrationen **nicht selbst gegen die Live-Datenbank ausführen.** Jungsi spielt sie manuell auf Strato ein.
-- Immer Prepared Statements verwenden. Keine SQL-Strings aus Benutzereingaben zusammenbauen.
+- Immer Prepared Statements verwenden. Keine SQL-Strings aus Benutzereingaben zusammenbauen, auch nicht mit `real_escape_string`.
+- Filter der Sammlungsliste **nur** über `sammlung_filter_where()` aus `inc_filter.php` bauen, nie eine eigene Kopie in einer Seite. Neuer oder geänderter Filter = Änderung an dieser einen Stelle, danach alle fünf Seiten (`index`, `view`, `edit`, `export`, `delete`) prüfen und den Parameter in deren Link-/Rücksprung-Listen ergänzen.
+- Tabellen- und Spaltennamen in SQL nie aus Variablen übernehmen, die von außen kommen. Lookup-Tabellen laufen über `lookup_ident()`; neue Lookup-Tabelle = Eintrag in dessen Whitelist.
 
 ## Sicherheit
 
