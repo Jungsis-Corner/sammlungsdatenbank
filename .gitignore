@@ -26,3 +26,9 @@ readme.txt
 # --- Sonstiges ---
 .DS_Store
 Thumbs.db
+
+# --- Windows-Download-Marker (WSL) ---
+*:Zone.Identifier
+
+# --- Lokale Claude-Code-Einstellungen ---
+.claude/settings.local.json

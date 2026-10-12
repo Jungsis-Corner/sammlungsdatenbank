@@ -1,0 +1,23 @@
+# Zeilenenden vereinheitlichen (LF im Repo und im Arbeitsverzeichnis)
+* text=auto eol=lf
+
+# Binärdateien nie konvertieren
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.bmp  binary
+*.svgz binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+*.zip  binary
+*.7z   binary
+*.gz   binary
+*.tar  binary
+*.rar  binary
+*.pdf  binary
