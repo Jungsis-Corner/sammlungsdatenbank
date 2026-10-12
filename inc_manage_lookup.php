@@ -12,6 +12,9 @@
  *   th         Spaltenüberschrift der Tabelle  (z. B. 'Material')
  *   search_ph  Platzhalter der Suche           (z. B. 'Material suchen…')
  *   name_ph    Platzhalter des Eingabefelds    (z. B. 'Name des Materials')
+ * Optional:
+ *   delete_errors  true = Löschfehler (z. B. Fremdschlüssel) abfangen und als Hinweis zeigen
+ *   keep_page      true = Seitennummer in Bearbeiten-/Lösch-Links und nach dem Speichern behalten
  *
  * Tabellen- und Spaltennamen stammen ausschließlich aus dem festen $cfg der
  * aufrufenden Datei, nie aus Benutzereingaben.
@@ -40,12 +43,28 @@ $search = trim($_GET['q'] ?? '');
 /* ---------- Löschen ---------- */
 if (isset($_GET['delete'])) {
     $del_id = intval($_GET['delete']);
-    $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
-    $stmt->bind_param('i', $del_id);
-    $stmt->execute();
+    if (!empty($cfg['delete_errors'])) {
+        // Fehler abfangen (z. B. Fremdschlüssel-Sperre) und per GET melden
+        try {
+            $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
+            $stmt->bind_param('i', $del_id);
+            $stmt->execute();
+        } catch (Throwable $e) {
+            header('Location: ' . $self . '?' . http_build_query(['page' => $page, 'q' => $search, 'err' => 'delete']));
+            exit;
+        }
+    } else {
+        $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
+        $stmt->bind_param('i', $del_id);
+        $stmt->execute();
+    }
     header('Location: ' . $self . '?page=' . $page . '&q=' . urlencode($search));
     exit;
 }
+
+// Seite in Bearbeiten-/Lösch-Links und nach dem Speichern beibehalten
+$keepPage  = !empty($cfg['keep_page']);
+$pageParam = $keepPage ? '&page=' . $page : '';
 
 /* ---------- Add/Edit ---------- */
 $id   = intval($_GET['id'] ?? 0);
@@ -72,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('s', $name);
     }
     $stmt->execute();
-    header('Location: ' . $self . '?q=' . urlencode($search));
+    header('Location: ' . $self . '?q=' . urlencode($search) . $pageParam);
     exit;
 }
 
@@ -153,6 +172,10 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
       </form>
     </div>
 
+    <?php if (($_GET['err'] ?? '') === 'delete'): ?>
+      <div class="msg-box error">Löschen fehlgeschlagen. Der Eintrag wird vermutlich noch verwendet.</div>
+    <?php endif; ?>
+
     <!-- Formular: Hinzufügen/Bearbeiten -->
     <div class="form-line-center">
       <form method="post" class="admin-inline-form">
@@ -177,9 +200,9 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
               <td class="col-id is-numeric"><?= (int)$row['ID'] ?></td>
               <td><?= htmlspecialchars($row[$cfg['column']] ?? '') ?></td>
               <td class="actions">
-                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?>" title="Bearbeiten">✏️</a>
+                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten">✏️</a>
                 <a class="btn is-small btn-red"
-                   href="<?= htmlspecialchars($self) ?>?delete=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?>"
+                   href="<?= htmlspecialchars($self) ?>?delete=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>"
                    onclick="return confirm('Wirklich löschen?')"
                    title="Löschen">🗑️</a>
               </td>
