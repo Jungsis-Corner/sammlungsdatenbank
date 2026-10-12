@@ -2,15 +2,16 @@
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(E_ALL);
-session_start();
-require __DIR__ . '/require_login.php';
+require __DIR__ . '/require_login.php';   // startet die Session (boot.php)
+require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
+require_post_csrf();                       // Aktion nur per POST mit CSRF-Token
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) die("Verbindungsfehler: " . $conn->connect_error);
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 
 // Original laden
@@ -99,7 +100,10 @@ $stmt->close();
 
 // zurück zur Bearbeitung – Hinweisflag mitgeben
 // Bestehende Filter/Sortierung/Seite weiterreichen
-$backParams = $_GET;
+$backParams = [];
+foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+    if (isset($_POST[$k]) && $_POST[$k] !== '') $backParams[$k] = $_POST[$k];
+}
 $backParams['id'] = $newId;
 $backParams['from'] = 'dup';
 

@@ -2,24 +2,24 @@
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(E_ALL);
-session_start();
-if (!isset($_SESSION['loggedin'])) { header('Location: login.php'); exit; }
-$is_guest = ($_SESSION['user'] ?? '') === 'gast';
-if ($is_guest) { http_response_code(403); exit('Kein Zugriff'); }
+require __DIR__ . '/require_login.php';   // Login-Prüfung + Session (boot.php)
+require_once __DIR__ . '/inc_security.php';
+if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
+require_post_csrf();                       // Löschen nur per POST mit CSRF-Token
 
 require_once __DIR__ . '/config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) die("Verbindungsfehler: " . $conn->connect_error);
 
 // 1) Eingaben einsammeln
-$id   = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id   = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 
 // Diese Parameter zurück zu index.php geben (Filter/Sortierung/Seite)
-$keepKeys = ['page','sort','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box'];
+$keepKeys = ['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'];
 $return = [];
 foreach ($keepKeys as $k) {
-  if (isset($_GET[$k]) && $_GET[$k] !== '') $return[$k] = $_GET[$k];
+  if (isset($_POST[$k]) && $_POST[$k] !== '') $return[$k] = $_POST[$k];
 }
 
 // 2) Datensatz löschen (prepared)
@@ -34,8 +34,8 @@ $limit = 50; // muss mit index.php übereinstimmen
 // WHERE wie in index.php nachbauen
 $where = [];
 // Hinweis: gleiche Logik/Spaltennamen wie in index.php
-if (!empty($_GET['filter'])) {
-    $f = $_GET['filter'];
+if (!empty($_POST['filter'])) {
+    $f = $_POST['filter'];
     if ($f === 'spiel') {
         $where[] = "Kategorie.Kategorie LIKE '%Spiel%'";
     } elseif ($f === 'spiel_original') {
@@ -46,21 +46,21 @@ if (!empty($_GET['filter'])) {
         $where[] = "Sammlung.Kategorie=" . (int)$f;
     }
 }
-if (!empty($_GET['oh'])) {
-    if ($_GET['oh']==='Original')   $where[] = "Sammlung.`Original/Homebrew`='Original'";
-    if ($_GET['oh']==='Homebrew')   $where[] = "Sammlung.`Original/Homebrew`='Homebrew'";
+if (!empty($_POST['oh'])) {
+    if ($_POST['oh']==='Original')   $where[] = "Sammlung.`Original/Homebrew`='Original'";
+    if ($_POST['oh']==='Homebrew')   $where[] = "Sammlung.`Original/Homebrew`='Homebrew'";
 }
-if (!empty($_GET['material'])) {
-    $where[] = "Material.Material LIKE '" . $conn->real_escape_string($_GET['material']) . "%'";
+if (!empty($_POST['material'])) {
+    $where[] = "Material.Material LIKE '" . $conn->real_escape_string($_POST['material']) . "%'";
 }
-if (!empty($_GET['q'])) {
-    $where[] = "Sammlung.Bezeichnung LIKE '%" . $conn->real_escape_string(trim($_GET['q'])) . "%'";
+if (!empty($_POST['q'])) {
+    $where[] = "Sammlung.Bezeichnung LIKE '%" . $conn->real_escape_string(trim($_POST['q'])) . "%'";
 }
 foreach (['hersteller'=>'Hersteller','publisher'=>'Publisher','verkaeufer'=>'Verkäufer','standort'=>'Standort'] as $qp=>$col) {
-    if (!empty($_GET[$qp])) $where[] = "Sammlung.$col=".(int)$_GET[$qp];
+    if (!empty($_POST[$qp])) $where[] = "Sammlung.$col=".(int)$_POST[$qp];
 }
-if (!empty($_GET['box'])) {
-    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($_GET['box']) . "'";
+if (!empty($_POST['box'])) {
+    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($_POST['box']) . "'";
 }
 $where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
 

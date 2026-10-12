@@ -1093,10 +1093,15 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
         }
         $deleteParams['id'] = $id;
       ?>
-      <a class="btn delete" data-nocheck
-         href="delete.php?<?= htmlspecialchars(http_build_query($deleteParams)) ?>"
-         onclick="return confirm('„<?= htmlspecialchars(addslashes($data['Bezeichnung'] ?? ''), ENT_QUOTES) ?>“ wirklich unwiderruflich löschen?');"
-         title="Diesen Datensatz löschen">🗑️ Löschen</a>
+      <form method="post" action="delete.php" style="display:contents"
+            onsubmit="return confirm('„<?= htmlspecialchars(addslashes($data['Bezeichnung'] ?? ''), ENT_QUOTES) ?>“ wirklich unwiderruflich löschen?');">
+        <?= csrf_field() ?>
+        <?php foreach ($deleteParams as $dk => $dv): ?>
+          <input type="hidden" name="<?= htmlspecialchars((string)$dk) ?>" value="<?= htmlspecialchars((string)$dv) ?>">
+        <?php endforeach; ?>
+        <button type="submit" class="btn delete" data-nocheck
+                title="Diesen Datensatz löschen">🗑️ Löschen</button>
+      </form>
     <?php endif; ?>
   </div>
 </div>
