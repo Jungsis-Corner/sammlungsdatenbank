@@ -7,6 +7,7 @@ date_default_timezone_set('Europe/Berlin');
 // ---- Login prüfen & nur Admin zulassen ----
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_filter.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 // --- CSRF-Token initialisieren ---
@@ -776,24 +777,14 @@ if ($id > 0) {
     // stabile Zweitsortierung
     $order_by = $order_by_core . ', S.Bezeichnung ASC';
 
-    // WHERE-Klausel
-    $where = [];
-    if ($filter==='spiel')              $where[] = "K.Kategorie LIKE '%Spiel%'";
-    elseif ($filter==='spiel_original') $where[] = "K.Kategorie LIKE '%Spiel%' AND S.`Original/Homebrew`='Original'";
-    elseif ($filter==='spiel_homebrew') $where[] = "K.Kategorie LIKE '%Spiel%' AND S.`Original/Homebrew`='Homebrew'";
-    elseif (is_numeric($filter))        $where[] = "S.Kategorie=" . intval($filter);
-    if     ($oh==='Original')           $where[] = "S.`Original/Homebrew`='Original'";
-    elseif ($oh==='Homebrew')           $where[] = "S.`Original/Homebrew`='Homebrew'";
-    if ($material!=='')                 $where[] = "M.Material LIKE '" . $conn->real_escape_string($material) . "%'";
-    if ($q!=='')                        $where[] = "S.Bezeichnung LIKE '%" . $conn->real_escape_string($q) . "%'";
-    if ($hersteller_id)                 $where[] = "S.Hersteller=$hersteller_id";
-    if ($publisher_id)                  $where[] = "S.Publisher=$publisher_id";
-    if ($verkaeufer_id)                 $where[] = "S.Verkäufer=$verkaeufer_id";
-    if ($standort_id)                   $where[] = "S.Standort=$standort_id";
-    if ($box_id !== '')                 $where[] = "S.Box = '" . $conn->real_escape_string($box_id) . "'";
-    if ($verkauf_filter)                $where[] = "S.`Zum Verkauf` = '1'";
-    if ($einkaufsdatum_filter !== '')   $where[] = "S.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatum_filter) . "'";
-    $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    // WHERE-Klausel (gemeinsam in inc_filter.php, mit Prepared Statements)
+    $flt = sammlung_filter_where([
+        'filter' => $filter, 'oh' => $oh, 'material' => $material, 'q' => $q,
+        'hersteller' => $hersteller_id, 'publisher' => $publisher_id, 'verkaeufer' => $verkaeufer_id,
+        'standort' => $standort_id, 'box' => $box_id, 'verkauf' => $verkauf_filter,
+        'einkaufsdatum' => $einkaufsdatum_filter,
+    ], ['s' => 'S', 'k' => 'K', 'm' => 'M']);
+    $where_sql = $flt['sql'];
 
     // Prev/Next/First/Last IDs holen – gleiche JOINs wie index.php
 $from_join = "
@@ -805,12 +796,12 @@ $from_join = "
   LEFT JOIN Standort    ST ON S.Standort    = ST.ID
 ";
 
-$idres = $conn->query("
+$idres = db_select($conn, "
   SELECT S.ID
   $from_join
   $where_sql
   ORDER BY $order_by
-");
+", $flt['types'], $flt['values']);
 $ids = array_column($idres->fetch_all(MYSQLI_ASSOC), 'ID');
 
 $prev_id = $next_id = $first_id = $last_id = null;
