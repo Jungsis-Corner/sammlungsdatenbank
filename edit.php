@@ -494,7 +494,7 @@ $inputs = [
 ];
 
 /* ============== Speichern-Logik (Update, Insert, Duplikat) ============== */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb') {
     // --- CSRF-Check ---
     if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
         http_response_code(400);
@@ -845,10 +845,11 @@ $lastHref  = $last_id  ? $makeHref((int)$last_id)  : $selfHref;
 }
 
 /* ================ IGDB-Import-Action (robust) ================
-   Trigger: edit.php?...&igdb=1
+   Trigger: POST an edit.php?id=... mit action=igdb und csrf (Button "IGDB holen")
    - läuft NACH dem Laden von $data
 */
-if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'igdb') {
+    require_post_csrf();
     // Sicherheitsnetz: Stelle sicher, dass $data existiert
     if (!isset($data) || ($id ?? 0) <= 0) {
         if (($id ?? 0) > 0) {
@@ -920,7 +921,6 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
     // Redirect mit msg – falls möglich
     $params_with_msg = $_GET;
     $params_with_msg['msg'] = $msg;
-    unset($params_with_msg['igdb']);
 
     if (!headers_sent()) {
         header('Location: edit.php?' . http_build_query($params_with_msg));
@@ -1079,11 +1079,14 @@ if (isset($_GET['igdb']) && $_GET['igdb'] === '1') {
        ➕ Neuer Eintrag (leer)
     </a>
 
-    <?php $igdbParams = $_GET; $igdbParams['igdb'] = '1'; ?>
+    <?php $igdbQuery = $_GET; unset($igdbQuery['msg']); ?>
     <?php if ($id > 0): ?>
-      <a class="btn igdb" data-nocheck
-         href="edit.php?<?= htmlspecialchars(http_build_query($igdbParams)) ?>"
-         title="Beschreibung aus IGDB importieren (summary)">🔎 IGDB holen</a>
+      <form method="post" action="edit.php?<?= htmlspecialchars(http_build_query($igdbQuery)) ?>" style="display:contents">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="igdb">
+        <button type="submit" class="btn igdb" data-nocheck
+                title="Beschreibung aus IGDB importieren (summary)">🔎 IGDB holen</button>
+      </form>
 
       <?php
         // Filterkontext für den Rücksprung nach index.php mitgeben (wie im Formular oben)
