@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
@@ -164,50 +165,14 @@ if ($einkaufsdatumFilter !== '') {
 }
 
 // ---------------------- WHERE ----------------------
-$where = [];
-if ($filter==='spiel') {
-    $where[] = "Kategorie.Kategorie LIKE '%Spiel%'";
-} elseif ($filter==='spiel_original') {
-    $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Original'";
-} elseif ($filter==='spiel_homebrew') {
-    $where[] = "Kategorie.Kategorie LIKE '%Spiel%' AND Sammlung.`Original/Homebrew`='Homebrew'";
-} elseif (is_numeric($filter)) {
-    $where[] = "Sammlung.Kategorie=" . intval($filter);
-}
-if ($oh==='Original') {
-    $where[] = "Sammlung.`Original/Homebrew`='Original'";
-} elseif ($oh==='Homebrew') {
-    $where[] = "Sammlung.`Original/Homebrew`='Homebrew'";
-}
-if ($material_filter!=='') {
-    $where[] = "Material.Material LIKE '" . $conn->real_escape_string($material_filter) . "%'";
-}
-if ($search!=='') {
-    $esc = $conn->real_escape_string($search);
-    $where[] = "(Sammlung.Bezeichnung LIKE '%$esc%' OR Sammlung.Barcode LIKE '%$esc%' OR Sammlung.Beschreibung LIKE '%$esc%')";
-}
-if ($herstellerId) {
-    $where[] = "Sammlung.Hersteller=$herstellerId";
-}
-if ($publisherId) {
-    $where[] = "Sammlung.Publisher=$publisherId";
-}
-if ($verkaeuferId) {
-    $where[] = "Sammlung.Verkäufer=$verkaeuferId";
-}
-if ($standortId) {
-    $where[] = "Sammlung.Standort=$standortId";
-}
-if ($boxId !== '') {
-    $where[] = "Sammlung.Box = '" . $conn->real_escape_string($boxId) . "'";
-}
-if ($verkaufFilter) {
-    $where[] = "Sammlung.`Zum Verkauf` = '1'";
-}
-if ($einkaufsdatumFilter !== '') {
-    $where[] = "Sammlung.Einkaufsdatum = '" . $conn->real_escape_string($einkaufsdatumFilter) . "'";
-}
-$where_sql = $where ? 'WHERE '.implode(' AND ',$where) : '';
+// gemeinsam in inc_filter.php (Prepared Statements); gleiche Werte für alle Abfragen unten
+$flt = sammlung_filter_where([
+    'filter' => $filter, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
+    'hersteller' => $herstellerId, 'publisher' => $publisherId, 'verkaeufer' => $verkaeuferId,
+    'standort' => $standortId, 'box' => $boxId, 'verkauf' => $verkaufFilter,
+    'einkaufsdatum' => $einkaufsdatumFilter,
+]);
+$where_sql = $flt['sql'];
 
 // ---------------------- Pagination ----------------------
 $limit  = 50;
@@ -224,7 +189,7 @@ $count_sql = "
     LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
   $where_sql
 ";
-$count_res = $conn->query($count_sql);
+$count_res = db_select($conn, $count_sql, $flt['types'], $flt['values']);
 $total     = ($count_res && $r = $count_res->fetch_row()) ? intval($r[0]) : 0;
 $pages     = max(1, ceil($total/$limit));
 
@@ -247,7 +212,7 @@ $sql = "
   ORDER BY $order_by
   LIMIT $limit OFFSET $offset
 ";
-$result = $conn->query($sql);
+$result = db_select($conn, $sql, $flt['types'], $flt['values']);
 
 // ---------------------- Mini-Statistik ----------------------
 // Hinweis: totalCount = $total (bereits gefiltert)
@@ -264,7 +229,7 @@ $year_sql = "
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
   " . ($where_sql ? $where_sql . " AND " : "WHERE ") . " NULLIF(TRIM(Sammlung.Jahr),'') IS NOT NULL
 ";
-if ($resY = $conn->query($year_sql)) {
+if ($resY = db_select($conn, $year_sql, $flt['types'], $flt['values'])) {
     $rowY = $resY->fetch_row();
     $yearCount = (int)($rowY[0] ?? 0);
 }
@@ -289,7 +254,7 @@ if (!$is_guest) {
       LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
       $where_sql
     ";
-    if ($resS = $conn->query($sum_sql)) {
+    if ($resS = db_select($conn, $sum_sql, $flt['types'], $flt['values'])) {
         $rowS = $resS->fetch_assoc();
         $sumValue = (float)($rowS['s'] ?? 0.0);
     }
