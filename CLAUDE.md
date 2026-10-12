@@ -9,14 +9,18 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Hauptumgebung: Windows mit Edge (Chromium). Auf dem iPad läuft Edge mit WebKit-Engine. Nicht pauschal WebKit-Bugs annehmen, erst am beobachteten Verhalten prüfen.
 - Externe APIs:
   - DeepL (Übersetzung), Key kommt aus `config.php`
-  - Twitch/IGDB (Spiele-Metadaten), Zugangsdaten über die Konstanten `TWITCH_CLIENT_ID_CONST` und `TWITCH_CLIENT_SECRET_CONST` aus `config.php`. IGDB wird in `edit.php` (Aufruf `edit.php?...&igdb=1`) genutzt, um anhand der Bezeichnung und der aus der Kategorie abgeleiteten Plattformen eine Spielbeschreibung (summary) abzurufen, die per DeepL übersetzt wird.
+  - Twitch/IGDB (Spiele-Metadaten), Zugangsdaten über die Konstanten `TWITCH_CLIENT_ID_CONST` und `TWITCH_CLIENT_SECRET_CONST` aus `config.php`. IGDB wird in `edit.php` (Button "IGDB holen", POST mit `action=igdb` und CSRF-Token) genutzt, um anhand der Bezeichnung und der aus der Kategorie abgeleiteten Plattformen eine Spielbeschreibung (summary) abzurufen, die per DeepL übersetzt wird. Status und Diagnose erscheinen einmalig als Session-Meldung, nicht in der URL.
 - Die App ist eine PWA mit Service Worker (`sw.js`)
 
 ## Wichtige Dateien und Einstiegspunkte
 
 - Einstieg Museum: `start.php` (nicht `index.php`)
 - `boot.php`: zentrale Session-Konfiguration
-- `config.php`: Zugangsdaten, API-Keys, Konstanten wie `APP_TITLE`. **Nie lesen, ändern oder committen.** Vorlage ist `config.example.php`.
+- `config.php`: Zugangsdaten, API-Keys, Konstanten wie `APP_TITLE` und `APP_DEBUG`. **Nie lesen, ändern oder committen.** Vorlage ist `config.example.php`.
+- `inc_errors.php`: zentrale Fehlerbehandlung (siehe Sicherheit). Als **erstes** in jeder Seite einbinden.
+- `inc_security.php`: `csrf_token()`, `csrf_field()`, `require_post_csrf()`, `safe_back_url()`
+- `inc_manage_lookup.php`: gemeinsame Logik und HTML für alle `manage_*.php` (Stammdaten wie Material, Standort, Hersteller). Die `manage_*.php` sind nur noch dünne Dateien, die ein Array `$cfg` setzen (Tabelle, Spalte, Beschriftungen, optional `post` für abweichende Formularfeld-Namen, `delete_errors`, `keep_page`). Besonderheiten: `Verkäufer` (Umlaut in Tabelle und Spalte, Formularfeld `verkaeufer`) und `Datentraeger` (Tabelle mit `ae`, Spalte `Datentrager` ohne `ä`). Neue Stammdaten-Seite = neue `manage_*.php` mit `$cfg`, keine Kopie der Logik.
+- `.gitattributes`: Zeilenenden auf LF vereinheitlicht (`* text=auto eol=lf`)
 - `schema.sql`: Datenbankstruktur (ohne Daten)
 - `manifest.php`: dynamisches PWA-Manifest
 - `assets/`: CSS und JS (`app.css`, `theme-toggle.js`)
@@ -55,6 +59,10 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Keine Debug- oder Testskripte (`phpinfo.php` o. ä.) anlegen, die auf dem Server landen könnten. Falls für lokale Tests nötig: in `.gitignore` eintragen.
 - Keine ungeschützten Endpunkte. Neue Seiten laufen über `boot.php` und die bestehende Login-/Session-Prüfung.
 - Neue Ausgaben von Benutzerdaten mit `htmlspecialchars` escapen.
+- Aktionen, die Daten ändern (Löschen, Duplizieren, Importieren), laufen **nur per POST mit CSRF-Token** (`require_post_csrf()`, `csrf_field()` aus `inc_security.php`), nie per GET-Link. Nach der Aktion Redirect mit den Filterparametern (Filter-Zustand bleibt erhalten).
+- Rücksprung-Ziele (`back`) immer mit `safe_back_url()` prüfen, nie ungeprüft in `href` oder `Location:` ausgeben.
+- Fehler: `inc_errors.php` einbinden, **kein** `ini_set('display_errors', 1)` und keine Klartext-Ausgabe von `$conn->error`, `getMessage()` oder API-Antworten. Datenbankfehler über `fail_db($public, $detail)`, Details ins Log (`error_log`). Das Log ist über `logview.php` (nur Admin) lesbar. Lokal zum Debuggen `define('APP_DEBUG', true);` in `config.php`, auf dem Server aus.
+- Keine Meldungstexte oder Diagnosedaten in der URL (`?msg=`). Einmalige Meldungen über die Session (Flash).
 
 ## Deployment
 
@@ -68,6 +76,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Vor dem Löschen oder Neu-Klonen eines Ordners immer `git status` prüfen.
 - Pro Aufgabe ein Branch, kleine thematische Commits mit verständlicher deutscher Commit-Message.
 - Keine force-Pushes, kein `git reset --hard` ohne ausdrückliche Rückfrage.
+- Commits laufen mit der GitHub-noreply-Adresse (`git config user.email`), sonst lehnt GitHub den Push ab (GH007, E-Mail-Privatsphäre). Auf beiden Rechnern setzen.
 
 ## Arbeitsweise
 
