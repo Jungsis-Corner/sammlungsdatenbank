@@ -1,16 +1,6 @@
 <?php
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/inc_errors.php';
 
-register_shutdown_function(function () {
-    $e = error_get_last();
-    if (!$e) return;
-    echo "<pre style='background:#fee;border:1px solid #f00;padding:10px;white-space:pre-wrap'>";
-    echo "🚨 PHP‐Fatal in view.php on line {$e['line']}:\n";
-    echo htmlspecialchars($e['message'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    echo "</pre>";
-});
 
 date_default_timezone_set('Europe/Berlin');
 

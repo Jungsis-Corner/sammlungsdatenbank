@@ -1,8 +1,7 @@
 <?php
 // einkauf_edit.php — Neu/Bearbeiten für Tabelle `Einkauf` + Blättern (vor/zurück) im Kontext von einkauf.php
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/inc_errors.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';

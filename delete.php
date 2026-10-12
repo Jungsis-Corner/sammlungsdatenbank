@@ -1,7 +1,5 @@
 <?php
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/require_login.php';   // Login-Prüfung + Session (boot.php)
 require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
