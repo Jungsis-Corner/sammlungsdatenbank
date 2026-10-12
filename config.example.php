@@ -29,6 +29,10 @@ if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 // Falls leer/nicht gesetzt, nutzt logview.php ersatzweise php-error.log im Projektordner.
 if (!defined('ERROR_LOG_PATH')) define('ERROR_LOG_PATH', '');
 
+// --- Debug-Modus: true zeigt PHP-Fehler im Browser (nur lokal, nie auf dem Server!) ---
+// Ohne Eintrag gilt false: Fehler stehen nur im Log (siehe inc_errors.php).
+if (!defined('APP_DEBUG')) define('APP_DEBUG', false);
+
 // --- App-Titel (zentral an EINER Stelle änderbar) ---
 if (!defined('APP_TITLE'))          define('APP_TITLE', 'Meine Sammlung');
 if (!defined('APP_TITLE_MUSEUM'))   define('APP_TITLE_MUSEUM', 'Meine Sammlung (Gast-Ansicht)');
