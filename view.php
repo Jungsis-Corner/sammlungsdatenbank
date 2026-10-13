@@ -13,7 +13,7 @@ if (!function_exists('is_admin')) { function is_admin(): bool { return isset($_S
 $is_guest = is_guest();
 
 // ---- DB-Verbindung ----
-require __DIR__ . '/config.php';
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/inc_guest.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
