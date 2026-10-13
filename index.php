@@ -242,7 +242,7 @@ $year_sql = "
   LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
   LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
-  " . ($where_sql ? $where_sql . " AND " : "WHERE ") . " NULLIF(TRIM(Sammlung.Jahr),'') IS NOT NULL
+  " . ($where_sql ? $where_sql . " AND " : "WHERE ") . " Sammlung.Jahr IS NOT NULL
 ";
 if ($resY = db_select($conn, $year_sql, $flt['types'], $flt['values'])) {
     $rowY = $resY->fetch_row();
