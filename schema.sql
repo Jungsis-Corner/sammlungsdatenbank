@@ -92,12 +92,17 @@ ALTER TABLE `Hersteller`
 CREATE TABLE `Kategorie` (
   `Kategorie` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL,
-  `Spiele` int DEFAULT NULL
+  `Spiele` int DEFAULT NULL,
+  `ParentID` int DEFAULT NULL,
+  `Ebene` enum('marke','plattform','spiele','anwendungen','sonstiges') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'plattform',
+  `Pfad` varchar(190) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '/'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Kategorie`
   ADD PRIMARY KEY (`ID`),
-  ADD UNIQUE KEY `uq_Kategorie_name` (`Kategorie`);
+  ADD UNIQUE KEY `uq_Kategorie_name` (`Kategorie`),
+  ADD KEY `idx_kategorie_pfad` (`Pfad`),
+  ADD KEY `idx_kategorie_parent` (`ParentID`);
 ALTER TABLE `Kategorie`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -304,6 +309,9 @@ ALTER TABLE `Einkauf`
   ADD CONSTRAINT `fk_einkauf_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_einkauf_verkaeufer` FOREIGN KEY (`Verkaeufer`) REFERENCES `Verkäufer` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE `Kategorie`
+  ADD CONSTRAINT `fk_kategorie_parent` FOREIGN KEY (`ParentID`) REFERENCES `Kategorie` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
 ALTER TABLE `Sammlung`
   ADD CONSTRAINT `fk_sammlung_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_sammlung_zustand` FOREIGN KEY (`Zustand`) REFERENCES `Zustand` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -329,6 +337,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('2026-10-13_04_typen.sql'),
   ('2026-10-13_05_lookup_unique.sql'),
   ('2026-10-13_06_geld.sql'),
-  ('2026-10-13_07_fremdschluessel.sql');
+  ('2026-10-13_07_fremdschluessel.sql'),
+  ('2026-10-13_08_kategorie_hierarchie.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
