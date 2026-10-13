@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/inc_errors.php';
 // Gleiche Cookie-Parameter wie die App (boot.php), damit das Cookie wirklich gelöscht wird
 require_once __DIR__ . '/boot.php';
 $_SESSION = [];

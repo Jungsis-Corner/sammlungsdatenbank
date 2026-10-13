@@ -1,5 +1,6 @@
 <?php
 // go.php – numerischer Code -> Ziel-URL
+require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/boot.php'; // falls vorhanden (Session-Cookies etc.)
 
 // Sicherheitsheader (nosniff u. a.) kommen zentral aus der .htaccess.

@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../inc_errors.php';
+
 // Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
 require_once __DIR__ . '/../boot.php';
 
