@@ -125,26 +125,26 @@ $sql = "
   LEFT JOIN Publisher   P  ON S.Publisher    = P.ID
   LEFT JOIN `Verkäufer` VK ON S.`Verkäufer`  = VK.ID
   LEFT JOIN Datentraeger DT ON S.Datentraeger= DT.ID
-  WHERE S.ID = $id
+  WHERE S.ID = ?
   LIMIT 1
 ";
-$data = $conn->query($sql)->fetch_assoc();
+$data = db_select($conn, $sql, 'i', [$id])->fetch_assoc();
 if (!$data) { http_response_code(404); exit('Datensatz nicht gefunden.'); }
 
 // ---- VerbautIn: Name des übergeordneten Geräts ----
 $verbautInId   = (int)($data['VerbautIn'] ?? 0);
 $verbautInName = '';
 if ($verbautInId > 0) {
-    $vbRow = $conn->query("SELECT Bezeichnung FROM Sammlung WHERE ID = {$verbautInId} LIMIT 1")->fetch_row();
+    $vbRow = db_select($conn, "SELECT Bezeichnung FROM Sammlung WHERE ID = ? LIMIT 1", 'i', [$verbautInId])->fetch_row();
     $verbautInName = $vbRow ? $vbRow[0] : '';
 }
 
 // ---- Rückwärts: alle Objekte, die dieses Gerät als VerbautIn haben ----
-$verbaut_liste = $conn->query("
+$verbaut_liste = db_select($conn, "
     SELECT ID, Bezeichnung FROM Sammlung
-    WHERE VerbautIn = {$id}
+    WHERE VerbautIn = ?
     ORDER BY Bezeichnung
-")->fetch_all(MYSQLI_ASSOC);
+", 'i', [$id])->fetch_all(MYSQLI_ASSOC);
 
 $bez = trim((string)($data['Bezeichnung'] ?? ''));
 $pageTitle = $bez !== '' ? $bez.' – Sammlung' : 'Sammlung';

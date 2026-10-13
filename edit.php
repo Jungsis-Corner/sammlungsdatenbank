@@ -355,7 +355,7 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
     $selectedId = (int)$selectedId;
     $curLabel = '';
     if ($selectedId > 0) {
-        $lr = $conn->query("SELECT $f FROM $t WHERE ID=" . $selectedId)->fetch_row();
+        $lr = db_select($conn, "SELECT $f FROM $t WHERE ID = ?", 'i', [$selectedId])->fetch_row();
         if ($lr) $curLabel = $lr[0] . ' (#' . $selectedId . ')';
     }
     $listId = 'lookupList_' . preg_replace('/[^a-zA-Z0-9]/', '', $htmlName);
@@ -723,7 +723,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
 /* ======== Datensatz laden & Prev/Next ermitteln ======== */
 $data = [];
 if ($id > 0) {
-    $data = $conn->query("SELECT * FROM `Sammlung` WHERE ID=$id")->fetch_assoc();
+    $data = db_select($conn, "SELECT * FROM `Sammlung` WHERE ID = ?", 'i', [$id])->fetch_assoc();
 } elseif ($id === 0) {
     // Vorbefüllung für einen neuen Eintrag, z.B. aus einkauf.php übernommen
     $pfMap = [
@@ -832,7 +832,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'igdb'
     // Sicherheitsnetz: Stelle sicher, dass $data existiert
     if (!isset($data) || ($id ?? 0) <= 0) {
         if (($id ?? 0) > 0) {
-            $res = $conn->query("SELECT * FROM `Sammlung` WHERE ID=".(int)$id);
+            $res = db_select($conn, "SELECT * FROM `Sammlung` WHERE ID = ?", 'i', [(int)$id]);
             $data = $res ? $res->fetch_assoc() : null;
         }
     }
@@ -1200,7 +1200,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         $vbCurrentId    = (int)$value;
         $vbCurrentLabel = '';
         if ($vbCurrentId > 0) {
-            $vbCurRow = $conn->query("SELECT Bezeichnung, Seriennummer FROM Sammlung WHERE ID=" . $vbCurrentId)->fetch_assoc();
+            $vbCurRow = db_select($conn, "SELECT Bezeichnung, Seriennummer FROM Sammlung WHERE ID = ?", 'i', [$vbCurrentId])->fetch_assoc();
             if ($vbCurRow) $vbCurrentLabel = $vbLabel($vbCurRow['Bezeichnung'], (string)($vbCurRow['Seriennummer'] ?? ''), $vbCurrentId);
         }
       ?>
@@ -1214,7 +1214,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       <input type="hidden" name="<?= $htmlName ?>" id="<?= $htmlName ?>" value="<?= $vbCurrentId ?>">
       <datalist id="verbautInList">
         <?php
-          $vbOptions = $conn->query("SELECT ID, Bezeichnung, Seriennummer FROM Sammlung WHERE ID != " . (int)$id . " ORDER BY Bezeichnung");
+          $vbOptions = db_select($conn, "SELECT ID, Bezeichnung, Seriennummer FROM Sammlung WHERE ID != ? ORDER BY Bezeichnung", 'i', [(int)$id]);
           while ($vbRow = $vbOptions->fetch_assoc()):
             $vbId = (int)$vbRow['ID'];
         ?>

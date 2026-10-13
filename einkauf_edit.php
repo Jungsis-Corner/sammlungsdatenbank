@@ -5,6 +5,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_filter.php';   // db_select()
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 require_once __DIR__ . '/config.php';
@@ -359,12 +360,12 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
 // Anzeige-Label für die Such-Textfelder (Kategorie/Verkäufer) ermitteln
 $selKatLabel = '';
 if ($selKat > 0) {
-    $r = $conn->query("SELECT Kategorie FROM Kategorie WHERE ID=" . $selKat)->fetch_row();
+    $r = db_select($conn, "SELECT Kategorie FROM Kategorie WHERE ID = ?", 'i', [$selKat])->fetch_row();
     if ($r) $selKatLabel = $r[0] . ' (#' . $selKat . ')';
 }
 $selVLabel = '';
 if ($selV > 0) {
-    $r = $conn->query("SELECT `Verkäufer` FROM `Verkäufer` WHERE ID=" . $selV)->fetch_row();
+    $r = db_select($conn, "SELECT `Verkäufer` FROM `Verkäufer` WHERE ID = ?", 'i', [$selV])->fetch_row();
     if ($r) $selVLabel = $r[0] . ' (#' . $selV . ')';
 }
 ?>
