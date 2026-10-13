@@ -58,7 +58,7 @@ CREATE TABLE `Einkauf` (
   `SCM` tinyint(1) NOT NULL DEFAULT '0',
   `Kickstarter` tinyint(1) NOT NULL DEFAULT '0',
   `Kickstarter_Lieferdatum` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Einkauf`
   ADD PRIMARY KEY (`ID`),
@@ -104,7 +104,7 @@ CREATE TABLE `Login_Log` (
   `ID` int NOT NULL,
   `Zeitpunkt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Quelle` varchar(30) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Login_Log`
   ADD PRIMARY KEY (`ID`);
@@ -163,17 +163,17 @@ ALTER TABLE `Publisher`
 -- --------------------------------------------------------
 CREATE TABLE `Sammlung` (
   `Bezeichnung` text COLLATE utf8mb4_general_ci,
-  `Anzahl` float DEFAULT NULL,
-  `Kategorie` float DEFAULT NULL,
+  `Anzahl` smallint unsigned NOT NULL DEFAULT '1',
+  `Kategorie` int DEFAULT NULL,
   `Original/Homebrew` text COLLATE utf8mb4_general_ci,
-  `Jahr` float DEFAULT NULL,
+  `Jahr` smallint unsigned DEFAULT NULL,
   `Zustand` int DEFAULT NULL,
   `Originalverpackung` int DEFAULT NULL,
   `Verpackung Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
-  `Verpackung` float DEFAULT NULL,
+  `Verpackung` int DEFAULT NULL,
   `Anleitung` int DEFAULT NULL,
   `Anleitung Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
-  `Datentraeger` float DEFAULT NULL,
+  `Datentraeger` int DEFAULT NULL,
   `Sonstiges` int DEFAULT NULL,
   `Datenträger vorhanden` varchar(1) COLLATE utf8mb4_general_ci DEFAULT '',
   `Datenträger Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
@@ -181,16 +181,16 @@ CREATE TABLE `Sammlung` (
   `Datentraegertest` int DEFAULT NULL,
   `Testdatum` text COLLATE utf8mb4_general_ci,
   `Testergebnis` int DEFAULT NULL,
-  `Standort` float DEFAULT NULL,
-  `Zum Verkauf` varchar(1) COLLATE utf8mb4_general_ci DEFAULT '',
+  `Standort` int DEFAULT NULL,
+  `Zum Verkauf` tinyint(1) NOT NULL DEFAULT '0',
   `ISBN` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `Box` float DEFAULT NULL,
+  `Box` int DEFAULT NULL,
   `Material` int DEFAULT NULL,
-  `Hersteller` float DEFAULT NULL,
-  `Publisher` float DEFAULT NULL,
+  `Hersteller` int DEFAULT NULL,
+  `Publisher` int DEFAULT NULL,
   `Einkaufspreis` text COLLATE utf8mb4_general_ci,
   `Wert` text COLLATE utf8mb4_general_ci,
-  `Verkäufer` float DEFAULT NULL,
+  `Verkäufer` int DEFAULT NULL,
   `Seriennummer` text COLLATE utf8mb4_general_ci,
   `Barcode` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `Beschreibung` text COLLATE utf8mb4_general_ci,
@@ -287,6 +287,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('0000_login_log.sql'),
   ('2026-10-13_01_login_versuche.sql'),
   ('2026-10-13_02_schema_migrations.sql'),
-  ('2026-10-13_03_bereinigung.sql');
+  ('2026-10-13_03_bereinigung.sql'),
+  ('2026-10-13_04_typen.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
