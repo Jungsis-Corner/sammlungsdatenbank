@@ -1,9 +1,11 @@
 -- ============================================================
 -- schema.sql -- Sammlungsdatenbank
 --
--- Reine Struktur (keine Daten). Erzeugt aus einem Struktur-Export
--- der Live-Datenbank, bereinigt um ungenutzte/veraltete Spalten
--- und interne Backup-/Hilfstabellen.
+-- Reine Struktur (keine Daten). Stand: nach der Migration
+-- 2026-10-13_08_kategorie_hierarchie.sql (Liste am Ende der Datei).
+-- Ausgangspunkt war ein Struktur-Export der Live-Datenbank, bereinigt um
+-- interne Backup-/Hilfstabellen (bak_*). Jede neue Migration muss diese
+-- Datei mit aktualisieren (siehe migrations/README.md).
 --
 -- Import z.B. ueber phpMyAdmin -> Importieren, oder:
 --   mysql -u DEIN_USER -p DEINE_DATENBANK < schema.sql

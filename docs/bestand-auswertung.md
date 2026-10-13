@@ -1,5 +1,7 @@
 # Bestandsaufnahme: Auswertung (Phase 2, D2)
 
+> **Hinweis:** Diese Auswertung beschreibt den Stand **vor** der Bereinigung (D3). Verwaiste Verweise, Dubletten, Typen und Geldformate wurden inzwischen mit den Migrationen D3 bis D9 behoben. Die Zahlen sind historisch.
+
 Stand: 13.10.2026. Grundlage: SQL-Dump der Live-Datenbank (MySQL **8.0.36**, 3.799 Einträge in `Sammlung`,
 862 in `Einkauf`), lokal eingespielt und mit `docs/bestand.sql` ausgewertet. Die Rohdaten liegen in
 `docs/bestand/` (nicht im Repo). Diese Datei enthält nur Zahlen und IDs, keine Namen.

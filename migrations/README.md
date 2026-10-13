@@ -34,7 +34,7 @@ bei Bedarf den Dump einspielen.
 ## Sicherungstabellen (`bak_*`)
 
 Migrationen, die Daten verändern, sichern den Stand vorher in Tabellen mit dem Präfix `bak_` (z. B. `bak_d3_sammlung`
-bei `2026-10-13_03_bereinigung.sql`). Die `DOWN`-Sektion der Migration stellt daraus den alten Stand wieder her.
+bei `2026-10-13_03_bereinigung.sql`). Aktuell vorhanden: `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`. Die `DOWN`-Sektion der Migration stellt daraus den alten Stand wieder her.
 Die Tabellen bleiben bis zur Abnahme stehen und werden danach mit `DROP TABLE` gelöscht. Ein zweiter Lauf der
 Migration überschreibt eine vorhandene Sicherung nicht. Die `bak_*`-Tabellen gehören nicht in `schema.sql`.
 
@@ -59,5 +59,21 @@ Admin-Session), damit nach der Migration getestet werden kann. `login.php` und `
 - Ausschalten: Datei löschen.
 - Die Datei steht in `.gitignore` und ist per `.htaccess` gesperrt.
 
-Pflicht ist der Wartungsmodus bei Änderungen, bei denen Code und Datenbank gleichzeitig wechseln müssen
-(Geldfelder D6, Kategorie-Hierarchie D9).
+**Wann Wartungsmodus?** Nur wenn alter und neuer Code mit der jeweils anderen Datenbank nicht auskommen (Geldfelder D6:
+der alte Code hätte „12,50“ als 12 gespeichert). Als Admin siehst du den 503 nie, zum Prüfen ein privates Fenster oder
+abgemeldet öffnen. Die Datei muss im App-Ordner neben `boot.php` liegen (nicht in `migrations/`).
+
+## Reihenfolge von Code und Migration
+
+| Fall | Reihenfolge | Beispiel |
+| --- | --- | --- |
+| Migration nur **ergänzt** (neue Spalten, Tabellen), der alte Code läuft weiter | erst Migration, dann Code | D9 Kategorie-Hierarchie |
+| Neuer Code läuft mit alter **und** neuer Datenbank | erst Code, dann Migration | D5 Lookups, D7 Fremdschlüssel |
+| Alt und neu vertragen sich nicht | Wartungsmodus: Flag anlegen, Migration, Code, Flag löschen | D6 Geld |
+
+## Wiederholbar schreiben
+
+Spalten, Indizes und Fremdschlüssel anlegen nur, wenn sie fehlen: Prüfung gegen `information_schema` und der `ALTER` per
+`PREPARE`/`EXECUTE` (Muster in `2026-10-13_05_lookup_unique.sql` und `2026-10-13_07_fremdschluessel.sql`). Datenänderungen,
+die eine Spalte umwandeln, nur ausführen, solange der alte Typ noch da ist (`2026-10-13_06_geld.sql`). Bei `UPDATE` auf
+`Sammlung` immer `Geaendert_am = Geaendert_am` setzen, sonst stempelt `ON UPDATE CURRENT_TIMESTAMP` alle Zeilen neu.

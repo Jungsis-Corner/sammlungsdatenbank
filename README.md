@@ -26,7 +26,10 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 - Einkaufslisten-Verwaltung (`einkauf.php`) mit Direktübernahme in die Sammlung
 - Gast-Modus (Nur-Lese-Ansicht ohne sensible Felder wie Wert/Einkaufspreis, siehe [Gastzugang](#gastzugang))
 - CSV-Export der aktuell gefilterten/sortierten Liste (für Gäste standardmäßig aus)
-- Statistik-Seite mit Verteilungen nach Standort, Material, Kategorie, Einkaufsjahr etc.
+- **Kategorie-Hierarchie** (Marke → Plattform → Spiele/Anwendungen): Filter „inkl. Unterkategorien“ (z. B. alles von Sinclair), Baum in der Kategorie-Auswahl und eigene Pflegeseite
+- **Stammdaten-Pflege** (Hersteller, Publisher, Verkäufer, Material, Standort, Box, …) mit Schutz vor Dubletten, Anzeige der Verwendung und Zusammenführen doppelter Einträge
+- **Boxen** als eigene Stammdaten („Box 1“, „Regal“) statt freier Zahl, mit Filter und Anzeige in Liste, Detail und Export
+- Statistik-Seite mit Verteilungen nach Marke, Plattform, Typ (Spiele/Anwendungen/Hardware), Material und Jahr sowie Gesamtwert
 - **Museum-Modus** (`museum/start.php`, der ältere Kurzlink `museum/index.php` leitet dorthin weiter): Ein Kurzlink, der Besucher automatisch als Gast einloggt und direkt zur Sammlung weiterleitet – gedacht für den Vor-Ort-Einsatz, z. B. per QR-Code an einem Regal oder einer Vitrine (siehe auch `go.php` für numerische Kurzcodes zu gefilterten Ansichten). Kein Passwort nötig, da nur Lesezugriff.
 - **Verkaufsmarkierung**: Duplikate/Mehrfachexemplare lassen sich als „Zum Verkauf“ kennzeichnen, inkl. Schnellfilter in der Listenansicht.
 - **Admin-Log-Viewer** (`logview.php`): Die letzten Zeilen des PHP-Error-Logs direkt im Browser einsehen, ohne FTP-Zugriff – mit einfacher Passwort-/Token-Maskierung.
@@ -40,6 +43,7 @@ Dieses Projekt ist **aus einem konkreten, persönlichen Anwendungsfall gewachsen
 - Die PWA-Konfiguration (`sw.js`) enthält fest eincodierte Pfade (`/sammlung/…`), die beim Fork an den eigenen Installationsort angepasst werden müssen.
 - Anwendungstitel, Museum-Titel und PWA-App-Name sind zentral in `config.php` als `APP_TITLE`, `APP_TITLE_MUSEUM`, `APP_PWA_NAME` und `APP_PWA_SHORT_NAME` definiert (`manifest.php` und `index.php` lesen diese Werte automatisch aus).
 - Es gibt (noch) keine automatisierten Tests.
+- Geldbeträge werden als `DECIMAL(10,2)` gespeichert, die Eingabe akzeptiert Komma oder Punkt (`inc_format.php`).
 
 Betrachte es als **Vorlage zum Forken und Anpassen**, nicht als fertiges Produkt zum 1:1-Deployen.
 
@@ -70,13 +74,17 @@ Die Cookie-Domain der Session kommt aus `SESSION_COOKIE_DOMAIN` in `config.php`.
    git clone https://github.com/DEIN-NAME/sammlungsdatenbank.git
    ```
 2. `config.example.php` zu `config.php` kopieren, eigene Datenbank-Zugangsdaten eintragen und ein Admin-Passwort per `php -r "echo password_hash('DEIN-PASSWORT', PASSWORD_DEFAULT);"` erzeugen (Ergebnis in `ADMIN_PASSWORD_HASH` eintragen).
-3. Datenbankschema importieren (`schema.sql`, z. B. über phpMyAdmin → Importieren).
-4. Auf einem PHP-fähigen Webserver bereitstellen (getestet mit PHP 8.x + MySQL/MariaDB).
+3. Datenbankschema importieren (`schema.sql`, z. B. über phpMyAdmin → Importieren). Sie enthält schon alle Migrationen und markiert sie als eingespielt.
+4. Auf einem PHP-fähigen Webserver bereitstellen.
+
+### Bestehende Installation aktualisieren
+
+Schemaänderungen liegen als nummerierte SQL-Dateien in [`migrations/`](migrations/README.md) und werden der Reihe nach in phpMyAdmin eingespielt (vorher Dump ziehen). Die Tabelle `schema_migrations` zeigt, welche schon gelaufen sind. Reihenfolge von Code-Upload und Migration, Wartungsmodus (`maintenance.flag`) und Rückbau (`DOWN`) stehen in `migrations/README.md`.
 
 ## Voraussetzungen
 
-- PHP 8.0+
-- MySQL oder MariaDB
+- PHP 8.1+ (der Code verlässt sich darauf, dass `mysqli` Fehler als Ausnahmen meldet; produktiv läuft PHP 8.4)
+- MySQL 8.0 (so getestet; MariaDB ist ungetestet)
 - Apache mit `.htaccess`-Unterstützung (`AllowOverride`; `mod_headers`, `mod_deflate`, `mod_expires` und `mod_rewrite` sind optional. `mod_headers` liefert die Sicherheitsheader, `mod_rewrite` trennt die App von Rewrite-Regeln im Webroot, z. B. WordPress)
 - Optional: kostenloser [Twitch-Developer-Account](https://dev.twitch.tv/console/apps) für IGDB-Import, [DeepL-API-Key](https://www.deepl.com/de/pro-api) für automatische Übersetzung
 
