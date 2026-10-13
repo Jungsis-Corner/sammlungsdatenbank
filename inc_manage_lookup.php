@@ -23,6 +23,7 @@ if (!isset($cfg) || !is_array($cfg)) { http_response_code(500); exit('Konfigurat
 
 require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 require_once __DIR__ . '/config.php';
@@ -42,8 +43,9 @@ $offset = ($page - 1) * $limit;
 $search = trim($_GET['q'] ?? '');
 
 /* ---------- Löschen ---------- */
-if (isset($_GET['delete'])) {
-    $del_id = intval($_GET['delete']);
+if (isset($_POST['delete'])) {
+    require_post_csrf();
+    $del_id = intval($_POST['delete']);
     if (!empty($cfg['delete_errors'])) {
         // Fehler abfangen (z. B. Fremdschlüssel-Sperre) und per GET melden
         try {
@@ -83,6 +85,7 @@ if ($id) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_post_csrf();
     $name = trim($_POST[$postKey] ?? '');
     if ($id) {
         $stmt = $conn->prepare("UPDATE $tbl SET $col = ? WHERE `ID` = ?");
@@ -180,6 +183,7 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
     <!-- Formular: Hinzufügen/Bearbeiten -->
     <div class="form-line-center">
       <form method="post" class="admin-inline-form">
+        <?= csrf_field() ?>
         <input type="text" name="<?= htmlspecialchars($postKey) ?>" placeholder="<?= htmlspecialchars($cfg['name_ph']) ?>" value="<?= htmlspecialchars($name) ?>">
         <input type="submit" class="btn btn-green is-small" value="<?= $id ? 'Speichern' : 'Hinzufügen' ?>">
       </form>
@@ -202,10 +206,12 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
               <td><?= htmlspecialchars($row[$cfg['column']] ?? '') ?></td>
               <td class="actions">
                 <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten">✏️</a>
-                <a class="btn is-small btn-red"
-                   href="<?= htmlspecialchars($self) ?>?delete=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>"
-                   onclick="return confirm('Wirklich löschen?')"
-                   title="Löschen">🗑️</a>
+                <form method="post" action="<?= htmlspecialchars($self) ?>?q=<?= urlencode($search) ?><?= $pageParam ?>" style="display:inline; margin:0;"
+                      onsubmit="return confirm('Wirklich löschen?')">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="delete" value="<?= (int)$row['ID'] ?>">
+                  <button type="submit" class="btn is-small btn-red" title="Löschen">🗑️</button>
+                </form>
               </td>
             </tr>
           <?php endwhile; ?>
