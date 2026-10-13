@@ -1,8 +1,8 @@
-const CACHE_NAME = "sammlung-pwa-v5";
+const CACHE_NAME = "sammlung-pwa-v6";
 
 // Nur wirklich statische Sachen cachen:
 const STATIC_ASSETS = [
-  "/sammlung/manifest.json",
+  "/sammlung/manifest.php",
   "/sammlung/icons/icon-192.png",
   "/sammlung/icons/icon-512.png",
   "/sammlung/icons/apple-touch-icon.png",
@@ -14,7 +14,10 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    // Einzeln und fehlertolerant: ein fehlendes Asset darf die Installation nicht verhindern
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.allSettled(STATIC_ASSETS.map((u) => cache.add(u)))
+    )
   );
   self.skipWaiting();
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = "museum-pwa-v1";
+const CACHE_NAME = "museum-pwa-v2";
 
 const STATIC_ASSETS = [
   "/sammlung/museum/index.php",
@@ -10,7 +10,10 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    // Einzeln und fehlertolerant: ein fehlendes Asset darf die Installation nicht verhindern
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.allSettled(STATIC_ASSETS.map((u) => cache.add(u)))
+    )
   );
   self.skipWaiting();
 });
