@@ -1,5 +1,6 @@
 <?php
-session_start();
+// Gleiche Cookie-Parameter wie die App (boot.php), damit das Cookie wirklich gelöscht wird
+require_once __DIR__ . '/boot.php';
 $_SESSION = [];
 if (ini_get('session.use_cookies')) {
   $params = session_get_cookie_params();

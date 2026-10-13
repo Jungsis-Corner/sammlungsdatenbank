@@ -1,21 +1,8 @@
 <?php
 declare(strict_types=1);
 
-// Session-Cookie-Parameter wie in require_login.php/login.php
-$domain = '.jungsi.de';
-$path   = '/sammlung/';
-
-if (session_status() !== PHP_SESSION_ACTIVE) {
-  session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => $path,
-    'domain'   => $domain,
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'Lax'
-  ]);
-  session_start();
-}
+// Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
+require_once __DIR__ . '/../boot.php';
 
 // Wenn schon jemand "normal" eingeloggt ist (Admin/User), Museum-Modus nicht erzwingen:
 if (!empty($_SESSION['logged_in']) && empty($_SESSION['is_guest'])) {
