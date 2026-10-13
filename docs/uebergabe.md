@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D3 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D4 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -15,27 +15,28 @@ Vorher `git status` (muss sauber sein, bis auf die untracked Plandatei), `git fe
 | Phase | Stand |
 | --- | --- |
 | 1 Sicherheit | S1 bis S8 sind umgesetzt, gemergt und auf dem Server. S9 (CSP ohne `unsafe-inline`) kommt laut Plan erst nach Phase 5 |
-| 2 Datenbank | **D1, D2, D3 sind abgeschlossen**: gemergt auf `main` (`1c28015`), Code hochgeladen, Migration `2026-10-13_03_bereinigung.sql` auf dem Server eingespielt und geprüft. **D4** (Typen anpassen) ist als Nächstes dran |
+| 2 Datenbank | **D1 bis D4 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_04_typen.sql` auf dem Server eingespielt und geprüft (Rollout von D4 hat funktioniert). **D5** (Lookups eindeutig, Zusammenführen) ist als Nächstes dran |
 | 3 bis 7 | nicht begonnen |
 
 Server-Stand (von Jungsi bestätigt, 13.10.2026):
 
 - Alle Dateien bis einschließlich D3 sind hochgeladen. Die beiden letzten Korrekturen (`index.php` Zustand/Verpackung ohne NULL als Array-Schlüssel, `statistik.php` Materialname ohne NULL) liegen auf `main`; ob sie schon hochgeladen sind, bei Jungsi erfragen.
-- In der Live-Datenbank eingespielt: `0000_login_log`, `2026-10-13_01_login_versuche`, `2026-10-13_02_schema_migrations`, `2026-10-13_03_bereinigung`.
+- In der Live-Datenbank eingespielt: `0000_login_log`, `2026-10-13_01_login_versuche`, `2026-10-13_02_schema_migrations`, `2026-10-13_03_bereinigung`, `2026-10-13_04_typen`.
   Kontrolle nach D3: Hersteller 1.187, Publisher 429, Verkäufer 277, Box 14, Sammlung 3.799, Einkauf 862, `bak_d3_sammlung` 3.799. Stichprobe in der App bestanden.
 - Die Sicherungstabellen `bak_d3_*` bleiben bis zur Abnahme stehen (Aufräumen in D12).
 
 Git-Stand:
 
-- `main` = `origin/main` = `1c28015`. Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
+- `main` = `origin/main` (Stand nach D4). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
 - Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
 - `docs/Überarbeitungsplan Sammlungsdatenbank.md` liegt **untracked**. Jungsi hat nicht entschieden, ob sie committet wird.
 
 ## 3. Offene Punkte
 
-- **Box 10:** Die Zeile heißt „Regal“, in `Sammlung` steht Box 10 bei 6 Einträgen. Bedeutung klären, bevor D4/D7 den Fremdschlüssel setzen.
+- **Box 10:** Die Zeile heißt „Regal“, in `Sammlung` steht Box 10 bei 6 Einträgen. Bedeutung klären, bevor D7 den Fremdschlüssel setzt.
 - **HSTS** frühestens am 20.10.2026 auf ein Jahr erhöhen (siehe Abschnitt 4).
-- **D4 bis D12** laut Abschnitt 8.
+- **Strikter SQL-Modus:** `edit.php` scheitert dort an `Einkaufsdatum = ''` (Altlast). Live nicht-strikt, daher kein Problem; bei einer Umstellung auf strikt vorher beheben.
+- **D5 bis D12** laut Abschnitt 8.
 
 ## 4. Entscheidungen von Jungsi (gelten weiter)
 
@@ -53,7 +54,7 @@ Git-Stand:
 
 Details: `docs/bestand-auswertung.md`. Das Wichtigste:
 
-- Live-Server: **MySQL 8.0.36, PHP 8.4**, Strato. Die App läuft dort im **nicht-strikten** SQL-Modus (die Checkboxen speichern `''` in Zahlspalten). Lokal in strikter MySQL schlägt das fehl. Beim Test `SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION'` setzen. Das ist bei D4 zu beachten.
+- Live-Server: **MySQL 8.0.36, PHP 8.4**, Strato. Die App läuft dort im **nicht-strikten** SQL-Modus (die Checkboxen speichern `''` in Zahlspalten). Lokal in strikter MySQL schlägt das fehl. Beim Test `SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION'` setzen.
 - `Sammlung.Sonstiges` ist **keine** tote Spalte (Checkbox „Sonstiges dabei“). Der Plan (D12) liegt dort falsch, nicht löschen.
 - Die Bilder liegen unter `…/blog/wp-content/uploads/` (nicht `/wp-content/uploads/`), flach ohne Jahr/Monat, 619 Einträge mit Doppelschrägstrich `//blog`. Phase 3: `IMAGE_WP_BASE` entsprechend, gespeichert wird nur der Dateiname.
 - `Wert` und `Einkaufspreis` sind sauber (nur leer, ganze Zahl oder Komma-Dezimal). `export.php` rechnet aber mit `REPLACE(Wert, ".", "")`, deshalb darf die Umstellung auf Punkt-Schreibweise erst in D6 zusammen mit dem Code im Wartungsmodus passieren.
@@ -70,7 +71,7 @@ Auf dem zweiten Rechner läuft Claude Code in WSL (Ubuntu). Die Ordner `docs/bes
 
 - Git-E-Mail ist die GitHub-noreply-Adresse (`git config user.email`, sonst lehnt GitHub den Push ab, GH007).
 - Die echte `config.php` wird nie geladen oder kopiert.
-- Der aktuelle Live-Dump liegt als `docs/bestand/dump.sql` (Stand 13.10.2026, 17:43 Uhr, vor dem Einspielen der D3-Migration). Für D4 einen **neuen** Dump ziehen, er enthält dann die D3-Änderungen.
+- Der aktuelle Live-Dump liegt als `docs/bestand/dump.sql` (Stand 13.10.2026, 17:43 Uhr, vor dem Einspielen der D3-Migration). Vor dem nächsten Migrationstest einen **neuen** Dump ziehen (D3 und D4 sind live eingespielt); alternativ D3 und D4 lokal auf diesen Dump anwenden (so wurde D4 getestet).
 
 ## 7. Lokale Testumgebung (WSL)
 
@@ -90,7 +91,7 @@ Installiert (apt): PHP 8.5.4 (CLI, mit `mysqli`, `mbstring`), MySQL 8.4.11 (`/us
 
 ## 8. Weiterer Fahrplan (Phase 2, laut Plan, mit Anpassungen)
 
-- **D4** Typen anpassen (Fremdschlüsselspalten auf `INT`, `Jahr` `SMALLINT`, `Anzahl` `SMALLINT UNSIGNED NOT NULL DEFAULT 1`, `Zum Verkauf` `TINYINT(1)`, Collation vereinheitlichen). Berücksichtigen: nicht-strikter Modus der Live-Datenbank, Checkbox-Felder, `Box` ist Fremdschlüssel.
+- ~~D4 Typen anpassen~~ erledigt (`INT`/`SMALLINT`, `Zum Verkauf` `TINYINT(1)`, Collation `utf8mb4_general_ci`, Code speichert Checkboxen als 1/0, `Jahr`/`Box` als Zahl).
 - **D5** Lookups: `UNIQUE` auf dem Namen (nach den Dubletten aus D3 möglich) und die Funktion „Zusammenführen“ in `inc_manage_lookup.php`.
 - **D6** Geld als `DECIMAL(10,2)` mit `inc_format.php` (`parse_decimal()`, `fmt_eur()`), im **Wartungsmodus** (`maintenance.flag`), inklusive `export.php`, `statistik.php`, `einkauf_edit.php`, `duplicate.php`.
 - **D7** Fremdschlüssel und Indizes, Fehler 1451 in `inc_manage_lookup.php` abfangen („noch in Verwendung“).
