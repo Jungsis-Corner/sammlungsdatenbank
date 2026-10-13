@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D5 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D6 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -15,7 +15,7 @@ Vorher `git status` (muss sauber sein, bis auf die untracked Plandatei), `git fe
 | Phase | Stand |
 | --- | --- |
 | 1 Sicherheit | S1 bis S8 sind umgesetzt, gemergt und auf dem Server. S9 (CSP ohne `unsafe-inline`) kommt laut Plan erst nach Phase 5 |
-| 2 Datenbank | **D1 bis D5 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_05_lookup_unique.sql` auf dem Server eingespielt und geprüft. **D6** (Geld als DECIMAL) ist als Nächstes dran |
+| 2 Datenbank | **D1 bis D6 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_06_geld.sql` auf dem Server eingespielt und geprüft. **D7** (Fremdschlüssel, Indizes, Box) ist als Nächstes dran |
 | 3 bis 7 | nicht begonnen |
 
 Server-Stand (von Jungsi bestätigt, 13.10.2026):
@@ -27,7 +27,7 @@ Server-Stand (von Jungsi bestätigt, 13.10.2026):
 
 Git-Stand:
 
-- `main` = `origin/main` (Stand nach D5). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
+- `main` = `origin/main` (Stand nach D6). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
 - Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
 - `docs/Überarbeitungsplan Sammlungsdatenbank.md` liegt **untracked**. Jungsi hat nicht entschieden, ob sie committet wird.
 
@@ -93,7 +93,7 @@ Installiert (apt): PHP 8.5.4 (CLI, mit `mysqli`, `mbstring`), MySQL 8.4.11 (`/us
 
 - ~~D4 Typen anpassen~~ erledigt (`INT`/`SMALLINT`, `Zum Verkauf` `TINYINT(1)`, Collation `utf8mb4_general_ci`, Code speichert Checkboxen als 1/0, `Jahr`/`Box` als Zahl).
 - ~~D5 Lookups~~ erledigt (`VARCHAR(190)` + `UNIQUE` auf dem Namen in 10 Tabellen inkl. Box; `inc_manage_lookup.php` prüft leere/doppelte Namen, zeigt die Verwendungsanzahl und kann Einträge zusammenführen, außer Kategorie; Verweisliste `lookup_refs()` in `inc_security.php`). Dubletten aus `docs/bestand/05_dubletten.csv` entscheidet Jungsi selbst (E5).
-- **D6** Geld als `DECIMAL(10,2)` mit `inc_format.php` (`parse_decimal()`, `fmt_eur()`), im **Wartungsmodus** (`maintenance.flag`), inklusive `export.php`, `statistik.php`, `einkauf_edit.php`, `duplicate.php`.
+- ~~D6 Geld~~ erledigt (`Wert`/`Einkaufspreis` `DECIMAL(10,2)`, `inc_format.php` mit `parse_decimal()`/`fmt_dec()`/`fmt_eur()`, Sicherungstabelle `bak_d6_geld` bis D12). Altlast: Duplizieren ohne Kosten speichert `Einkaufsdatum` als `0000-00-00`.
 - **D7** Fremdschlüssel und Indizes, Fehler 1451 in `inc_manage_lookup.php` abfangen („noch in Verwendung“).
 - **D8** `Einkauf` bleibt unverknüpft, nur Collation angleichen und die Übernahme-Funktion in `edit.php` testen.
 - **D9** Kategorie-Hierarchie über CSV-Freigabe (`docs/kategorie_mapping_vorschlag.csv`), Grundlage `docs/bestand/06_kategorien.csv` (173 Kategorien).
