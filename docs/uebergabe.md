@@ -59,7 +59,7 @@ Details: `docs/bestand-auswertung.md`. Das Wichtigste:
 - Die Bilder liegen unter `…/blog/wp-content/uploads/` (nicht `/wp-content/uploads/`), flach ohne Jahr/Monat, 619 Einträge mit Doppelschrägstrich `//blog`. Phase 3: `IMAGE_WP_BASE` entsprechend, gespeichert wird nur der Dateiname.
 - `Wert` und `Einkaufspreis` sind sauber (nur leer, ganze Zahl oder Komma-Dezimal). `export.php` rechnet aber mit `REPLACE(Wert, ".", "")`, deshalb darf die Umstellung auf Punkt-Schreibweise erst in D6 zusammen mit dem Code im Wartungsmodus passieren.
 - `duplicate.php` bindet `Wert` als Kommazahl (`(float)"20,50"` ergibt 20): Beim Duplizieren gehen die Cent verloren. In D6 beheben.
-- `(erledigt in D4: alle Tabellen haben `utf8mb4_general_ci`.) Abfragen, die Textspalten beider Welten mischen, scheitern mit Fehler 1271 (D8).
+- Collation: seit D4 haben alle Tabellen `utf8mb4_general_ci` (auch `Einkauf` und `Login_Log`).
 - Die Spalte `Geaendert_am` hat `ON UPDATE CURRENT_TIMESTAMP`: Jedes `UPDATE` ändert sie. Datenmigrationen müssen `Geaendert_am = Geaendert_am` setzen (so geschehen in D3).
 - `schema.sql` entspricht seit `d3-vorbereitung` dem Live-Stand (90 Spalten, 23 Indizes, 2 Fremdschlüssel, geprüft).
 - Der phpMyAdmin-Export „Abfrageergebnis“ funktioniert bei den Abfragen aus `docs/bestand.sql` nicht. Statt dessen: ein SQL-Dump der Datenbank, den Claude lokal einspielt (siehe Abschnitt 7).
