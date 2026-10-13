@@ -24,7 +24,10 @@ function require_post_csrf(): void {
         header('Allow: POST');
         exit('Nur per POST erlaubt.');
     }
-    if (!hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''))) {
+    $sess = (string)($_SESSION['csrf'] ?? '');
+    $post = (string)($_POST['csrf'] ?? '');
+    // Leere Tokens nie akzeptieren (hash_equals('', '') wäre sonst true)
+    if ($sess === '' || $post === '' || !hash_equals($sess, $post)) {
         http_response_code(400);
         exit('Ungültiges Formular (CSRF).');
     }
