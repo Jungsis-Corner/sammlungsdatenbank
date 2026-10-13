@@ -15,6 +15,7 @@
  * Optional:
  *   delete_errors  true = Löschfehler (z. B. Fremdschlüssel) abfangen und als Hinweis zeigen
  *   keep_page      true = Seitennummer in Bearbeiten-/Lösch-Links und nach dem Speichern behalten
+ *   merge          false = "In anderen Eintrag überführen" ausschalten (Default: an)
  *
  * Tabellen- und Spaltennamen stammen ausschließlich aus dem festen $cfg der
  * aufrufenden Datei, nie aus Benutzereingaben.
@@ -85,18 +86,76 @@ if ($id) {
     }
 }
 
+$refs      = lookup_refs($cfg['table']);
+$canMerge  = ($cfg['merge'] ?? true) && $id && $refs;
+$backQuery = '?q=' . urlencode($search) . $pageParam;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post_csrf();
-    $name = trim($_POST[$postKey] ?? '');
-    if ($id) {
-        $stmt = $conn->prepare("UPDATE $tbl SET $col = ? WHERE `ID` = ?");
-        $stmt->bind_param('si', $name, $id);
-    } else {
-        $stmt = $conn->prepare("INSERT INTO $tbl ($col) VALUES (?)");
-        $stmt->bind_param('s', $name);
+
+    /* Zusammenführen: alle Verweise von $id auf den Eintrag mit dem Zielnamen umstellen, dann $id löschen */
+    if (isset($_POST['merge_into'])) {
+        if (!$canMerge) { http_response_code(400); exit('Zusammenführen nicht möglich.'); }
+        $target = trim($_POST['merge_into']);
+        $stmt = $conn->prepare("SELECT `ID`, $col FROM $tbl WHERE $col = ?");
+        $stmt->bind_param('s', $target);
+        $stmt->execute();
+        $t = $stmt->get_result()->fetch_assoc();
+        if (!$t) {
+            flash_set('Zieleintrag „' . $target . '“ nicht gefunden. Bitte einen vorhandenen Namen wählen.', 'error');
+        } elseif ((int)$t['ID'] === $id) {
+            flash_set('Quelle und Ziel sind derselbe Eintrag.', 'error');
+        } else {
+            $toId  = (int)$t['ID'];
+            $moved = 0;
+            try {
+                $conn->begin_transaction();
+                foreach ($refs as [$rt, $rc]) {
+                    // Zeitstempel (Geaendert_am) bleibt unverändert, sonst gäbe es eine Fake-Änderung
+                    $stmt = $conn->prepare("UPDATE $rt SET $rc = ?" . ($rt === '`Sammlung`' || $rt === '`Einkauf`' ? ", `Geaendert_am` = `Geaendert_am`" : '') . " WHERE $rc = ?");
+                    $stmt->bind_param('ii', $toId, $id);
+                    $stmt->execute();
+                    $moved += $stmt->affected_rows;
+                }
+                $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
+                $stmt->bind_param('i', $id);
+                $stmt->execute();
+                $conn->commit();
+                flash_set('„' . $name . '“ wurde in „' . $t[$cfg['column']] . '“ überführt (' . $moved . ' Verweise umgestellt) und gelöscht.', 'success');
+            } catch (Throwable $e) {
+                $conn->rollback();
+                error_log('Zusammenführen ' . $cfg['table'] . ' ' . $id . '->' . $toId . ': ' . $e->getMessage());
+                flash_set('Zusammenführen fehlgeschlagen, es wurde nichts geändert.', 'error');
+            }
+        }
+        header('Location: ' . $self . $backQuery);
+        exit;
     }
-    $stmt->execute();
-    header('Location: ' . $self . '?q=' . urlencode($search) . $pageParam);
+
+    $name = trim($_POST[$postKey] ?? '');
+    if ($name === '') {
+        flash_set('Der Name darf nicht leer sein.', 'error');
+        header('Location: ' . $self . $backQuery . ($id ? '&id=' . $id : ''));
+        exit;
+    }
+    try {
+        if ($id) {
+            $stmt = $conn->prepare("UPDATE $tbl SET $col = ? WHERE `ID` = ?");
+            $stmt->bind_param('si', $name, $id);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO $tbl ($col) VALUES (?)");
+            $stmt->bind_param('s', $name);
+        }
+        $stmt->execute();
+    } catch (mysqli_sql_exception $e) {
+        if ((int)$e->getCode() === 1062) {
+            flash_set('Diesen Namen gibt es schon (Groß-/Kleinschreibung zählt nicht).', 'error');
+            header('Location: ' . $self . $backQuery . ($id ? '&id=' . $id : ''));
+            exit;
+        }
+        fail_db('Datenbankfehler.', 'Speichern ' . $cfg['table'] . ': ' . $e->getMessage());
+    }
+    header('Location: ' . $self . $backQuery);
     exit;
 }
 
@@ -113,7 +172,10 @@ if ($r = $stmt->get_result()->fetch_row()) {
 }
 $pages = max(1, (int)ceil($total / $limit));
 
-$stmt = $conn->prepare("SELECT `ID`, $col FROM $tbl $where ORDER BY $col LIMIT ? OFFSET ?");
+// Verwendungsanzahl je Eintrag (Tabellen/Spalten aus der festen Verweisliste)
+$useSql = '0';
+foreach ($refs as [$rt, $rc]) { $useSql .= " + (SELECT COUNT(*) FROM $rt WHERE $rt.$rc = $tbl.`ID`)"; }
+$stmt = $conn->prepare("SELECT `ID`, $col, ($useSql) AS `Verwendet` FROM $tbl $where ORDER BY $col LIMIT ? OFFSET ?");
 if ($search !== '') {
     $stmt->bind_param('sii', $like, $limit, $offset);
 } else {
@@ -191,6 +253,22 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
       </form>
     </div>
 
+    <?php if ($canMerge): ?>
+      <?php $dl = $conn->query("SELECT $col FROM $tbl WHERE `ID` <> " . (int)$id . " ORDER BY $col"); ?>
+      <!-- Zusammenführen: alle Verweise auf einen anderen Eintrag umstellen, diesen Eintrag löschen -->
+      <div class="form-line-center">
+        <form method="post" class="admin-inline-form"
+              onsubmit="return confirm('Alle Verweise von „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ auf den gewählten Eintrag umstellen und „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ löschen?')">
+          <?= csrf_field() ?>
+          <input type="text" name="merge_into" list="merge-targets" placeholder="In diesen Eintrag überführen…" required>
+          <datalist id="merge-targets">
+            <?php while ($d = $dl->fetch_row()): ?><option value="<?= htmlspecialchars($d[0]) ?>"><?php endwhile; ?>
+          </datalist>
+          <input type="submit" class="btn btn-red is-small" value="Überführen und löschen">
+        </form>
+      </div>
+    <?php endif; ?>
+
     <!-- Liste -->
     <div class="table-wrap">
       <table class="adm-table is-striped is-hover is-compact is-sticky">
@@ -198,6 +276,7 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
           <tr>
             <th class="col-id">ID</th>
             <th><?= htmlspecialchars($cfg['th']) ?></th>
+            <th class="is-numeric">Einträge</th>
             <th class="is-center">Aktionen</th>
           </tr>
         </thead>
@@ -206,6 +285,7 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
             <tr>
               <td class="col-id is-numeric"><?= (int)$row['ID'] ?></td>
               <td><?= htmlspecialchars($row[$cfg['column']] ?? '') ?></td>
+              <td class="is-numeric"><?= (int)$row['Verwendet'] ?></td>
               <td class="actions">
                 <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten">✏️</a>
                 <form method="post" action="<?= htmlspecialchars($self) ?>?q=<?= urlencode($search) ?><?= $pageParam ?>" style="display:inline; margin:0;"
@@ -218,7 +298,7 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
             </tr>
           <?php endwhile; ?>
           <?php if ($list->num_rows === 0): ?>
-            <tr><td colspan="3" class="is-center">Keine Einträge gefunden.</td></tr>
+            <tr><td colspan="4" class="is-center">Keine Einträge gefunden.</td></tr>
           <?php endif; ?>
         </tbody>
       </table>

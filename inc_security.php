@@ -116,3 +116,24 @@ function lookup_ident(string $table, string $field): array {
     }
     return ['`' . $table . '`', '`' . $field . '`'];
 }
+
+/**
+ * Verweise auf einen Lookup-Eintrag: Liste von [Tabelle, Spalte] (jeweils in Backticks), die dessen ID speichern.
+ * Fest hinterlegt, nie aus Benutzereingaben. Tabellen ohne Eintrag haben (noch) keine Verweise.
+ */
+function lookup_refs(string $table): array {
+    static $refs = [
+        'Kategorie'    => [['Sammlung', 'Kategorie'], ['Einkauf', 'Kategorie']],
+        'Zustand'      => [['Sammlung', 'Zustand']],
+        'Verpackung'   => [['Sammlung', 'Verpackung']],
+        'Material'     => [['Sammlung', 'Material']],
+        'Standort'     => [['Sammlung', 'Standort']],
+        'Hersteller'   => [['Sammlung', 'Hersteller']],
+        'Publisher'    => [['Sammlung', 'Publisher']],
+        'Verkäufer'    => [['Sammlung', 'Verkäufer'], ['Einkauf', 'Verkaeufer']],
+        'Datentraeger' => [['Sammlung', 'Datentraeger']],
+    ];
+    $out = [];
+    foreach ($refs[$table] ?? [] as [$t, $c]) { $out[] = ['`' . $t . '`', '`' . $c . '`']; }
+    return $out;
+}
