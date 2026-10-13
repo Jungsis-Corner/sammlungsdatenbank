@@ -157,6 +157,9 @@ ALTER TABLE `Publisher`
 
 -- --------------------------------------------------------
 -- Tabelle: Sammlung
+-- Hinweis: Originalverpackung, Anleitung, `Datenträger vorhanden`, Datentraegertest, Testdatum und Testergebnis
+-- sind Altspalten aus dem früheren Häkchen-Modell. Der Code liest sie nicht mehr (aktuell sind die
+-- `... Status`-Spalten). Sie bleiben vorerst erhalten und werden erst nach einem Datenexport entfernt (D12).
 -- --------------------------------------------------------
 CREATE TABLE `Sammlung` (
   `Bezeichnung` text COLLATE utf8mb4_general_ci,
@@ -165,13 +168,19 @@ CREATE TABLE `Sammlung` (
   `Original/Homebrew` text COLLATE utf8mb4_general_ci,
   `Jahr` float DEFAULT NULL,
   `Zustand` int DEFAULT NULL,
+  `Originalverpackung` int DEFAULT NULL,
   `Verpackung Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
   `Verpackung` float DEFAULT NULL,
+  `Anleitung` int DEFAULT NULL,
   `Anleitung Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
   `Datentraeger` float DEFAULT NULL,
   `Sonstiges` int DEFAULT NULL,
+  `Datenträger vorhanden` varchar(1) COLLATE utf8mb4_general_ci DEFAULT '',
   `Datenträger Status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '',
   `Sonstiges Beschreibung` varchar(255) COLLATE utf8mb4_general_ci DEFAULT '',
+  `Datentraegertest` int DEFAULT NULL,
+  `Testdatum` text COLLATE utf8mb4_general_ci,
+  `Testergebnis` int DEFAULT NULL,
   `Standort` float DEFAULT NULL,
   `Zum Verkauf` varchar(1) COLLATE utf8mb4_general_ci DEFAULT '',
   `ISBN` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
