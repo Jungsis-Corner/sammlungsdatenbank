@@ -70,3 +70,11 @@ function db_select(mysqli $conn, string $sql, string $types = '', array $values 
     $stmt->execute();
     return $stmt->get_result();
 }
+
+/**
+ * Sortierausdruck für die Box in natürlicher Reihenfolge (Box 2 vor Box 10, andere Namen wie "Regal" am Ende).
+ * $alias = Alias der gejointen Tabelle Box (nur feste Namen aus dem Code, nie aus Benutzereingaben).
+ */
+function box_sort_sql(string $alias): string {
+    return "CASE WHEN $alias.`Box` IS NULL THEN NULL WHEN $alias.`Box` REGEXP '^Box [0-9]+\$' THEN CAST(SUBSTRING($alias.`Box`, 5) AS UNSIGNED) ELSE 999999999 END";
+}

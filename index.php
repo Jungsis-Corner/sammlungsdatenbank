@@ -35,10 +35,10 @@ $verkaeuferList = get_lookup('Verkäufer',    'Verkäufer');
 
 // Liste der tatsächlich verwendeten Box-Werte (fürs Dropdown)
 $boxList = [];
-$boxRes = $conn->query("SELECT DISTINCT Box FROM Sammlung WHERE Box IS NOT NULL ORDER BY Box");
+$boxRes = $conn->query("SELECT b.ID, b.Box FROM Box b WHERE EXISTS (SELECT 1 FROM Sammlung s WHERE s.Box = b.ID) ORDER BY " . box_sort_sql('b'));
 if ($boxRes) {
     while ($r = $boxRes->fetch_row()) {
-        $boxList[] = $r[0];
+        $boxList[(int)$r[0]] = $r[1];   // ID => Name
     }
 }
 
@@ -88,7 +88,7 @@ $sort_map = [
   'Zustand'             => 'Zustand.Zustand',
   'Verpackung'          => 'Verpackung.Verpackung',
   'Standort'            => 'Standort.Standort',
-  'Box'                 => 'Sammlung.Box',
+  'Box'                 => box_sort_sql('Box'),
   'Einkaufsdatum'       => 'Sammlung.Einkaufsdatum',
   'Wert'                => 'Sammlung.Wert',
   'Link zu YouTube'     => 'Sammlung.`Link zu YouTube`' // <- NEU
@@ -157,7 +157,7 @@ if ($standortId && isset($standortList[$standortId])) {
     $activeBadges[] = ['label' => '📍 ' . $standortList[$standortId], 'remove' => ['standort' => '']];
 }
 if ($boxId !== '') {
-    $activeBadges[] = ['label' => '📦 Box ' . $boxId, 'remove' => ['box' => '']];
+    $activeBadges[] = ['label' => '📦 ' . ($boxList[(int)$boxId] ?? ('Box ' . $boxId)), 'remove' => ['box' => '']];
 }
 if ($verkaufFilter) {
     $activeBadges[] = ['label' => '🏷️ Zum Verkauf', 'remove' => ['verkauf' => '']];
@@ -203,13 +203,15 @@ $sql = "
     Material.Material     AS MaterialName,
     Zustand.Zustand       AS ZustandName,
     Verpackung.Verpackung AS VerpackungName,
-    Standort.Standort     AS StandortName
+    Standort.Standort     AS StandortName,
+    Box.Box               AS BoxName
   FROM Sammlung
   LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
   LEFT JOIN Material   ON Sammlung.Material   = Material.ID
   LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
   LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
+  LEFT JOIN Box        ON Sammlung.Box        = Box.ID
   $where_sql
   ORDER BY $order_by
   LIMIT $limit OFFSET $offset
@@ -903,8 +905,8 @@ cursor: pointer;
           <?php else: ?>
             <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&box='+encodeURIComponent(this.value)+'&page=1'">
               <option value="">Box filtern</option>
-              <?php foreach($boxList as $bVal): ?>
-                <option value="<?= htmlspecialchars($bVal) ?>"><?= htmlspecialchars($bVal) ?></option>
+              <?php foreach($boxList as $bId => $bName): ?>
+                <option value="<?= (int)$bId ?>"><?= htmlspecialchars($bName) ?></option>
               <?php endforeach; ?>
             </select>
           <?php endif; ?>
@@ -1080,7 +1082,7 @@ if (!empty($_SESSION['museum_mode'])) {
 
 <?php if (!$is_guest): ?>
   <td><?= htmlspecialchars($row['StandortName'] ?? '') ?></td>
-  <td><?= htmlspecialchars($row['Box'] ?? '') ?></td>
+  <td><?= htmlspecialchars($row['BoxName'] ?? '') ?></td>
 <td class="col-einkaufsdatum">
     <?php
       if (!empty($row['Einkaufsdatum']) && $row['Einkaufsdatum']!=='0000-00-00') {

@@ -56,7 +56,7 @@ $sort_map = [
   'Zustand'             => 'Zustand.Zustand',
   'Verpackung'          => 'Verpackung.Verpackung',
   'Standort'            => 'Standort.Standort',
-  'Box'                 => 'Sammlung.Box',
+  'Box'                 => box_sort_sql('Box'),
   'Einkaufsdatum'       => 'Sammlung.Einkaufsdatum',
   'Wert'                => 'Sammlung.Wert',
   'Getestet am'         => 'Sammlung.`Getestet am`',
@@ -90,13 +90,15 @@ $sql = "
     Material.Material     AS MaterialName,
     Zustand.Zustand       AS ZustandName,
     Verpackung.Verpackung AS VerpackungName,
-    Standort.Standort     AS StandortName
+    Standort.Standort     AS StandortName,
+    Box.Box               AS BoxName
   FROM Sammlung
   LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
   LEFT JOIN Material   ON Sammlung.Material   = Material.ID
   LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
   LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
+  LEFT JOIN Box        ON Sammlung.Box        = Box.ID
   $where_sql
   ORDER BY $order_by$limit_sql
 ";
@@ -174,7 +176,7 @@ while ($row = $res->fetch_assoc()){
 
   if (!$is_guest){
     $line[] = $row['StandortName'] ?? '';
-    $line[] = $row['Box'] ?? '';
+    $line[] = $row['BoxName'] ?? '';
     $ed = (!empty($row['Einkaufsdatum']) && $row['Einkaufsdatum']!=='0000-00-00')
             ? date('d.m.Y', strtotime($row['Einkaufsdatum'])) : '';
     $line[] = $ed;

@@ -106,6 +106,7 @@ function lookup_ident(string $table, string $field): array {
         'Publisher'    => 'Publisher',
         'Verkäufer'    => 'Verkäufer',
         'Datentraeger' => 'Datentrager',   // Spalte heißt in der DB ohne "ä"
+        'Box'          => 'Box',
     ];
     if (!isset($allowed[$table]) || $allowed[$table] !== $field) {
         if (function_exists('fail_db')) {
@@ -132,6 +133,7 @@ function lookup_refs(string $table): array {
         'Publisher'    => [['Sammlung', 'Publisher']],
         'Verkäufer'    => [['Sammlung', 'Verkäufer'], ['Einkauf', 'Verkaeufer']],
         'Datentraeger' => [['Sammlung', 'Datentraeger']],
+        'Box'          => [['Sammlung', 'Box']],
     ];
     $out = [];
     foreach ($refs[$table] ?? [] as [$t, $c]) { $out[] = ['`' . $t . '`', '`' . $c . '`']; }

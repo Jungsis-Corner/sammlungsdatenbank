@@ -52,7 +52,7 @@ $sort_map = [
   'Zustand'             => 'Z.Zustand',
   'Verpackung'          => 'VP.Verpackung',
   'Standort'            => 'ST.Standort',
-  'Box'                 => 'S.Box',
+  'Box'                 => box_sort_sql('BX'),
   'Einkaufsdatum'       => 'S.Einkaufsdatum',
   'Link zu YouTube' => 'S.`Link zu YouTube`',
   'Getestet am'         => 'S.`Getestet am`',
@@ -80,6 +80,7 @@ $from_join = "
   LEFT JOIN Zustand     Z  ON S.Zustand     = Z.ID
   LEFT JOIN Verpackung  VP ON S.Verpackung  = VP.ID
   LEFT JOIN Standort    ST ON S.Standort    = ST.ID
+  LEFT JOIN Box         BX ON S.Box         = BX.ID
 ";
 
 // ---- Basis-Params für Links (FRÜH bauen, da evtl. beim Redirect genutzt) ----
@@ -120,7 +121,8 @@ $sql = "
     H.Hersteller       AS HerstellerName,
     P.Publisher        AS PublisherName,
     VK.`Verkäufer`     AS VerkaeuferName,
-    DT.Datentrager     AS DatentraegerName
+    DT.Datentrager     AS DatentraegerName,
+    BX.Box             AS BoxName
   $from_join
   LEFT JOIN Hersteller  H  ON S.Hersteller   = H.ID
   LEFT JOIN Publisher   P  ON S.Publisher    = P.ID
@@ -370,7 +372,7 @@ function tr_meta_close(): void {
 		  tr_meta('ISBN', $data['ISBN'] ?? '');
 		  tr_meta('Barcode / EAN', (string)($data['Barcode'] ?? ''));
           if (!$is_guest && strcasecmp((string)$data['StandortName'], 'Lager') === 0) {
-              tr_meta('Box', $data['Box'] ?? '');
+              tr_meta('Box', $data['BoxName'] ?? '');
           }
 
           $einkaufsdatum = (!empty($data['Einkaufsdatum']) && $data['Einkaufsdatum']!=='0000-00-00')

@@ -13,9 +13,9 @@
  *   search_ph  Platzhalter der Suche           (z. B. 'Material suchen…')
  *   name_ph    Platzhalter des Eingabefelds    (z. B. 'Name des Materials')
  * Optional:
- *   delete_errors  true = Löschfehler (z. B. Fremdschlüssel) abfangen und als Hinweis zeigen
  *   keep_page      true = Seitennummer in Bearbeiten-/Lösch-Links und nach dem Speichern behalten
  *   merge          false = "In anderen Eintrag überführen" ausschalten (Default: an)
+ *   order          feste SQL-Sortierung der Liste (Default: Namensspalte); z. B. natürliche Reihenfolge bei Box
  *
  * Tabellen- und Spaltennamen stammen ausschließlich aus dem festen $cfg der
  * aufrufenden Datei, nie aus Benutzereingaben.
@@ -47,21 +47,28 @@ $search = trim($_GET['q'] ?? '');
 if (isset($_POST['delete'])) {
     require_post_csrf();
     $del_id = intval($_POST['delete']);
-    if (!empty($cfg['delete_errors'])) {
-        // Fehler abfangen (z. B. Fremdschlüssel-Sperre) und als einmalige Session-Meldung zeigen
-        try {
-            $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
-            $stmt->bind_param('i', $del_id);
-            $stmt->execute();
-        } catch (Throwable $e) {
-            flash_set('Löschen fehlgeschlagen. Der Eintrag wird vermutlich noch verwendet.', 'error');
-            header('Location: ' . $self . '?' . http_build_query(['page' => $page, 'q' => $search]));
-            exit;
-        }
-    } else {
+    // Fehler abfangen und als einmalige Session-Meldung zeigen. 1451 = Fremdschlüssel-Sperre (noch verwendet).
+    try {
         $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
         $stmt->bind_param('i', $del_id);
         $stmt->execute();
+    } catch (mysqli_sql_exception $e) {
+        if ((int)$e->getCode() === 1451) {
+            $n = 0;
+            foreach (lookup_refs($cfg['table']) as [$rt, $rc]) {
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM $rt WHERE $rc = ?");
+                $stmt->bind_param('i', $del_id);
+                $stmt->execute();
+                $n += (int)$stmt->get_result()->fetch_row()[0];
+            }
+            flash_set('Nicht gelöscht: Der Eintrag ist noch in Verwendung' . ($n > 0 ? ' (' . $n . ' ' . ($n === 1 ? 'Eintrag' : 'Einträge') . ')' : '')
+                . '. Bitte erst die Einträge umstellen oder den Eintrag in einen anderen überführen.', 'error');
+        } else {
+            error_log('Löschen ' . $cfg['table'] . ' ' . $del_id . ': ' . $e->getMessage());
+            flash_set('Löschen fehlgeschlagen.', 'error');
+        }
+        header('Location: ' . $self . '?' . http_build_query(['page' => $page, 'q' => $search]));
+        exit;
     }
     header('Location: ' . $self . '?page=' . $page . '&q=' . urlencode($search));
     exit;
@@ -172,10 +179,11 @@ if ($r = $stmt->get_result()->fetch_row()) {
 }
 $pages = max(1, (int)ceil($total / $limit));
 
+$orderBy = $cfg['order'] ?? $col;   // feste Angabe aus $cfg, nie aus Benutzereingaben
 // Verwendungsanzahl je Eintrag (Tabellen/Spalten aus der festen Verweisliste)
 $useSql = '0';
 foreach ($refs as [$rt, $rc]) { $useSql .= " + (SELECT COUNT(*) FROM $rt WHERE $rt.$rc = $tbl.`ID`)"; }
-$stmt = $conn->prepare("SELECT `ID`, $col, ($useSql) AS `Verwendet` FROM $tbl $where ORDER BY $col LIMIT ? OFFSET ?");
+$stmt = $conn->prepare("SELECT `ID`, $col, ($useSql) AS `Verwendet` FROM $tbl $where ORDER BY $orderBy LIMIT ? OFFSET ?");
 if ($search !== '') {
     $stmt->bind_param('sii', $like, $limit, $offset);
 } else {

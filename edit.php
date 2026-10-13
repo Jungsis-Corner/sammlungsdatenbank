@@ -333,11 +333,33 @@ function platform_ids_for_row(array $row): array {
 /* =================== /IGDB-Helfer (NEU) =================== */
 
 // Hilfsfunktion für Dropdowns
+/**
+ * Führt INSERT/UPDATE auf Sammlung aus. Fehler 1452 (Fremdschlüssel: ungültige Auswahl, z. B. gelöschter
+ * Eintrag oder manipuliertes Formular) wird als Hinweis gezeigt statt als Datenbankfehler.
+ */
+function execute_sammlung(mysqli_stmt $stmt, int $id): void {
+    try {
+        $stmt->execute();
+    } catch (mysqli_sql_exception $e) {
+        if ((int)$e->getCode() !== 1452) { throw $e; }
+        // gleiche Session-Schlüssel wie die IGDB-Meldung (wird weiter unten angezeigt und gelöscht)
+        $_SESSION['flash_msg']  = 'Nicht gespeichert: Eine Auswahl (z. B. Kategorie, Box oder „Gehört zu“) ist ungültig. Bitte neu wählen.';
+        $_SESSION['flash_diag'] = '';
+        $keep = ['id' => $id];
+        foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+            if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
+        }
+        header('Location: edit.php?' . http_build_query($keep));
+        exit;
+    }
+}
+
 function get_options($table, $field, $selected='') {
     global $conn;
     [$t, $f] = lookup_ident($table, $field);
     $opts = "<option value=''>— unbekannt —</option>\n";
-    $res  = $conn->query("SELECT ID, $f FROM $t ORDER BY $f");
+    $order = ($table === 'Box') ? box_sort_sql($t) . ", $f" : $f;   // Box: natürliche Reihenfolge
+    $res  = $conn->query("SELECT ID, $f FROM $t ORDER BY $order");
     while ($r = $res->fetch_assoc()) {
         $sel = ($r['ID'] == $selected) ? ' selected' : '';
         $opts .= "<option value=\"{$r['ID']}\"{$sel}>"
@@ -471,7 +493,7 @@ $inputs = [
   'Standort'          => 'select',
   'Zum Verkauf'       => 'checkbox',
   'VerbautIn'         => 'select',
-  'Box'               => 'text',
+  'Box'               => 'select',
   'ISBN'              => 'text',
   'Barcode'           => 'text',
   'Einkaufsdatum'     => 'date',
@@ -513,7 +535,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
       'Standort'           => 'select',
       'Zum Verkauf'        => 'checkbox',
       'VerbautIn'          => 'select',
-      'Box'                => 'text',
+      'Box'                => 'select',
       'ISBN'               => 'text',
       'Barcode'            => 'text',
       'Einkaufsdatum'      => 'date',
@@ -531,7 +553,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
     // Selects, die numerische IDs speichern (FK) -> als int behandeln
     $selectIntCols = [
       'Hersteller','Publisher','Kategorie','Zustand','Verpackung',
-      'Datentraeger','Material','Standort','Verkäufer','VerbautIn'
+      'Datentraeger','Material','Standort','Verkäufer','VerbautIn','Box'
     ];
 
     // Datumsfelder, die in YYYY-MM-DD gespeichert werden
@@ -599,11 +621,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             continue;
         }
 
-        // Jahr und Box (Zahlenspalten): leer, 0 oder keine ganze Zahl = NULL (nicht 0)
-        if ($col === 'Jahr' || $col === 'Box') {
+        // Jahr (Zahlenspalte): leer, 0 oder keine ganze Zahl = NULL (nicht 0)
+        if ($col === 'Jahr') {
             $t = trim((string)($_POST[$name] ?? ''));
-            $max = ($col === 'Jahr') ? 9999 : 9999999;
-            $vals[$col] = (ctype_digit($t) && (int)$t > 0 && (int)$t <= $max) ? (int)$t : null;
+            $vals[$col] = (ctype_digit($t) && (int)$t > 0 && (int)$t <= 9999) ? (int)$t : null;
             $types     .= 'i';
             continue;
         }
@@ -669,7 +690,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             $bindVals[] = $vals[$c];
         }
         $stmt->bind_param($bindTypes, ...$bindVals);
-        $stmt->execute();
+        execute_sammlung($stmt, $id);
         $newId = (int)$conn->insert_id;
 
         // Redirect zurück in edit (mit Kontext)
@@ -697,7 +718,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             $bindVals[] = $vals[$c];
         }
         $stmt->bind_param($bindTypes, ...$bindVals);
-        $stmt->execute();
+        execute_sammlung($stmt, $id);
         $id = (int)$conn->insert_id;
 
     } else {
@@ -715,7 +736,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
         $bindVals[]  = $id;
 
         $stmt->bind_param($bindTypes, ...$bindVals);
-        $stmt->execute();
+        execute_sammlung($stmt, $id);
     }
 
     // Redirect-Ziel bestimmen
@@ -771,7 +792,7 @@ if ($id > 0) {
       'Verpackung'          => 'VP.Verpackung',
       'Anzahl'              => 'S.Anzahl',
       'Standort'            => 'S.Standort',
-      'Box'                 => 'S.Box',
+      'Box'                 => box_sort_sql('BX'),
       'Einkaufsdatum'       => 'S.Einkaufsdatum',
       'Wert'                => 'S.Wert',
 	  'Link zu YouTube' => 'S.`Link zu YouTube`',
@@ -810,6 +831,7 @@ $from_join = "
   LEFT JOIN Zustand     Z  ON S.Zustand     = Z.ID
   LEFT JOIN Verpackung  VP ON S.Verpackung  = VP.ID
   LEFT JOIN Standort    ST ON S.Standort    = ST.ID
+  LEFT JOIN Box         BX ON S.Box         = BX.ID
 ";
 
 $idres = db_select($conn, "
@@ -1183,6 +1205,11 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
     <?php if ($col === 'Datentraeger'): ?>
       <select name="<?= $htmlName ?>">
         <?= get_options('Datentraeger','Datentrager',$value) ?>
+      </select>
+
+    <?php elseif ($col === 'Box'): ?>
+      <select name="<?= $htmlName ?>">
+        <?= get_options('Box','Box',$value) ?>
       </select>
 
     <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher','Verkäufer'], true)): ?>

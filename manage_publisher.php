@@ -7,7 +7,6 @@ $cfg = [
     'th'            => 'Publisher',
     'search_ph'     => 'Publisher suchen…',
     'name_ph'       => 'Name des Publishers',
-    'delete_errors' => true,   // Löschfehler abfangen und anzeigen
     'keep_page'     => true,   // Seitennummer beibehalten
 ];
 require __DIR__ . '/inc_manage_lookup.php';
