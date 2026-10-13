@@ -68,9 +68,7 @@ ALTER TABLE `Einkauf`
   ADD KEY `idx_einkauf_verk` (`Verkaeufer`);
 ALTER TABLE `Einkauf`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
-ALTER TABLE `Einkauf`
-  ADD CONSTRAINT `fk_einkauf_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_einkauf_verkaeufer` FOREIGN KEY (`Verkaeufer`) REFERENCES `Verkäufer` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+-- Fremdschlüssel von Einkauf: siehe Abschnitt "Fremdschlüssel" am Ende (nach allen Tabellen).
 
 -- --------------------------------------------------------
 -- Tabelle: Hersteller
@@ -97,6 +95,20 @@ CREATE TABLE `Kategorie` (
 ALTER TABLE `Kategorie`
   ADD PRIMARY KEY (`ID`);
 ALTER TABLE `Kategorie`
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+
+-- --------------------------------------------------------
+-- Tabelle: Login_Log (Gast-Login-Zähler, Statistik-Seite)
+-- --------------------------------------------------------
+CREATE TABLE `Login_Log` (
+  `ID` int NOT NULL,
+  `Zeitpunkt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Quelle` varchar(30) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `Login_Log`
+  ADD PRIMARY KEY (`ID`);
+ALTER TABLE `Login_Log`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
 -- --------------------------------------------------------
@@ -241,5 +253,30 @@ ALTER TABLE `Zustand`
   ADD PRIMARY KEY (`ID`);
 ALTER TABLE `Zustand`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+
+-- --------------------------------------------------------
+-- Tabelle: schema_migrations (welche Migrationen sind eingespielt)
+-- --------------------------------------------------------
+CREATE TABLE `schema_migrations` (
+  `Dateiname` varchar(190) NOT NULL,
+  `Eingespielt_am` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Dateiname`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Fremdschlüssel (nach allen Tabellen, damit die Primärschlüssel schon existieren)
+-- --------------------------------------------------------
+ALTER TABLE `Einkauf`
+  ADD CONSTRAINT `fk_einkauf_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_einkauf_verkaeufer` FOREIGN KEY (`Verkaeufer`) REFERENCES `Verkäufer` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- --------------------------------------------------------
+-- Eingespielte Migrationen: schema.sql bildet den aktuellen Stand ab, daher gelten diese als eingespielt.
+-- Jede neue Migration trägt ihren Dateinamen hier ein (siehe migrations/README.md).
+-- --------------------------------------------------------
+INSERT INTO `schema_migrations` (`Dateiname`) VALUES
+  ('0000_login_log.sql'),
+  ('2026-10-13_01_login_versuche.sql'),
+  ('2026-10-13_02_schema_migrations.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
