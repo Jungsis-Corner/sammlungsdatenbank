@@ -33,7 +33,7 @@ Git-Stand:
 
 ## 3. Offene Punkte
 
-- **Box (Entscheidung 13.10.2026):** Variante 1. `Box` wird in D7 ein Fremdschlüssel mit eigener Pflegeseite `manage_box.php` (über `inc_manage_lookup.php`, Eintrag in der Whitelist `lookup_ident()`). Das Formularfeld in `edit.php` wird dann eine Auswahl mit den Namen aus der Tabelle `Box`. Heute wird die Tabelle vom Code nicht benutzt (Zahl im Textfeld, Filter-Dropdown aus `Sammlung.Box`). **Noch zu klären:** Box 10 heißt „Regal“ und hat 6 Einträge. Was bedeutet das?
+- **Box (Entscheidung 13.10.2026):** Variante 1. `Box` wird in D7 ein Fremdschlüssel mit eigener Pflegeseite `manage_box.php` (über `inc_manage_lookup.php`, Eintrag in der Whitelist `lookup_ident()`). Das Formularfeld in `edit.php` wird dann eine Auswahl mit den Namen aus der Tabelle `Box`. Heute wird die Tabelle vom Code nicht benutzt (Zahl im Textfeld, Filter-Dropdown aus `Sammlung.Box`). **Namen (Entscheidung 13.10.2026):** Die Boxen heißen künftig als Text „Box 1“, „Box 2“ usw.; „Regal“ (ID 10) bleibt so und passt dazu. Die Umbenennung (IDs 1 bis 9 sowie 11, 12, 13, 99 zu „Box N“) gehört in die D7-Migration. Liste, Detailansicht, Export und Filter zeigen dann den Namen aus der Tabelle `Box` (JOIN) statt der Zahl; `edit.php` bekommt eine Auswahl statt des Zahlenfelds. Die Zuordnung in `Sammlung.Box` bleibt die ID.
 - **HSTS** frühestens am 20.10.2026 auf ein Jahr erhöhen (siehe Abschnitt 4).
 - **Strikter SQL-Modus:** `edit.php` scheitert dort an `Einkaufsdatum = ''` (Altlast). Live nicht-strikt, daher kein Problem; bei einer Umstellung auf strikt vorher beheben.
 - **D5 bis D12** laut Abschnitt 8.
