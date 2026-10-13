@@ -59,6 +59,10 @@ Der Gastzugang ist **bewusst öffentlich**: Der Login `gast` / `gast` sowie der 
 - Der Export ist für Gäste aus (`GUEST_EXPORT_ENABLED = false`). Wer ihn einschaltet, begrenzt ihn mit `GUEST_EXPORT_MAX_ROWS` (Standard 200 Zeilen).
 - Der Gast-Login ist von der Login-Drosselung ausgenommen. Gast-Logins werden pro neuer Gast-Session gezählt (Statistik-Seite, nur für Admins).
 
+### Session-Cookie (wichtig bei bestehenden Installationen)
+
+Die Cookie-Domain der Session kommt aus `SESSION_COOKIE_DOMAIN` in `config.php`. Leer bedeutet: nur der eigene Host (richtig für Neuinstallationen ohne Subdomain). Läuft die App schon und haben Nutzer ein Session-Cookie mit Domain (z. B. `.example.org`), **muss derselbe Wert in `config.php` stehen, bevor `boot.php` hochgeladen wird**. Sonst entstehen zwei gleichnamige Cookies, der Browser schickt das alte zuerst, und die Anmeldung läuft scheinbar ohne Fehlermeldung ins Leere, bis die Cookies gelöscht sind. Admins werden nach `SESSION_ADMIN_IDLE` Sekunden Inaktivität abgemeldet (Standard 8 Stunden).
+
 ## Setup
 
 1. Repository klonen:
