@@ -587,12 +587,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
                 } else {
                     $vals[$col] = (int)($_POST[$name] ?? 0);
                 }
+                // Keine Auswahl = NULL (nicht 0): "keine Angabe" für spätere Fremdschlüssel
+                if ((int)$vals[$col] <= 0) $vals[$col] = null;
                 $types     .= 'i';
             } else {
                 // übrige selects als string
                 $vals[$col] = (string)($_POST[$name] ?? '');
                 $types     .= 's';
             }
+            continue;
+        }
+
+        // Jahr und Box: leer oder 0 = NULL (nicht 0)
+        if ($col === 'Jahr' || $col === 'Box') {
+            $t = trim((string)($_POST[$name] ?? ''));
+            $vals[$col] = ($t === '' || $t === '0') ? null : $t;
+            $types     .= 's';
             continue;
         }
 
