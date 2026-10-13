@@ -24,8 +24,8 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 - Automatischer Import von Spielbeschreibungen über die [IGDB-API](https://api-docs.igdb.com/) inkl. optionaler automatischer Übersetzung (DeepL)
 - Barcode-Scan per Kamera (Handy/Tablet) zur schnellen Erfassung
 - Einkaufslisten-Verwaltung (`einkauf.php`) mit Direktübernahme in die Sammlung
-- Gast-Modus (Nur-Lese-Ansicht ohne sensible Felder wie Wert/Einkaufspreis)
-- CSV-Export der aktuell gefilterten/sortierten Liste
+- Gast-Modus (Nur-Lese-Ansicht ohne sensible Felder wie Wert/Einkaufspreis, siehe [Gastzugang](#gastzugang))
+- CSV-Export der aktuell gefilterten/sortierten Liste (für Gäste standardmäßig aus)
 - Statistik-Seite mit Verteilungen nach Standort, Material, Kategorie, Einkaufsjahr etc.
 - **Museum-Modus** (`museum/index.php`): Ein Kurzlink, der Besucher automatisch als Gast einloggt und direkt zur Sammlung weiterleitet – gedacht für den Vor-Ort-Einsatz, z. B. per QR-Code an einem Regal oder einer Vitrine (siehe auch `go.php` für numerische Kurzcodes zu gefilterten Ansichten). Kein Passwort nötig, da nur Lesezugriff.
 - **Verkaufsmarkierung**: Duplikate/Mehrfachexemplare lassen sich als „Zum Verkauf“ kennzeichnen, inkl. Schnellfilter in der Listenansicht.
@@ -49,6 +49,15 @@ Betrachte es als **Vorlage zum Forken und Anpassen**, nicht als fertiges Produkt
 - `config.php` niemals committen (ist per `.gitignore` bereits ausgeschlossen) – sie enthält Datenbank-Zugangsdaten, API-Keys und den Admin-Passwort-Hash.
 - Bevor du eigene Debug-/Testskripte im Projektordner ablegst (z. B. um mal eben eine API oder einen Datenbank-Query auszuprobieren): entweder mit `is_admin()` absichern wie `logview.php`, oder nach Gebrauch konsequent wieder löschen. Unauthentifizierte Skripte mit Datenbankzugriff oder fest eincodierten Zugangsdaten sind ein leicht vermeidbares, aber ernstes Risiko.
 - Bei Secrets, die versehentlich committet wurden: nicht nur die Datei löschen, sondern das jeweilige Secret beim Anbieter widerrufen/neu generieren (der alte Wert bleibt sonst in der Git-Historie sichtbar) und bei Bedarf die Git-Historie bereinigen.
+
+### Gastzugang
+
+Der Gastzugang ist **bewusst öffentlich**: Der Login `gast` / `gast` sowie der Link `login.php?autologin=gast` (und der Museum-Link) geben nur Lesezugriff. Wer den Quelltext liest, kennt die Zugangsdaten – das ist gewollt und kein Sicherheitsrisiko, solange Gäste nichts ändern und keine privaten Daten sehen. Deshalb gilt für Gäste:
+
+- Kein „Bearbeiten“-Link und kein „Erstellt am“/„Geändert am“ im HTML; der Logout-Link heißt „Zur Anmeldung“.
+- Felder wie Standort, Box, Einkaufspreis, Wert und Getestet bleiben verborgen. Die Liste steht in `config.php` (`GUEST_HIDDEN_FIELDS`, Vorlage in `config.example.php`) und lässt sich z. B. um `Seriennummer`, `Verkäufer` oder `Einkaufsdatum` erweitern.
+- Der Export ist für Gäste aus (`GUEST_EXPORT_ENABLED = false`). Wer ihn einschaltet, begrenzt ihn mit `GUEST_EXPORT_MAX_ROWS` (Standard 200 Zeilen).
+- Der Gast-Login ist von der Login-Drosselung ausgenommen. Gast-Logins werden pro neuer Gast-Session gezählt (Statistik-Seite, nur für Admins).
 
 ## Setup
 
