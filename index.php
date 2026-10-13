@@ -1073,13 +1073,13 @@ if (!empty($_SESSION['museum_mode'])) {
         <?php endif; ?>
         <td class="click-open">
   <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
-    <img src="<?= htmlspecialchars($row['SammlungBild1']) ?>" height="60" alt="">
+    <img src="<?= htmlspecialchars($row['SammlungBild1'] ?? '') ?>" height="60" alt="">
   </a>
 </td>
-        <td><?= htmlspecialchars($row['Bezeichnung']) ?><?= (($row['Zum Verkauf'] ?? '') === '1') ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>
-        <td><?= htmlspecialchars($row['KategorieName']) ?></td>
-        <td><?= htmlspecialchars($row['Jahr']) ?></td>
-        <td><?= htmlspecialchars($row['Original/Homebrew']) ?></td>
+        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= (($row['Zum Verkauf'] ?? '') === '1') ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>
+        <td><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
+        <td><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
+        <td><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
         <td><?= htmlspecialchars($row['MaterialName'] ?? '') ?></td>
 <td><?= htmlspecialchars($zustand[$row['Zustand']] ?? '') ?></td>
 <td><?= htmlspecialchars($verpackung[$row['Verpackung']] ?? '') ?></td>
