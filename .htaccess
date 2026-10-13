@@ -5,6 +5,16 @@
 # /sammlung/ und /sammlung/museum/ laufen über DirectoryIndex.
 ErrorDocument 404 /sammlung/404.php
 
+# ---- Rewrite: bewusst keine Umschreibung ----
+# Ohne eigenen Rewrite-Block greifen die Regeln der .htaccess im Webroot (WordPress) auch
+# unter /sammlung/ und liefern für unbekannte Pfade die WordPress-404-Seite. Diese Regel
+# schreibt nichts um, trennt /sammlung/ aber von den Webroot-Regeln ab.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /sammlung/
+  RewriteRule ^ - [L]
+</IfModule>
+
 # ---- Security: Verzeichnisse/Dateien sperren ----
 # Keine Verzeichnisliste
 Options -Indexes
