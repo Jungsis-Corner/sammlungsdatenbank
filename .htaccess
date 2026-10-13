@@ -1,18 +1,9 @@
 # /sammlung/.htaccess
 
-# ---- Rewrite (Routing) ----
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /sammlung/
-
-  # Vorhandene Dateien/Ordner ausliefern …
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
-
-  # … alles andere an index.php (Fallback)
-  RewriteRule ^ index.php [L]
-</IfModule>
+# ---- Fehlerseiten ----
+# Unbekannte Pfade liefern ein echtes 404 (kein Soft-404 mehr über index.php).
+# /sammlung/ und /sammlung/museum/ laufen über DirectoryIndex.
+ErrorDocument 404 /sammlung/404.php
 
 # ---- Security: Verzeichnisse/Dateien sperren ----
 # Keine Verzeichnisliste
@@ -22,12 +13,14 @@ Options -Indexes
 DirectoryIndex index.php
 
 # Versteckte Dateien (+ sensible Dateitypen) sperren
-<FilesMatch "(^\.|\.ini$|\.log$|\.sh$|composer\.(json|lock)$|package\.json$|yarn\.lock$|^config\.php$|phpinfo\.php$)">
+# .sql/.md (Schema, Migrationen, README, CLAUDE.md), Backups und Vorlagen sind nie öffentlich.
+# .json bleibt frei (museum/manifest.json).
+<FilesMatch "(^\.|\.(ini|log|sh|sql|md|bak|dist|orig|old|swp)$|~$|^composer\.|package\.json$|yarn\.lock$|^config\.php$|phpinfo\.php$)">
   Require all denied
 </FilesMatch>
 
-# Typische Dev-/Backup-Ordner hart auf 404
-RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports)/
+# Typische Dev-/Backup-/Doku-Ordner hart auf 404
+RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports|docs|migrations|tests|\.claude|\.git)(/|$)
 
 # ---- Security-Header ----
 <IfModule mod_headers.c>
@@ -61,6 +54,7 @@ AddType image/svg+xml .svg
 
 # ---- Optional: HTTPS erzwingen (falls nicht bereits global aktiv) ----
 # <IfModule mod_rewrite.c>
+#   RewriteEngine On
 #   RewriteCond %{HTTPS} !=on
 #   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # </IfModule>

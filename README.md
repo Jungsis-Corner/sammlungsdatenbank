@@ -73,7 +73,7 @@ Der Gastzugang ist **bewusst öffentlich**: Der Login `gast` / `gast` sowie der 
 
 - PHP 8.0+
 - MySQL oder MariaDB
-- Apache mit `mod_rewrite` (für `.htaccess`)
+- Apache mit `.htaccess`-Unterstützung (`AllowOverride`; `mod_headers`, `mod_deflate` und `mod_expires` sind optional, ein HTTPS-Redirect braucht `mod_rewrite`)
 - Optional: kostenloser [Twitch-Developer-Account](https://dev.twitch.tv/console/apps) für IGDB-Import, [DeepL-API-Key](https://www.deepl.com/de/pro-api) für automatische Übersetzung
 
 ## Lizenz
