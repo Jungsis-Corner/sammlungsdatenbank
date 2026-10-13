@@ -47,13 +47,14 @@ if (isset($_POST['delete'])) {
     require_post_csrf();
     $del_id = intval($_POST['delete']);
     if (!empty($cfg['delete_errors'])) {
-        // Fehler abfangen (z. B. Fremdschlüssel-Sperre) und per GET melden
+        // Fehler abfangen (z. B. Fremdschlüssel-Sperre) und als einmalige Session-Meldung zeigen
         try {
             $stmt = $conn->prepare("DELETE FROM $tbl WHERE `ID` = ?");
             $stmt->bind_param('i', $del_id);
             $stmt->execute();
         } catch (Throwable $e) {
-            header('Location: ' . $self . '?' . http_build_query(['page' => $page, 'q' => $search, 'err' => 'delete']));
+            flash_set('Löschen fehlgeschlagen. Der Eintrag wird vermutlich noch verwendet.', 'error');
+            header('Location: ' . $self . '?' . http_build_query(['page' => $page, 'q' => $search]));
             exit;
         }
     } else {
@@ -176,8 +177,9 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
       </form>
     </div>
 
-    <?php if (($_GET['err'] ?? '') === 'delete'): ?>
-      <div class="msg-box error">Löschen fehlgeschlagen. Der Eintrag wird vermutlich noch verwendet.</div>
+    <?php $flash = flash_pull(); ?>
+    <?php if ($flash): ?>
+      <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" role="status"><?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
     <!-- Formular: Hinzufügen/Bearbeiten -->

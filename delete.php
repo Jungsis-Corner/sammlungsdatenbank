@@ -59,8 +59,8 @@ $curPage = isset($return['page']) ? max(1, (int)$return['page']) : 1;
 if ($curPage > $pages) $curPage = $pages;
 $return['page'] = $curPage;
 
-// kleine Erfolgsmeldung
-$return['msg'] = 'deleted';
+// kleine Erfolgsmeldung (einmalig über die Session, nicht in der URL)
+flash_set('Eintrag wurde gelöscht.', 'success');
 
 // 4) Zurück zur Liste – mit allen Filtern/Sortierung/Seite
 header('Location: index.php?' . http_build_query($return));

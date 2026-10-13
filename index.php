@@ -730,9 +730,10 @@ cursor: pointer;
       : htmlspecialchars(APP_TITLE); ?>
 </h1>
 
-<?php if (($_GET['msg'] ?? '') === 'deleted'): ?>
-  <div class="msg-box success" style="text-align:center;">
-    Eintrag wurde gelöscht.
+<?php $flash = flash_pull(); ?>
+<?php if ($flash): ?>
+  <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" style="text-align:center;" role="status">
+    <?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
  <!-- ===== Toolbar ===== -->

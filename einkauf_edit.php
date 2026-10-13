@@ -217,7 +217,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     try {
       $id = insert_or_update($conn, $id, $v);
-      header('Location: einkauf_edit.php?id='.$id.'&back='.urlencode($backUrl).'&msg='.urlencode('Gespeichert.'));
+      flash_set('Gespeichert.', 'success');
+      header('Location: einkauf_edit.php?id='.$id.'&back='.urlencode($backUrl));
       exit;
     } catch (mysqli_sql_exception $e) {
       error_log('[einkauf_edit.php] Speichern: ' . $e->getMessage());
@@ -406,9 +407,10 @@ if ($selV > 0) {
 
 <h1><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h1>
 
-<?php if (!empty($_GET['msg'])): ?>
-  <div class="msg-box info">
-    <?= htmlspecialchars((string)$_GET['msg'], ENT_QUOTES, 'UTF-8') ?>
+<?php $flash = flash_pull(); ?>
+<?php if ($flash): ?>
+  <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" role="status">
+    <?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
 
