@@ -2,7 +2,9 @@
 // guest.php
 // Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
 require_once __DIR__ . '/boot.php';
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_guest.php';
 
 // --- base64url-decode ---
 function b64url_decode(string $s): string {
@@ -27,21 +29,15 @@ if (safe_local_path($decoded, '') === '') {
     exit('Ungültiger Link.');
 }
 
-// --- "Gast-Login" setzen: auf *deine* Auth-Keys achten! ---
-session_regenerate_id(true);
-$_SESSION['logged_in'] = true;      // <- viele Guards prüfen das
-$_SESSION['user_id']   = 0;         // <- harmlose ID für Gast
-$_SESSION['username']  = 'Gast';
-$_SESSION['role']      = 'guest';
-$_SESSION['is_guest']  = true;
+// --- Gast-Session starten (zählt nur bei einer neuen Gast-Session) ---
+start_guest_session('guest_link');
 
-// Optional: Merker, dass der Login via Gast kam (für UI)
-$_SESSION['login_method'] = 'guest';
-
-// --- Absolute Weiterleitung ---
-$scheme = 'https';
-$host   = 'www.jungsi.de';          // hier exakt die Domain benutzen, die auch im Browser öffnet
-$location = $scheme . '://' . $host . $decoded;
+// --- Weiterleitung: mit APP_HOST absolut, sonst relativ zum aktuellen Host ---
+if (defined('APP_HOST') && APP_HOST !== '') {
+    $location = 'https://' . APP_HOST . $decoded;
+} else {
+    $location = $decoded;
+}
 
 header('Location: ' . $location, true, 302);
 exit;

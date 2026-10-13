@@ -25,6 +25,22 @@ if (!defined('DEEPL_API_KEY_CONST')) define('DEEPL_API_KEY_CONST', '');
 if (!defined('ADMIN_USERNAME'))      define('ADMIN_USERNAME', 'admin');
 if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 
+// --- Host der App für absolute Weiterleitungen (z. B. in guest.php) ---
+// Nur der Hostname, ohne https:// und ohne Pfad. Leer = relative Weiterleitung auf dem aktuellen Host.
+if (!defined('APP_HOST')) define('APP_HOST', '');
+
+// --- Gastzugang ---
+// Der Gast-Login gast/gast ist bewusst öffentlich (nur Lesezugriff, siehe README).
+// Dürfen Gäste die Liste exportieren (CSV/Excel)? Standard: nein.
+if (!defined('GUEST_EXPORT_ENABLED'))  define('GUEST_EXPORT_ENABLED', false);
+// Zeilenlimit für den Gast-Export (nur wirksam, wenn GUEST_EXPORT_ENABLED true ist).
+if (!defined('GUEST_EXPORT_MAX_ROWS')) define('GUEST_EXPORT_MAX_ROWS', 200);
+// Felder, die Gäste in der Detailansicht (view.php) nicht sehen. Weitere Kandidaten:
+// 'Seriennummer', 'Verkäufer', 'Einkaufsdatum'. Bezeichnungen wie in der Detailansicht.
+if (!defined('GUEST_HIDDEN_FIELDS')) define('GUEST_HIDDEN_FIELDS', [
+  'Standort', 'Box', 'Einkaufspreis', 'Wert', 'Getestet', 'Erstellt am', 'Geändert am',
+]);
+
 // --- Login-Drosselung: Salt für die Hashes von IP und Benutzername (Tabelle Login_Versuche) ---
 // Zufallswert selbst erzeugen (lokal per PHP CLI) und unten eintragen:
 //   php -r "echo bin2hex(random_bytes(32));"

@@ -8,23 +8,8 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_login_throttle.php';
 
-// 2b) Gast-Logins protokollieren (für die Statistik-Seite). Darf den
-//     eigentlichen Login-Vorgang niemals blockieren, daher robust/still.
-function log_guest_login(string $quelle): void {
-    try {
-        $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if (!$conn || $conn->connect_errno) return;
-        $stmt = $conn->prepare("INSERT INTO Login_Log (Quelle) VALUES (?)");
-        if ($stmt) {
-            $stmt->bind_param('s', $quelle);
-            $stmt->execute();
-            $stmt->close();
-        }
-        $conn->close();
-    } catch (\Throwable $e) {
-        // bewusst ignorieren
-    }
-}
+// 2b) Gast-Session und Gast-Zähler liegen zentral in inc_guest.php (start_guest_session()).
+require_once __DIR__ . '/inc_guest.php';
 
 // 3) Zielberechnung: nur interne absolute Pfade, niemals login.php
 function safe_target(?string $to): string {
@@ -56,17 +41,7 @@ if (
 
 // 5) Gast-Autologin per GET
 if (isset($_GET['autologin']) && $_GET['autologin'] === 'gast') {
-  session_regenerate_id(true);
-  // neu + alt-kompatible Flags setzen
-  $_SESSION['logged_in'] = true;
-  $_SESSION['loggedin']  = true;         // alt
-  $_SESSION['user_id']   = 0;
-  $_SESSION['username']  = 'Gast';
-  $_SESSION['role']      = 'guest';
-  $_SESSION['is_guest']  = true;
-  $_SESSION['login_method'] = 'guest';
-
-  log_guest_login('login_autologin');
+  start_guest_session('login_autologin');
 
   header('Location: ' . safe_target($_GET['to'] ?? null));
   exit;
@@ -112,18 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         login_reset($throttleDb, $ipHash, $userHash);
         login_record($throttleDb, $ipHash, $userHash, true);
     }
-    session_regenerate_id(true);
-    // neu + alt-kompatible Flags setzen
-    $_SESSION['logged_in'] = true;
-    $_SESSION['loggedin']  = true;        // alt
-    $_SESSION['user_id']   = ($role === 'admin') ? 1 : 0;
-    $_SESSION['username']  = $u;
-    $_SESSION['role']      = $role;
-    $_SESSION['is_guest']  = ($role !== 'admin');
-    $_SESSION['login_method'] = 'password';
-
     if ($role === 'guest') {
-        log_guest_login('login_form');
+        start_guest_session('login_form');
+    } else {
+        session_regenerate_id(true);
+        // neu + alt-kompatible Flags setzen
+        $_SESSION['logged_in'] = true;
+        $_SESSION['loggedin']  = true;        // alt
+        $_SESSION['user_id']   = 1;
+        $_SESSION['username']  = $u;
+        $_SESSION['role']      = 'admin';
+        $_SESSION['is_guest']  = false;
+        $_SESSION['login_method'] = 'password';
     }
 
     header('Location: ' . safe_target($_POST['to'] ?? null));
