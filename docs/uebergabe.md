@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D8 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D9 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -15,7 +15,7 @@ Vorher `git status` (muss sauber sein, bis auf die untracked Plandatei), `git fe
 | Phase | Stand |
 | --- | --- |
 | 1 Sicherheit | S1 bis S8 sind umgesetzt, gemergt und auf dem Server. S9 (CSP ohne `unsafe-inline`) kommt laut Plan erst nach Phase 5 |
-| 2 Datenbank | **D1 bis D8 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_07_fremdschluessel.sql` auf dem Server eingespielt und geprüft. **D9** (Kategorie-Hierarchie, braucht erst die Freigabe der CSV) ist als Nächstes dran |
+| 2 Datenbank | **D1 bis D9 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_08_kategorie_hierarchie.sql` auf dem Server eingespielt und geprüft. **D10** (Statistik anpassen) ist als Nächstes dran |
 | 3 bis 7 | nicht begonnen |
 
 Server-Stand (von Jungsi bestätigt, 13.10.2026):
@@ -27,7 +27,7 @@ Server-Stand (von Jungsi bestätigt, 13.10.2026):
 
 Git-Stand:
 
-- `main` = `origin/main` (Stand nach D8). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
+- `main` = `origin/main` (Stand nach D9). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
 - Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
 - `docs/Überarbeitungsplan Sammlungsdatenbank.md` ist **nicht öffentlich**: nur lokal, per `.gitignore` ausgeschlossen, nie committen oder pushen (Entscheidung Jungsi 13.10.2026). Auf einem neuen Rechner muss die Datei von Hand kopiert werden.
 
@@ -96,7 +96,7 @@ Installiert (apt): PHP 8.5.4 (CLI, mit `mysqli`, `mbstring`), MySQL 8.4.11 (`/us
 - ~~D6 Geld~~ erledigt (`Wert`/`Einkaufspreis` `DECIMAL(10,2)`, `inc_format.php` mit `parse_decimal()`/`fmt_dec()`/`fmt_eur()`, Sicherungstabelle `bak_d6_geld` bis D12). Altlast: Duplizieren ohne Kosten speichert `Einkaufsdatum` als `0000-00-00`.
 - ~~D7 Fremdschlüssel und Indizes~~ erledigt (11 Fremdschlüssel von `Sammlung`, 15 Indizes `idx_sammlung_*`, Boxnamen „Box N“, `manage_box.php`, Box als Auswahl in `edit.php`, JOIN-Anzeige in Liste/Detail/Export, `box_sort_sql()` in `inc_filter.php`; Fehler 1451 (Löschen: „noch in Verwendung (N Einträge)“) in `inc_manage_lookup.php`, Fehler 1452 (ungültige Auswahl) in `edit.php`; `delete_errors` entfällt).
 - ~~D8 Einkauf bleibt eigenständig~~ erledigt (keine Migration; Übernahme „➡️ Sammlung“ gibt den Preis als `Einkaufspreis` und `Wert` weiter; das Öffnen des vorbelegten Formulars bleibt ein GET, nur das Speichern ist POST mit CSRF; Löschmeldung zählt nur `Sammlung`-Verweise).
-- **D9** Kategorie-Hierarchie über CSV-Freigabe (`docs/kategorie_mapping_vorschlag.csv`), Grundlage `docs/bestand/06_kategorien.csv` (173 Kategorien).
+- ~~D9 Kategorie-Hierarchie~~ erledigt (`Kategorie.ParentID`/`Ebene`/`Pfad`, 5 neue Knoten ohne Einträge: Atari, Apple, Commodore, Commodore Amiga, Philips; 3 Namenskorrekturen; Spiele-Filter über `Ebene = 'spiele'`; Parameter `kat` und `inkl` in allen fünf Seiten; Baum-Dropdown in `index.php`; eigene Seite `manage_kategorie.php`; Zuordnung lag als `docs/bestand/kategorie_mapping_vorschlag.csv` lokal, alle Zeilen freigegeben; Sicherungstabelle `bak_d9_kategorie` bis D12).
 - **D10 bis D12** Statistik, Dokumentation (`CLAUDE.md`, `README.md`, `schema.sql`), Altlasten (Altspalten erst nach Export, `bak_d3_*` aufräumen).
 - Danach Phase 3 (Bilder), 4 (Performance), 5 (UI), 6 (Barrierefreiheit), 7 (Tests), siehe Plan.
 
