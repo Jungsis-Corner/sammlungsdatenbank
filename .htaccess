@@ -33,14 +33,27 @@ DirectoryIndex index.php
 RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports|docs|migrations|tests|\.claude|\.git)(/|$)
 
 # ---- Security-Header ----
+# Jeder Sicherheitsheader kommt aus genau EINER Stelle: hier. PHP-seitig gesetzte Kopien
+# (z. B. aus einer Server-Konfiguration) werden zuerst entfernt, damit nichts doppelt gesendet wird.
 <IfModule mod_headers.c>
+  Header onsuccess unset X-Content-Type-Options
+  Header onsuccess unset X-Frame-Options
+  Header onsuccess unset Referrer-Policy
+  Header onsuccess unset Permissions-Policy
+
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # Kamera nur für die eigene Seite (Barcode-Scanner in edit.php)
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(self)"
 
-  # Vorsichtige CSP (lässt inline Styles/Skripte der bestehenden Seiten zu)
-  Header set Content-Security-Policy "default-src 'self' https: data:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' https: 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';"
+  # HSTS stufenweise (E13): erst kurz. Nach einer Woche ohne Probleme (frühestens 20.10.2026)
+  # auf max-age=31536000 erhöhen. includeSubDomains nur nach Prüfung aller Subdomains von
+  # jungsi.de, weil der Session-Cookie auf .jungsi.de liegt.
+  Header always set Strict-Transport-Security "max-age=300"
+
+  # Vorsichtige CSP (lässt inline Styles/Skripte der bestehenden Seiten zu, bis S9)
+  Header always set Content-Security-Policy "default-src 'self' https: data:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' https: 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
 </IfModule>
 
 # ---- Kompression ----
@@ -62,9 +75,4 @@ RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|export
 # Korrektes MIME für SVG
 AddType image/svg+xml .svg
 
-# ---- Optional: HTTPS erzwingen (falls nicht bereits global aktiv) ----
-# <IfModule mod_rewrite.c>
-#   RewriteEngine On
-#   RewriteCond %{HTTPS} !=on
-#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-# </IfModule>
+# HTTPS: Die Weiterleitung http -> https übernimmt der Server (Strato), hier nicht nötig.

@@ -2,7 +2,7 @@
 // go.php – numerischer Code -> Ziel-URL
 require __DIR__ . '/boot.php'; // falls vorhanden (Session-Cookies etc.)
 
-header('X-Content-Type-Options: nosniff');
+// Sicherheitsheader (nosniff u. a.) kommen zentral aus der .htaccess.
 
 $code = $_GET['c'] ?? '';
 if (!preg_match('/^\d{6,12}$/', $code)) { // 6-12 Ziffern zulassen
