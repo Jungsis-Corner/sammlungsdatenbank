@@ -41,3 +41,6 @@ maintenance.flag
 
 # --- Ergebnisse der Bestandsaufnahme (enthalten Sammlungsdaten, nur lokal) ---
 docs/bestand/
+
+# Interner Überarbeitungsplan (nicht öffentlich)
+docs/Überarbeitungsplan*.md
