@@ -194,8 +194,8 @@ CREATE TABLE `Sammlung` (
   `Material` int DEFAULT NULL,
   `Hersteller` int DEFAULT NULL,
   `Publisher` int DEFAULT NULL,
-  `Einkaufspreis` text COLLATE utf8mb4_general_ci,
-  `Wert` text COLLATE utf8mb4_general_ci,
+  `Einkaufspreis` decimal(10,2) DEFAULT NULL,
+  `Wert` decimal(10,2) DEFAULT NULL,
   `Verkäufer` int DEFAULT NULL,
   `Seriennummer` text COLLATE utf8mb4_general_ci,
   `Barcode` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -299,6 +299,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('2026-10-13_02_schema_migrations.sql'),
   ('2026-10-13_03_bereinigung.sql'),
   ('2026-10-13_04_typen.sql'),
-  ('2026-10-13_05_lookup_unique.sql');
+  ('2026-10-13_05_lookup_unique.sql'),
+  ('2026-10-13_06_geld.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
