@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D7 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D8 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -15,7 +15,7 @@ Vorher `git status` (muss sauber sein, bis auf die untracked Plandatei), `git fe
 | Phase | Stand |
 | --- | --- |
 | 1 Sicherheit | S1 bis S8 sind umgesetzt, gemergt und auf dem Server. S9 (CSP ohne `unsafe-inline`) kommt laut Plan erst nach Phase 5 |
-| 2 Datenbank | **D1 bis D7 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_07_fremdschluessel.sql` auf dem Server eingespielt und geprüft. **D8** (Einkauf-Übernahme prüfen) ist als Nächstes dran |
+| 2 Datenbank | **D1 bis D8 sind abgeschlossen**: gemergt auf `main`, Code hochgeladen, Migrationen bis `2026-10-13_07_fremdschluessel.sql` auf dem Server eingespielt und geprüft. **D9** (Kategorie-Hierarchie, braucht erst die Freigabe der CSV) ist als Nächstes dran |
 | 3 bis 7 | nicht begonnen |
 
 Server-Stand (von Jungsi bestätigt, 13.10.2026):
@@ -27,7 +27,7 @@ Server-Stand (von Jungsi bestätigt, 13.10.2026):
 
 Git-Stand:
 
-- `main` = `origin/main` (Stand nach D7). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
+- `main` = `origin/main` (Stand nach D8). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
 - Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
 - `docs/Überarbeitungsplan Sammlungsdatenbank.md` ist **nicht öffentlich**: nur lokal, per `.gitignore` ausgeschlossen, nie committen oder pushen (Entscheidung Jungsi 13.10.2026). Auf einem neuen Rechner muss die Datei von Hand kopiert werden.
 
@@ -59,7 +59,7 @@ Details: `docs/bestand-auswertung.md`. Das Wichtigste:
 - Die Bilder liegen unter `…/blog/wp-content/uploads/` (nicht `/wp-content/uploads/`), flach ohne Jahr/Monat, 619 Einträge mit Doppelschrägstrich `//blog`. Phase 3: `IMAGE_WP_BASE` entsprechend, gespeichert wird nur der Dateiname.
 - `Wert` und `Einkaufspreis` sind sauber (nur leer, ganze Zahl oder Komma-Dezimal). `export.php` rechnet aber mit `REPLACE(Wert, ".", "")`, deshalb darf die Umstellung auf Punkt-Schreibweise erst in D6 zusammen mit dem Code im Wartungsmodus passieren.
 - `duplicate.php` bindet `Wert` als Kommazahl (`(float)"20,50"` ergibt 20): Beim Duplizieren gehen die Cent verloren. In D6 beheben.
-- `Einkauf` hat die Collation `utf8mb4_0900_ai_ci`, alles andere `utf8mb4_general_ci`. Abfragen, die Textspalten beider Welten mischen, scheitern mit Fehler 1271 (D8).
+- `(erledigt in D4: alle Tabellen haben `utf8mb4_general_ci`.) Abfragen, die Textspalten beider Welten mischen, scheitern mit Fehler 1271 (D8).
 - Die Spalte `Geaendert_am` hat `ON UPDATE CURRENT_TIMESTAMP`: Jedes `UPDATE` ändert sie. Datenmigrationen müssen `Geaendert_am = Geaendert_am` setzen (so geschehen in D3).
 - `schema.sql` entspricht seit `d3-vorbereitung` dem Live-Stand (90 Spalten, 23 Indizes, 2 Fremdschlüssel, geprüft).
 - Der phpMyAdmin-Export „Abfrageergebnis“ funktioniert bei den Abfragen aus `docs/bestand.sql` nicht. Statt dessen: ein SQL-Dump der Datenbank, den Claude lokal einspielt (siehe Abschnitt 7).
@@ -95,7 +95,7 @@ Installiert (apt): PHP 8.5.4 (CLI, mit `mysqli`, `mbstring`), MySQL 8.4.11 (`/us
 - ~~D5 Lookups~~ erledigt (`VARCHAR(190)` + `UNIQUE` auf dem Namen in 10 Tabellen inkl. Box; `inc_manage_lookup.php` prüft leere/doppelte Namen, zeigt die Verwendungsanzahl und kann Einträge zusammenführen, außer Kategorie; Verweisliste `lookup_refs()` in `inc_security.php`). Dubletten aus `docs/bestand/05_dubletten.csv` entscheidet Jungsi selbst (E5).
 - ~~D6 Geld~~ erledigt (`Wert`/`Einkaufspreis` `DECIMAL(10,2)`, `inc_format.php` mit `parse_decimal()`/`fmt_dec()`/`fmt_eur()`, Sicherungstabelle `bak_d6_geld` bis D12). Altlast: Duplizieren ohne Kosten speichert `Einkaufsdatum` als `0000-00-00`.
 - ~~D7 Fremdschlüssel und Indizes~~ erledigt (11 Fremdschlüssel von `Sammlung`, 15 Indizes `idx_sammlung_*`, Boxnamen „Box N“, `manage_box.php`, Box als Auswahl in `edit.php`, JOIN-Anzeige in Liste/Detail/Export, `box_sort_sql()` in `inc_filter.php`; Fehler 1451 (Löschen: „noch in Verwendung (N Einträge)“) in `inc_manage_lookup.php`, Fehler 1452 (ungültige Auswahl) in `edit.php`; `delete_errors` entfällt).
-- **D8** `Einkauf` bleibt unverknüpft, nur Collation angleichen und die Übernahme-Funktion in `edit.php` testen.
+- ~~D8 Einkauf bleibt eigenständig~~ erledigt (keine Migration; Übernahme „➡️ Sammlung“ gibt den Preis als `Einkaufspreis` und `Wert` weiter; das Öffnen des vorbelegten Formulars bleibt ein GET, nur das Speichern ist POST mit CSRF; Löschmeldung zählt nur `Sammlung`-Verweise).
 - **D9** Kategorie-Hierarchie über CSV-Freigabe (`docs/kategorie_mapping_vorschlag.csv`), Grundlage `docs/bestand/06_kategorien.csv` (173 Kategorien).
 - **D10 bis D12** Statistik, Dokumentation (`CLAUDE.md`, `README.md`, `schema.sql`), Altlasten (Altspalten erst nach Export, `bak_d3_*` aufräumen).
 - Danach Phase 3 (Bilder), 4 (Performance), 5 (UI), 6 (Barrierefreiheit), 7 (Tests), siehe Plan.
