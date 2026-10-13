@@ -6,6 +6,13 @@ require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/inc_guest.php';
+
+// Gäste dürfen nur exportieren, wenn GUEST_EXPORT_ENABLED gesetzt ist (E1)
+if ($is_guest && !guest_export_allowed()) {
+    http_response_code(403);
+    exit('Der Export ist für Gäste nicht verfügbar.');
+}
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
@@ -70,6 +77,9 @@ $flt = sammlung_filter_where([
 ]);
 $where_sql = $flt['sql'];
 
+// Gast-Export ist auf GUEST_EXPORT_MAX_ROWS Zeilen begrenzt (int aus Konfiguration, kein Benutzerwert)
+$limit_sql = $is_guest ? ' LIMIT ' . guest_export_max_rows() : '';
+
 // ---------- Daten (wie index.php; gleiche Joins für „sprechende“ Namen) ----------
 $sql = "
   SELECT
@@ -86,7 +96,7 @@ $sql = "
   LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
   LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
   $where_sql
-  ORDER BY $order_by
+  ORDER BY $order_by$limit_sql
 ";
 $res = db_select($conn, $sql, $flt['types'], $flt['values']);
 

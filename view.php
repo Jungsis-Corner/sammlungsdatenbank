@@ -14,6 +14,7 @@ $is_guest = is_guest();
 
 // ---- DB-Verbindung ----
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/inc_guest.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
@@ -192,8 +193,8 @@ $beschreibung_trimmed = preg_replace("/^\h*\v+/u", '', $beschreibung_raw);
 $beschreibung_trimmed = preg_replace("/^\h{1,3}/um", '', $beschreibung_trimmed);
 $beschreibung_html = nl2br(htmlspecialchars($beschreibung_trimmed, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 
-// Welche Felder sollen Gäste NICHT sehen?
-$HIDE_FOR_GUEST = ['Standort','Box','Einkaufspreis','Wert','Getestet'];
+// Welche Felder sollen Gäste NICHT sehen? (Liste aus config.php, siehe inc_guest.php)
+$HIDE_FOR_GUEST = guest_hidden_fields();
 
 // Gruppierung der Felder für die neue Karten-Ansicht (analog zu edit.php)
 $VIEW_FIELD_GROUPS = [
@@ -263,7 +264,9 @@ function tr_meta_close(): void {
   <!-- Toolbar oben -->
   <div class="toolbar">
     <a class="btn-back" href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>">← Zurück zur Liste</a>
+    <?php if (!$is_guest): ?>
     <a class="btn-edit" href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params,['id'=>$id]))) ?>">📝 Bearbeiten</a>
+    <?php endif; ?>
 
     <?php
       $selfHref  = link_to_view($params, (int)$id);

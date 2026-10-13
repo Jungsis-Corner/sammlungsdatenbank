@@ -7,6 +7,7 @@ require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/inc_guest.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->connect_error);
 
@@ -710,7 +711,13 @@ cursor: pointer;
     <a href="/sammlung/museum/exit.php">⏹ Museum beenden</a>
   </div>
 <?php else: ?>
-  <div class="logout"><a href="logout.php">🚪 Logout</a></div>
+  <div class="logout">
+    <?php if ($is_guest): ?>
+      <a href="logout.php">🚪 Zur Anmeldung</a>
+    <?php else: ?>
+      <a href="logout.php">🚪 Logout</a>
+    <?php endif; ?>
+  </div>
 
   <?php if (is_admin()): ?>
     <a href="einstellungen.php" style="margin-left:20px;font-size:0.8em;text-decoration:none;">⚙️ Einstellungen</a>
@@ -758,7 +765,7 @@ cursor: pointer;
         <span class="chip">Σ&nbsp;Wert: <strong><?= number_format($sumValue,2,',','.') ?> €</strong></span>
       <?php endif; ?>
 
-      <?php if (!$isMuseum): ?>
+      <?php if (!$isMuseum && (!$is_guest || guest_export_allowed())): ?>
         <a class="btn-stat desktop-only" href="export.php?<?= htmlspecialchars(http_build_query($params)) ?>">
           ⬇️ Excel (aktuelle Liste)
         </a>
