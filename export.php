@@ -21,6 +21,8 @@ $conn->set_charset('utf8mb4');
 
 // ---------- Parameter wie index.php ----------
 $filter          = $_GET['filter']     ?? '';
+$kat             = intval($_GET['kat'] ?? 0);              // Kategorie-Knoten
+$inkl            = ($_GET['inkl'] ?? '') === '1';          // inkl. Unterkategorien
 $oh              = $_GET['oh']         ?? '';
 $material_filter = $_GET['material']   ?? '';
 $search          = trim($_GET['q']      ?? '');
@@ -72,7 +74,7 @@ $order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
 
 // ---------- WHERE wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements) ----------
 $flt = sammlung_filter_where([
-    'filter' => $filter, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
+    'filter' => $filter, 'kat' => $kat, 'inkl' => $inkl, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
     'hersteller' => $herstellerId, 'publisher' => $publisherId, 'verkaeufer' => $verkaeuferId,
     'standort' => $standortId, 'box' => $boxId, 'verkauf' => ($_GET['verkauf'] ?? '') === '1',
     'einkaufsdatum' => $einkaufsdatumFilter,
@@ -133,6 +135,7 @@ $add = function(string $label, $value) use (&$parts) {
 
 $add('q',          $_GET['q']          ?? null);
 $add('filter',     $_GET['filter']     ?? null);
+$add('kat',        $kat > 0 ? (string)$kat : null);
 $add('oh',         $_GET['oh']         ?? null);
 $add('material',   $_GET['material']   ?? null);
 $add('hersteller', $_GET['hersteller'] ?? null);

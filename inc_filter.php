@@ -11,8 +11,9 @@ function like_escape(string $s): string {
 }
 
 /**
- * @param array $f     Filterwerte: filter, oh, material, q, hersteller, publisher, verkaeufer,
- *                     standort, box, verkauf (bool/'1'), einkaufsdatum (YYYY-MM-DD)
+ * @param array $f     Filterwerte: filter ('spiel', 'spiel_original', 'spiel_homebrew' oder Kategorie-ID exakt),
+ *                     kat (Kategorie-ID; mit inkl=1 samt allen Unterkategorien über den Pfad), inkl, oh, material,
+ *                     q, hersteller, publisher, verkaeufer, standort, box, verkauf (bool/'1'), einkaufsdatum (YYYY-MM-DD)
  * @param array $alias Tabellen-Aliase im jeweiligen Query: s = Sammlung, k = Kategorie, m = Material
  * @return array ['sql' => 'WHERE …' oder '', 'types' => 'ssi…', 'values' => [...]]
  */
@@ -21,10 +22,21 @@ function sammlung_filter_where(array $f, array $alias = ['s' => 'Sammlung', 'k' 
     $w = []; $types = ''; $vals = [];
 
     $filter = (string)($f['filter'] ?? '');
-    if     ($filter === 'spiel')          $w[] = "$k.Kategorie LIKE '%Spiel%'";
-    elseif ($filter === 'spiel_original') $w[] = "$k.Kategorie LIKE '%Spiel%' AND $s.`Original/Homebrew`='Original'";
-    elseif ($filter === 'spiel_homebrew') $w[] = "$k.Kategorie LIKE '%Spiel%' AND $s.`Original/Homebrew`='Homebrew'";
+    if     ($filter === 'spiel')          $w[] = "$k.Ebene = 'spiele'";
+    elseif ($filter === 'spiel_original') $w[] = "$k.Ebene = 'spiele' AND $s.`Original/Homebrew`='Original'";
+    elseif ($filter === 'spiel_homebrew') $w[] = "$k.Ebene = 'spiele' AND $s.`Original/Homebrew`='Homebrew'";
     elseif (is_numeric($filter))          { $w[] = "$s.Kategorie = ?"; $types .= 'i'; $vals[] = intval($filter); }
+
+    // Kategorie-Knoten: exakt oder (inkl=1) mit allen Unterkategorien (Pfad beginnt mit dem Pfad des Knotens)
+    $kat = intval($f['kat'] ?? 0);
+    if ($kat > 0) {
+        if (!empty($f['inkl'])) {
+            $w[] = "$k.Pfad LIKE CONCAT((SELECT kp.Pfad FROM Kategorie kp WHERE kp.ID = ?), '%')";
+        } else {
+            $w[] = "$s.Kategorie = ?";
+        }
+        $types .= 'i'; $vals[] = $kat;
+    }
 
     $oh = (string)($f['oh'] ?? '');
     if     ($oh === 'Original') $w[] = "$s.`Original/Homebrew`='Original'";
@@ -77,4 +89,32 @@ function db_select(mysqli $conn, string $sql, string $types = '', array $values 
  */
 function box_sort_sql(string $alias): string {
     return "CASE WHEN $alias.`Box` IS NULL THEN NULL WHEN $alias.`Box` REGEXP '^Box [0-9]+\$' THEN CAST(SUBSTRING($alias.`Box`, 5) AS UNSIGNED) ELSE 999999999 END";
+}
+
+/**
+ * Kategorie-Baum als flache Liste in Anzeigereihenfolge (Kinder je Ebene alphabetisch).
+ * @return array<int,array{id:int,name:string,depth:int,parent:?int,ebene:string,kinder:int}>
+ */
+function kategorie_baum(mysqli $conn): array {
+    $nodes = []; $kids = [];
+    $res = $conn->query("SELECT `ID`, `Kategorie`, `ParentID`, `Ebene` FROM `Kategorie`");
+    while ($r = $res->fetch_assoc()) {
+        $id = (int)$r['ID'];
+        $nodes[$id] = ['id' => $id, 'name' => (string)$r['Kategorie'], 'parent' => $r['ParentID'] === null ? null : (int)$r['ParentID'], 'ebene' => (string)$r['Ebene']];
+        $kids[$r['ParentID'] === null ? 0 : (int)$r['ParentID']][] = $id;
+    }
+    foreach ($kids as &$list) {
+        usort($list, fn($a, $b) => strcasecmp($nodes[$a]['name'], $nodes[$b]['name']));
+    }
+    unset($list);
+    $out = [];
+    $walk = function (int $parent, int $depth) use (&$walk, &$out, $nodes, $kids) {
+        foreach ($kids[$parent] ?? [] as $id) {
+            $n = $nodes[$id]; $n['depth'] = $depth; $n['kinder'] = count($kids[$id] ?? []);
+            $out[] = $n;
+            $walk($id, $depth + 1);
+        }
+    };
+    $walk(0, 0);
+    return $out;
 }

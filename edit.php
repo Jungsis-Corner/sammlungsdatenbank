@@ -346,7 +346,7 @@ function execute_sammlung(mysqli_stmt $stmt, int $id): void {
         $_SESSION['flash_msg']  = 'Nicht gespeichert: Eine Auswahl (z. B. Kategorie, Box oder „Gehört zu“) ist ungültig. Bitte neu wählen.';
         $_SESSION['flash_diag'] = '';
         $keep = ['id' => $id];
-        foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+        foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
             if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
         }
         header('Location: edit.php?' . http_build_query($keep));
@@ -423,6 +423,8 @@ $dir            = strtolower($_GET['dir']   ?? 'asc');          // NEU: Richtung
 if (!in_array($dir, ['asc','desc'], true)) { $dir = 'asc'; }
 
 $filter         = $_GET['filter']           ?? '';
+$kat             = intval($_GET['kat'] ?? 0);              // Kategorie-Knoten
+$inkl            = ($_GET['inkl'] ?? '') === '1';          // inkl. Unterkategorien
 $oh             = $_GET['oh']               ?? '';
 $material       = $_GET['material']         ?? '';
 $q              = $_GET['q']                ?? '';
@@ -448,6 +450,8 @@ if ($id < 0) die('Ungültige ID.');
 // Basis-Parameter für Prev/Next & Zurück-Link
 $params = ['page'=>$page,'sort'=>$sort,'dir'=>$dir]; // NEU: dir aufnehmen
 if ($filter        !== '') $params['filter']     = $filter;
+if ($kat           >   0) $params['kat']        = $kat;
+if ($inkl                 ) $params['inkl']       = '1';
 if ($oh            !== '') $params['oh']         = $oh;
 if ($material      !== '') $params['material']   = $material;
 if ($q             !== '') $params['q']          = $q;
@@ -695,7 +699,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
 
         // Redirect zurück in edit (mit Kontext)
         $keep = [];
-        foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+        foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
             if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
         }
         $keep['id']   = $newId;
@@ -741,7 +745,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
 
     // Redirect-Ziel bestimmen
     $baseParams = [];
-    foreach (['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+    foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
         if (isset($_POST[$k]) && $_POST[$k] !== '') $baseParams[$k] = $_POST[$k];
     }
 
@@ -817,7 +821,7 @@ if ($id > 0) {
 
     // WHERE-Klausel (gemeinsam in inc_filter.php, mit Prepared Statements)
     $flt = sammlung_filter_where([
-        'filter' => $filter, 'oh' => $oh, 'material' => $material, 'q' => $q,
+        'filter' => $filter, 'kat' => $kat, 'inkl' => $inkl, 'oh' => $oh, 'material' => $material, 'q' => $q,
         'hersteller' => $hersteller_id, 'publisher' => $publisher_id, 'verkaeufer' => $verkaeufer_id,
         'standort' => $standort_id, 'box' => $box_id, 'verkauf' => $verkauf_filter,
         'einkaufsdatum' => $einkaufsdatum_filter,
@@ -1121,7 +1125,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       <?php
         // Filterkontext für den Rücksprung nach index.php mitgeben (wie im Formular oben)
         $deleteParams = $params;
-        foreach (['filter'=>$filter, 'oh'=>$oh, 'material'=>$material, 'q'=>$q] as $k=>$v) {
+        foreach (['filter'=>$filter, 'kat'=>($kat > 0 ? (string)$kat : ''), 'inkl'=>($inkl ? '1' : ''), 'oh'=>$oh, 'material'=>$material, 'q'=>$q] as $k=>$v) {
             if ($v !== '') $deleteParams[$k] = $v;
         }
         $deleteParams['id'] = $id;

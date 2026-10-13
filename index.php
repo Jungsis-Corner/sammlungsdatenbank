@@ -25,6 +25,7 @@ function get_lookup($table, $field) {
 }
 
 $kategorien     = get_lookup('Kategorie',    'Kategorie');
+$katBaum        = kategorie_baum($conn);   // Hierarchie fürs Dropdown und die Badge
 $zustand        = get_lookup('Zustand',      'Zustand');
 $verpackung     = get_lookup('Verpackung',   'Verpackung');
 $material       = get_lookup('Material',     'Material');
@@ -43,7 +44,14 @@ if ($boxRes) {
 }
 
 // ---------------------- Parameter ----------------------
+// Alte Links mit filter=<Kategorie-ID> (z. B. go.php, Blog) gelten als exakter Kategorie-Treffer: intern kat=<ID>
+if (isset($_GET['filter']) && ctype_digit((string)$_GET['filter'])) {
+    if (empty($_GET['kat'])) { $_GET['kat'] = $_GET['filter']; }
+    unset($_GET['filter']);
+}
 $filter          = $_GET['filter']     ?? '';
+$kat             = intval($_GET['kat'] ?? 0);              // Kategorie-Knoten
+$inkl            = ($_GET['inkl'] ?? '') === '1';          // inkl. Unterkategorien
 $oh              = $_GET['oh']         ?? '';
 $material_filter = $_GET['material']   ?? '';
 $search          = trim($_GET['q']      ?? '');
@@ -105,7 +113,7 @@ $order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
 
 // Basis-Params für Links (ohne page)
 $params = ['sort' => $sort, 'dir' => $dir];
-foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p) {
+foreach (['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p) {
     $val = $_GET[$p] ?? null;
     if ($val !== null && $val !== '') {
         $params[$p] = $val;
@@ -122,8 +130,11 @@ if ($filter === 'spiel') {
     $activeBadges[] = ['label' => '✅ Spiel (Original)', 'remove' => ['filter' => '']];
 } elseif ($filter === 'spiel_homebrew') {
     $activeBadges[] = ['label' => '🧪 Spiel (Homebrew)', 'remove' => ['filter' => '']];
-} elseif (is_numeric($filter) && isset($kategorien[(int)$filter])) {
-    $activeBadges[] = ['label' => '🗂️ ' . $kategorien[(int)$filter], 'remove' => ['filter' => '']];
+}
+if ($kat > 0 && isset($kategorien[$kat])) {
+    $katHatKinder = false;
+    foreach ($katBaum as $kn) { if ($kn['id'] === $kat) { $katHatKinder = $kn['kinder'] > 0; break; } }
+    $activeBadges[] = ['label' => '🗂️ ' . $kategorien[$kat] . ($inkl && $katHatKinder ? ' (inkl. Unterkategorien)' : ''), 'remove' => ['kat' => '', 'inkl' => '']];
 }
 
 // Original/Homebrew
@@ -169,7 +180,7 @@ if ($einkaufsdatumFilter !== '') {
 // ---------------------- WHERE ----------------------
 // gemeinsam in inc_filter.php (Prepared Statements); gleiche Werte für alle Abfragen unten
 $flt = sammlung_filter_where([
-    'filter' => $filter, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
+    'filter' => $filter, 'kat' => $kat, 'inkl' => $inkl, 'oh' => $oh, 'material' => $material_filter, 'q' => $search,
     'hersteller' => $herstellerId, 'publisher' => $publisherId, 'verkaeufer' => $verkaeuferId,
     'standort' => $standortId, 'box' => $boxId, 'verkauf' => $verkaufFilter,
     'einkaufsdatum' => $einkaufsdatumFilter,
@@ -740,7 +751,7 @@ cursor: pointer;
     <form class="searchbox" action="index.php" method="get">
       <?php
         // aktive Parameter erhalten
-        foreach (['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir','einkaufsdatum'] as $keep) {
+        foreach (['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir','einkaufsdatum'] as $keep) {
           if (!empty($_GET[$keep])) {
             echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
           }
@@ -830,14 +841,19 @@ cursor: pointer;
         ?>
 
         <!-- Kategorie -->
-        <select name="filter" onchange="this.form.submit()">
+        <div style="display:flex; gap:6px; align-items:center; min-width:0;">
+        <select name="kat" onchange="this.form.submit()" style="flex:1; min-width:0;">
           <option value="">— alle Kategorien —</option>
-          <?php foreach ($kategorien as $id_cat=>$name_cat): ?>
-            <option value="<?= $id_cat ?>" <?= ($filter==$id_cat?'selected':'') ?>>
-              <?= htmlspecialchars($name_cat) ?>
+          <?php foreach ($katBaum as $kn): ?>
+            <option value="<?= $kn['id'] ?>" <?= ($kat === $kn['id'] ? 'selected' : '') ?>>
+              <?= str_repeat('&nbsp;&nbsp;&nbsp;', $kn['depth']) . ($kn['depth'] ? '↳ ' : '') . htmlspecialchars($kn['name']) ?>
             </option>
           <?php endforeach; ?>
         </select>
+        <label style="white-space:nowrap;" title="Auch Einträge aus allen Unterkategorien zeigen">
+          <input type="checkbox" name="inkl" value="1" <?= $inkl ? 'checked' : '' ?> onchange="this.form.submit()"> inkl. Unterkategorien
+        </label>
+        </div>
 
         <!-- Original/Homebrew -->
         <select name="oh" onchange="this.form.submit()">
@@ -922,7 +938,7 @@ cursor: pointer;
           <?php endif; ?>
         <?php endif; ?>
 
-        <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum']) ?>" style="text-align:center;">
+        <a class="btn-reset" href="<?= url_remove_only(['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum']) ?>" style="text-align:center;">
           Reset Dropdowns
         </a>
       </form>
@@ -934,7 +950,7 @@ cursor: pointer;
       <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
     </button>
 
-    <a class="btn-reset" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
+    <a class="btn-reset" href="<?= url_remove_only(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
       Reset alle Filter
     </a>
   </div>
@@ -962,7 +978,7 @@ $activeCount  = count($activeBadges);
       <span class="count">
         Treffer gesamt: <?= (int)$total ?> • Diese Seite: <?= (int)$visibleCount ?>
       </span>
-      <a class="badge" href="<?= url_remove_only(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
+      <a class="badge" href="<?= url_remove_only(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
     <?php else: ?>
       <strong>Keine aktiven Filter.</strong>
       <span class="count">Gesamt: <?= (int)$total ?> Einträge</span>
@@ -1047,7 +1063,7 @@ $activeCount  = count($activeBadges);
     </tr>
     <?php while($row = $result->fetch_assoc()):
       $rowP = ['id'=>$row['ID'],'page'=>$page,'sort'=>$sort,'dir'=>$dir];
-      foreach(['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p){
+      foreach(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p){
         if (!empty($_GET[$p])) $rowP[$p]=$_GET[$p];
       }
     ?>

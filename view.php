@@ -27,6 +27,8 @@ $page           = max(1, intval($_GET['page'] ?? 1));
 $sort           = $_GET['sort']             ?? 'Bezeichnung';
 $dir            = strtolower($_GET['dir']   ?? 'asc'); if (!in_array($dir, ['asc','desc'], true)) $dir = 'asc';
 $filter         = $_GET['filter']           ?? '';
+$kat             = intval($_GET['kat'] ?? 0);              // Kategorie-Knoten
+$inkl            = ($_GET['inkl'] ?? '') === '1';          // inkl. Unterkategorien
 $oh             = $_GET['oh']               ?? '';
 $material       = $_GET['material']         ?? '';
 $q              = trim($_GET['q']           ?? '');
@@ -65,7 +67,7 @@ $order_by = $order_by_core . ', S.Bezeichnung ASC';
 // ---- WHERE nach aktiven Filtern (EXAKT wie index.php) ----
 // Filter wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements)
 $flt = sammlung_filter_where([
-    'filter' => $filter, 'oh' => $oh, 'material' => $material, 'q' => $q,
+    'filter' => $filter, 'kat' => $kat, 'inkl' => $inkl, 'oh' => $oh, 'material' => $material, 'q' => $q,
     'hersteller' => $hersteller_id, 'publisher' => $publisher_id, 'verkaeufer' => $verkaeufer_id,
     'standort' => $standort_id, 'box' => $box_id, 'verkauf' => $verkauf_filter,
     'einkaufsdatum' => $einkaufsdatum_filter,
@@ -85,7 +87,7 @@ $from_join = "
 
 // ---- Basis-Params für Links (FRÜH bauen, da evtl. beim Redirect genutzt) ----
 $params = ['page'=>$page,'sort'=>$sort,'dir'=>$dir];
-foreach (['filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
+foreach (['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
     if (isset($_GET[$k]) && $_GET[$k] !== '') $params[$k] = $_GET[$k];
 }
 $listUrl = 'index.php?' . http_build_query($params);

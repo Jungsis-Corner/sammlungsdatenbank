@@ -15,7 +15,7 @@ $id   = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 
 // Diese Parameter zurück zu index.php geben (Filter/Sortierung/Seite)
-$keepKeys = ['page','sort','dir','filter','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'];
+$keepKeys = ['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'];
 $return = [];
 foreach ($keepKeys as $k) {
   if (isset($_POST[$k]) && $_POST[$k] !== '') $return[$k] = $_POST[$k];
@@ -32,7 +32,7 @@ $limit = 50; // muss mit index.php übereinstimmen
 
 // WHERE wie in index.php (gemeinsam in inc_filter.php, mit Prepared Statements)
 $flt = sammlung_filter_where([
-    'filter' => $_POST['filter'] ?? '', 'oh' => $_POST['oh'] ?? '', 'material' => $_POST['material'] ?? '',
+    'filter' => $_POST['filter'] ?? '', 'kat' => $_POST['kat'] ?? 0, 'inkl' => $_POST['inkl'] ?? '', 'oh' => $_POST['oh'] ?? '', 'material' => $_POST['material'] ?? '',
     'q' => $_POST['q'] ?? '', 'hersteller' => $_POST['hersteller'] ?? 0, 'publisher' => $_POST['publisher'] ?? 0,
     'verkaeufer' => $_POST['verkaeufer'] ?? 0, 'standort' => $_POST['standort'] ?? 0,
     'box' => $_POST['box'] ?? '', 'verkauf' => $_POST['verkauf'] ?? '', 'einkaufsdatum' => $_POST['einkaufsdatum'] ?? '',

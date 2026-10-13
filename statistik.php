@@ -11,12 +11,12 @@ if ($conn->connect_error) fail_db('Datenbankfehler.', 'Verbindung: ' . $conn->co
 $total_res = $conn->query("SELECT COUNT(*) AS cnt FROM Sammlung");
 $total_cnt = $total_res->fetch_assoc()['cnt'];
 
-// 2) Anzahl aller Datensätze mit Kategorie LIKE '%Spiel%'
+// 2) Anzahl aller Datensätze in Spiele-Kategorien (Ebene 'spiele')
 $spiel_res = $conn->query("
     SELECT COUNT(*) AS cnt
       FROM Sammlung S
       LEFT JOIN Kategorie K ON S.Kategorie = K.ID
-     WHERE K.Kategorie LIKE '%Spiel%'
+     WHERE K.Ebene = 'spiele'
 ");
 $spiel_cnt = $spiel_res->fetch_assoc()['cnt'];
 
