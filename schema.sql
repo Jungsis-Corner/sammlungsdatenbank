@@ -16,11 +16,12 @@ SET FOREIGN_KEY_CHECKS=0;
 -- --------------------------------------------------------
 CREATE TABLE `Box` (
   `ID` int NOT NULL,
-  `Box` text COLLATE utf8mb4_general_ci
+  `Box` varchar(190) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Box`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Box_name` (`Box`);
 ALTER TABLE `Box`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -29,11 +30,12 @@ ALTER TABLE `Box`
 -- --------------------------------------------------------
 CREATE TABLE `Datentraeger` (
   `ID` int NOT NULL,
-  `Datentrager` text COLLATE utf8mb4_general_ci
+  `Datentrager` varchar(190) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Datentraeger`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Datentraeger_name` (`Datentrager`);
 ALTER TABLE `Datentraeger`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -74,12 +76,13 @@ ALTER TABLE `Einkauf`
 -- Tabelle: Hersteller
 -- --------------------------------------------------------
 CREATE TABLE `Hersteller` (
-  `Hersteller` text COLLATE utf8mb4_general_ci,
+  `Hersteller` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Hersteller`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Hersteller_name` (`Hersteller`);
 ALTER TABLE `Hersteller`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -87,13 +90,14 @@ ALTER TABLE `Hersteller`
 -- Tabelle: Kategorie
 -- --------------------------------------------------------
 CREATE TABLE `Kategorie` (
-  `Kategorie` text COLLATE utf8mb4_general_ci,
+  `Kategorie` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL,
   `Spiele` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Kategorie`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Kategorie_name` (`Kategorie`);
 ALTER TABLE `Kategorie`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -133,12 +137,13 @@ ALTER TABLE `Login_Versuche`
 -- Tabelle: Material
 -- --------------------------------------------------------
 CREATE TABLE `Material` (
-  `Material` text COLLATE utf8mb4_general_ci,
+  `Material` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Material`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Material_name` (`Material`);
 ALTER TABLE `Material`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -147,11 +152,12 @@ ALTER TABLE `Material`
 -- --------------------------------------------------------
 CREATE TABLE `Publisher` (
   `ID` int NOT NULL,
-  `Publisher` text COLLATE utf8mb4_general_ci
+  `Publisher` varchar(190) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Publisher`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Publisher_name` (`Publisher`);
 ALTER TABLE `Publisher`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -216,11 +222,12 @@ ALTER TABLE `Sammlung`
 -- --------------------------------------------------------
 CREATE TABLE `Standort` (
   `ID` int NOT NULL,
-  `Standort` text COLLATE utf8mb4_general_ci
+  `Standort` varchar(190) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Standort`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Standort_name` (`Standort`);
 ALTER TABLE `Standort`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -228,12 +235,13 @@ ALTER TABLE `Standort`
 -- Tabelle: Verkäufer
 -- --------------------------------------------------------
 CREATE TABLE `Verkäufer` (
-  `Verkäufer` text COLLATE utf8mb4_general_ci,
+  `Verkäufer` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Verkäufer`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Verkäufer_name` (`Verkäufer`);
 ALTER TABLE `Verkäufer`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -242,11 +250,12 @@ ALTER TABLE `Verkäufer`
 -- --------------------------------------------------------
 CREATE TABLE `Verpackung` (
   `ID` int NOT NULL,
-  `Verpackung` text COLLATE utf8mb4_general_ci
+  `Verpackung` varchar(190) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Verpackung`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Verpackung_name` (`Verpackung`);
 ALTER TABLE `Verpackung`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -254,12 +263,13 @@ ALTER TABLE `Verpackung`
 -- Tabelle: Zustand
 -- --------------------------------------------------------
 CREATE TABLE `Zustand` (
-  `Zustand` text COLLATE utf8mb4_general_ci,
+  `Zustand` varchar(190) COLLATE utf8mb4_general_ci NOT NULL,
   `ID` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Zustand`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `uq_Zustand_name` (`Zustand`);
 ALTER TABLE `Zustand`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -288,6 +298,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('2026-10-13_01_login_versuche.sql'),
   ('2026-10-13_02_schema_migrations.sql'),
   ('2026-10-13_03_bereinigung.sql'),
-  ('2026-10-13_04_typen.sql');
+  ('2026-10-13_04_typen.sql'),
+  ('2026-10-13_05_lookup_unique.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
