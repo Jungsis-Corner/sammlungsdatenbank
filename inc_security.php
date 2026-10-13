@@ -46,6 +46,29 @@ function safe_back_url(?string $url, string $fallback): string {
 }
 
 /**
+ * Schützt eine CSV-Zelle vor Formel-Injection (Excel/LibreOffice): Beginnt der Wert mit
+ * =, +, -, @, Tab oder Wagenrücklauf, wird ein ' vorangestellt, damit er als Text gilt.
+ */
+function csv_safe_cell(string $v): string {
+    if ($v !== '' && strpbrk($v[0], "=+-@\t\r") !== false) {
+        return "'" . $v;
+    }
+    return $v;
+}
+
+/** Einmalige Meldung für die nächste Seite (statt ?msg= in der URL). $type: info|success|error */
+function flash_set(string $text, string $type = 'info'): void {
+    $_SESSION['flash'] = ['text' => $text, 'type' => in_array($type, ['info', 'success', 'error'], true) ? $type : 'info'];
+}
+
+/** Holt die einmalige Meldung und löscht sie. Liefert ['text' => …, 'type' => …] oder null. */
+function flash_pull(): ?array {
+    $f = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    return (is_array($f) && isset($f['text'])) ? $f : null;
+}
+
+/**
  * Lässt nur lokale Pfade unterhalb von /sammlung/ zu (z. B. Login-Ziel).
  * Abgelehnt werden //, Backslash, ://, .. und Steuerzeichen, auch in URL-kodierter Form.
  * Alles andere ergibt $fallback.

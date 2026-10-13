@@ -2,6 +2,7 @@
 require_once __DIR__ . '/inc_errors.php';
 
 require __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
@@ -183,9 +184,9 @@ while ($row = $res->fetch_assoc()){
     $line[] = $row['Wert'] ?? '';
   }
 
-  // Zeilenumbrüche für CSV/Excel glätten
+  // Zeilenumbrüche für CSV/Excel glätten und Formel-Injection verhindern (=, +, -, @ am Anfang)
   foreach ($line as &$v) {
-    $v = str_replace(["\r\n","\r","\n"], ' / ', (string)$v);
+    $v = csv_safe_cell(str_replace(["\r\n","\r","\n"], ' / ', (string)$v));
   }
   unset($v);
 
