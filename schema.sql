@@ -100,6 +100,24 @@ ALTER TABLE `Kategorie`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
 -- --------------------------------------------------------
+-- Tabelle: Login_Versuche (Login-Drosselung, nur Hashes)
+-- --------------------------------------------------------
+CREATE TABLE `Login_Versuche` (
+  `ID` int NOT NULL,
+  `Zeitpunkt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `IP_Hash` char(64) NOT NULL,
+  `User_Hash` char(64) NOT NULL,
+  `Erfolg` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Login_Versuche`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `idx_ip_zeit` (`IP_Hash`, `Zeitpunkt`),
+  ADD KEY `idx_user_zeit` (`User_Hash`, `Zeitpunkt`);
+ALTER TABLE `Login_Versuche`
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+
+-- --------------------------------------------------------
 -- Tabelle: Material
 -- --------------------------------------------------------
 CREATE TABLE `Material` (

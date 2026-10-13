@@ -25,6 +25,12 @@ if (!defined('DEEPL_API_KEY_CONST')) define('DEEPL_API_KEY_CONST', '');
 if (!defined('ADMIN_USERNAME'))      define('ADMIN_USERNAME', 'admin');
 if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 
+// --- Login-Drosselung: Salt für die Hashes von IP und Benutzername (Tabelle Login_Versuche) ---
+// Zufallswert selbst erzeugen (lokal per PHP CLI) und unten eintragen:
+//   php -r "echo bin2hex(random_bytes(32));"
+// Ohne Eintrag wird ein Schlüssel aus ADMIN_PASSWORD_HASH abgeleitet (funktioniert, ist aber weniger sauber).
+if (!defined('LOGIN_HASH_SALT')) define('LOGIN_HASH_SALT', '');
+
 // --- Pfad zur Error-Logdatei (für logview.php) ---
 // Falls leer/nicht gesetzt, nutzt logview.php ersatzweise php-error.log im Projektordner.
 if (!defined('ERROR_LOG_PATH')) define('ERROR_LOG_PATH', '');
