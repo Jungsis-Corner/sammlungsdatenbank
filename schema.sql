@@ -286,6 +286,7 @@ ALTER TABLE `Einkauf`
 INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('0000_login_log.sql'),
   ('2026-10-13_01_login_versuche.sql'),
-  ('2026-10-13_02_schema_migrations.sql');
+  ('2026-10-13_02_schema_migrations.sql'),
+  ('2026-10-13_03_bereinigung.sql');
 
 SET FOREIGN_KEY_CHECKS=1;

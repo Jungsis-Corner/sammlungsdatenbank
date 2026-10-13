@@ -31,6 +31,13 @@ markierten Migrationen am Ende). Jede neue Migration ändert deshalb auch `schem
 Bei Problemen: die `DOWN`-Sektion der Migration ausführen, die vorherigen Dateien wiederherstellen und
 bei Bedarf den Dump einspielen.
 
+## Sicherungstabellen (`bak_*`)
+
+Migrationen, die Daten verändern, sichern den Stand vorher in Tabellen mit dem Präfix `bak_` (z. B. `bak_d3_sammlung`
+bei `2026-10-13_03_bereinigung.sql`). Die `DOWN`-Sektion der Migration stellt daraus den alten Stand wieder her.
+Die Tabellen bleiben bis zur Abnahme stehen und werden danach mit `DROP TABLE` gelöscht. Ein zweiter Lauf der
+Migration überschreibt eine vorhandene Sicherung nicht. Die `bak_*`-Tabellen gehören nicht in `schema.sql`.
+
 ## Frischinstallation
 
 `schema.sql` importieren. Sie legt alle Tabellen an und markiert die vorhandenen Migrationen am Ende als eingespielt,
