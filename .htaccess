@@ -29,6 +29,11 @@ DirectoryIndex index.php
   Require all denied
 </FilesMatch>
 
+# Hilfsdateien sind nur zum Einbinden per PHP gedacht, nie per URL (include aus PHP bleibt möglich)
+<FilesMatch "^(inc_[A-Za-z0-9_]+|boot|require_login|config\.example)\.php$">
+  Require all denied
+</FilesMatch>
+
 # Typische Dev-/Backup-/Doku-Ordner hart auf 404
 RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports|docs|migrations|tests|\.claude|\.git)(/|$)
 
