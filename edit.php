@@ -488,10 +488,7 @@ $inputs = [
 /* ============== Speichern-Logik (Update, Insert, Duplikat) ============== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb') {
     // --- CSRF-Check ---
-    if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
-        http_response_code(400);
-        exit('Ungültiges Formular (CSRF).');
-    }
+    require_post_csrf();
 
     // Welche Felder hat dein Formular? (wie oben in $inputs definiert)
     $inputs = [
@@ -1109,7 +1106,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         }
       }
     ?>
-    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+    <?= csrf_field() ?>
     <input type="hidden" name="next_id" value="<?= htmlspecialchars((string)($next_id ?? '')) ?>">
 
     <?php

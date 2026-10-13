@@ -14,11 +14,6 @@ $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
 date_default_timezone_set('Europe/Berlin');
 
-// CSRF
-if (empty($_SESSION['csrf'])) {
-  $_SESSION['csrf'] = bin2hex(random_bytes(32));
-}
-
 /* =================== Helper: Datum DE anzeigen =================== */
 function format_date_de(?string $s): string {
   $s = trim((string)$s);
@@ -70,9 +65,7 @@ function stmt_fetch_all_assoc(mysqli_stmt $stmt): array {
 
 /* =================== Quick Toggle (POST) =================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle') {
-  if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
-    http_response_code(400); exit('CSRF ungültig.');
-  }
+  require_post_csrf();
 
   $id    = (int)($_POST['id'] ?? 0);
   $field = (string)($_POST['field'] ?? '');
@@ -546,7 +539,7 @@ function build_href_with(array $set): string {
             $new = $cur ? 0 : 1;
             return '
               <form method="post" style="margin:0; display:inline;">
-                <input type="hidden" name="csrf" value="'.htmlspecialchars($_SESSION['csrf'], ENT_QUOTES, 'UTF-8').'">
+                '.csrf_field().'
                 <input type="hidden" name="action" value="toggle">
                 <input type="hidden" name="id" value="'.$id.'">
                 <input type="hidden" name="field" value="'.htmlspecialchars($field, ENT_QUOTES, 'UTF-8').'">

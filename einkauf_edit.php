@@ -14,11 +14,6 @@ $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
 date_default_timezone_set('Europe/Berlin');
 
-// CSRF
-if (empty($_SESSION['csrf'])) {
-  $_SESSION['csrf'] = bin2hex(random_bytes(32));
-}
-
 $id      = (int)($_GET['id'] ?? 0);
 $backUrl = safe_back_url($_GET['back'] ?? null, 'einkauf.php');
 
@@ -196,10 +191,7 @@ $msg = '';
 
 /* =================== POST: speichern =================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
-    http_response_code(400);
-    exit('CSRF ungültig.');
-  }
+  require_post_csrf();
 
   $id      = (int)($_POST['id'] ?? 0);
   $backUrl = safe_back_url($_POST['back'] ?? null, 'einkauf.php');
@@ -449,7 +441,7 @@ if ($selV > 0) {
 </div>
 
 <form id="f" method="post">
-  <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'], ENT_QUOTES, 'UTF-8') ?>">
+  <?= csrf_field() ?>
   <input type="hidden" name="id" value="<?= (int)$id ?>">
   <input type="hidden" name="back" value="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>">
 
