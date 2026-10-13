@@ -1081,8 +1081,8 @@ if (!empty($_SESSION['museum_mode'])) {
         <td><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
         <td><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
         <td><?= htmlspecialchars($row['MaterialName'] ?? '') ?></td>
-<td><?= htmlspecialchars($zustand[$row['Zustand']] ?? '') ?></td>
-<td><?= htmlspecialchars($verpackung[$row['Verpackung']] ?? '') ?></td>
+<td><?= htmlspecialchars($zustand[$row['Zustand'] ?? ''] ?? '') ?></td>
+<td><?= htmlspecialchars($verpackung[$row['Verpackung'] ?? ''] ?? '') ?></td>
 
 <?php if (!$is_guest): ?>
   <td><?= htmlspecialchars($row['StandortName'] ?? '') ?></td>
