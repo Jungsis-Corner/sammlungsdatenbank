@@ -2,6 +2,7 @@
 // guest.php
 // Gemeinsame Session-Konfiguration (Cookie-Domain/-Pfad, session_start)
 require_once __DIR__ . '/boot.php';
+require_once __DIR__ . '/inc_security.php';
 
 // --- base64url-decode ---
 function b64url_decode(string $s): string {
@@ -14,16 +15,16 @@ function b64url_decode(string $s): string {
 $to = $_GET['to'] ?? '';
 $decoded = b64url_decode($to);
 
-// Sicherheit: nur relative Ziele innerhalb der Site erlauben
-if ($decoded === '' || strpos($decoded, '://') !== false) {
-    http_response_code(400);
-    exit('Ungültiger Link.');
-}
-
 // Falls du deine App unter /sammlung/ betreibst, Basis hart verdrahten:
 $base = '/sammlung/';
-if ($decoded[0] !== '/') {
+if ($decoded !== '' && $decoded[0] !== '/') {
     $decoded = $base . ltrim($decoded, '/');
+}
+
+// Sicherheit: nur lokale Ziele unterhalb von /sammlung/ erlauben
+if (safe_local_path($decoded, '') === '') {
+    http_response_code(400);
+    exit('Ungültiger Link.');
 }
 
 // --- "Gast-Login" setzen: auf *deine* Auth-Keys achten! ---

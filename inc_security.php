@@ -43,6 +43,28 @@ function safe_back_url(?string $url, string $fallback): string {
 }
 
 /**
+ * Lässt nur lokale Pfade unterhalb von /sammlung/ zu (z. B. Login-Ziel).
+ * Abgelehnt werden //, Backslash, ://, .. und Steuerzeichen, auch in URL-kodierter Form.
+ * Alles andere ergibt $fallback.
+ */
+function safe_local_path(?string $p, string $fallback): string {
+    $p = (string)$p;
+    if ($p === '' || strpos($p, '/sammlung/') !== 0) {
+        return $fallback;
+    }
+    foreach ([$p, rawurldecode($p)] as $v) {
+        if (preg_match('~[\x00-\x1F\x7F\\\\]~', $v)
+            || strpos($v, '//') !== false
+            || strpos($v, '://') !== false
+            || strpos($v, '..') !== false
+            || strpos($v, '/sammlung/') !== 0) {
+            return $fallback;
+        }
+    }
+    return $p;
+}
+
+/**
  * Whitelist für Lookup-Tabellen (Tabelle => Namensspalte), damit Tabellen-/Spaltennamen
  * nie ungeprüft in SQL landen. Liefert beide Namen in Backticks, z. B. ['`Material`', '`Material`'].
  * Bei unbekannten Namen wird abgebrochen (Programmierfehler, nicht Benutzereingabe).

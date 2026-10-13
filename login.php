@@ -5,6 +5,7 @@ require_once __DIR__ . '/boot.php';
 
 // 2) Zugangsdaten aus config.php laden (Admin gehasht, niemals im Code selbst)
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/inc_security.php';
 
 // 2b) Gast-Logins protokollieren (für die Statistik-Seite). Darf den
 //     eigentlichen Login-Vorgang niemals blockieren, daher robust/still.
@@ -26,20 +27,20 @@ function log_guest_login(string $quelle): void {
 
 // 3) Zielberechnung: nur interne absolute Pfade, niemals login.php
 function safe_target(?string $to): string {
-  $target = $to ?: '/sammlung/index.php';
-  // Nie auf login.php zurücklenken (Loop-Schutz)
-  if (stripos($target, '/sammlung/login.php') !== false) {
-    $target = '/sammlung/index.php';
+  $fallback = '/sammlung/index.php';
+  $target = (string)$to;
+  if ($target === '') {
+    return $fallback;
   }
-  // Nur interne Ziele erlauben
-  if (strpos($target, '://') !== false) {
-    $target = '/sammlung/index.php';
-  }
-  // Absolut machen
+  // Relative Eingaben (z. B. "view.php?id=5") absolut machen
   if ($target[0] !== '/') {
     $target = '/sammlung/' . ltrim($target, '/');
   }
-  return $target;
+  // Nie auf login.php zurücklenken (Loop-Schutz)
+  if (stripos($target, '/sammlung/login.php') !== false) {
+    return $fallback;
+  }
+  return safe_local_path($target, $fallback);
 }
 
 // 4) Bereits eingeloggt? -> direkt weiter (Loop-Schutz)
