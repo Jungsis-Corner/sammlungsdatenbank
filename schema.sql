@@ -213,7 +213,22 @@ CREATE TABLE `Sammlung` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `Sammlung`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `idx_sammlung_kategorie` (`Kategorie`),
+  ADD KEY `idx_sammlung_zustand` (`Zustand`),
+  ADD KEY `idx_sammlung_verpackung` (`Verpackung`),
+  ADD KEY `idx_sammlung_material` (`Material`),
+  ADD KEY `idx_sammlung_standort` (`Standort`),
+  ADD KEY `idx_sammlung_hersteller` (`Hersteller`),
+  ADD KEY `idx_sammlung_publisher` (`Publisher`),
+  ADD KEY `idx_sammlung_verkaeufer` (`Verkäufer`),
+  ADD KEY `idx_sammlung_datentraeger` (`Datentraeger`),
+  ADD KEY `idx_sammlung_box` (`Box`),
+  ADD KEY `idx_sammlung_verbautin` (`VerbautIn`),
+  ADD KEY `idx_sammlung_bezeichnung` (`Bezeichnung`(191)),
+  ADD KEY `idx_sammlung_verkauf` (`Zum Verkauf`),
+  ADD KEY `idx_sammlung_barcode` (`Barcode`),
+  ADD KEY `idx_sammlung_einkaufsdatum` (`Einkaufsdatum`);
 ALTER TABLE `Sammlung`
   MODIFY `ID` int NOT NULL AUTO_INCREMENT;
 
@@ -289,6 +304,19 @@ ALTER TABLE `Einkauf`
   ADD CONSTRAINT `fk_einkauf_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_einkauf_verkaeufer` FOREIGN KEY (`Verkaeufer`) REFERENCES `Verkäufer` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE `Sammlung`
+  ADD CONSTRAINT `fk_sammlung_kategorie` FOREIGN KEY (`Kategorie`) REFERENCES `Kategorie` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_zustand` FOREIGN KEY (`Zustand`) REFERENCES `Zustand` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_verpackung` FOREIGN KEY (`Verpackung`) REFERENCES `Verpackung` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_material` FOREIGN KEY (`Material`) REFERENCES `Material` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_standort` FOREIGN KEY (`Standort`) REFERENCES `Standort` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_hersteller` FOREIGN KEY (`Hersteller`) REFERENCES `Hersteller` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_publisher` FOREIGN KEY (`Publisher`) REFERENCES `Publisher` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_verkaeufer` FOREIGN KEY (`Verkäufer`) REFERENCES `Verkäufer` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_datentraeger` FOREIGN KEY (`Datentraeger`) REFERENCES `Datentraeger` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_box` FOREIGN KEY (`Box`) REFERENCES `Box` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sammlung_verbautin` FOREIGN KEY (`VerbautIn`) REFERENCES `Sammlung` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
 -- --------------------------------------------------------
 -- Eingespielte Migrationen: schema.sql bildet den aktuellen Stand ab, daher gelten diese als eingespielt.
 -- Jede neue Migration trägt ihren Dateinamen hier ein (siehe migrations/README.md).
@@ -300,6 +328,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('2026-10-13_03_bereinigung.sql'),
   ('2026-10-13_04_typen.sql'),
   ('2026-10-13_05_lookup_unique.sql'),
-  ('2026-10-13_06_geld.sql');
+  ('2026-10-13_06_geld.sql'),
+  ('2026-10-13_07_fremdschluessel.sql');
 
 SET FOREIGN_KEY_CHECKS=1;
