@@ -66,7 +66,7 @@ if (!$stmt) fail_db('Duplizieren fehlgeschlagen.', 'Prepare: ' . $conn->error);
 
 // Typen-String für bind_param bauen (i = int, d = double, s = string, b = blob)
 // Wir behandeln hier pragmatisch alles als string, außer bekannten Zahlenspalten:
-$intCols = ['Kategorie','Jahr','Material','Zustand','Verpackung','Standort','Hersteller','Publisher','Verkäufer','Anzahl','Datentraeger','Sonstiges'];
+$intCols = ['Kategorie','Jahr','Material','Zustand','Verpackung','Standort','Hersteller','Publisher','Verkäufer','Anzahl','Datentraeger','Sonstiges','Box'];
 $doubleCols = ['Wert'];
 
 $types = '';
@@ -74,7 +74,7 @@ $params = [];
 foreach ($cols as $c) {
     if (in_array($c, $intCols, true)) {
         $types .= 'i';
-        $params[] = is_null($data[$c]) || $data[$c]==='' ? null : (int)$data[$c];
+        $params[] = is_null($data[$c]) || $data[$c]==='' ? ($c === 'Anzahl' ? 1 : null) : (int)$data[$c];
     } elseif (in_array($c, $doubleCols, true)) {
         $types .= 'd';
         $params[] = is_null($data[$c]) || $data[$c]==='' ? null : (float)$data[$c];

@@ -543,9 +543,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
         $name = str_replace(' ', '_', $col); // HTML-Name wie im Formular
 
         if ($kind === 'checkbox') {
-            // Checkbox => "1" wenn gesetzt, sonst leer
-            $vals[$col] = isset($_POST[$name]) ? '1' : '';
-            $types     .= 's';
+            // Checkbox => 1 wenn gesetzt, sonst 0
+            $vals[$col] = isset($_POST[$name]) ? 1 : 0;
+            $types     .= 'i';
             continue;
         }
 
@@ -598,11 +598,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             continue;
         }
 
-        // Jahr und Box: leer oder 0 = NULL (nicht 0)
+        // Jahr und Box (Zahlenspalten): leer, 0 oder keine ganze Zahl = NULL (nicht 0)
         if ($col === 'Jahr' || $col === 'Box') {
             $t = trim((string)($_POST[$name] ?? ''));
-            $vals[$col] = ($t === '' || $t === '0') ? null : $t;
-            $types     .= 's';
+            $max = ($col === 'Jahr') ? 9999 : 9999999;
+            $vals[$col] = (ctype_digit($t) && (int)$t > 0 && (int)$t <= $max) ? (int)$t : null;
+            $types     .= 'i';
             continue;
         }
 
@@ -643,7 +644,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
         }
         // "Zum Verkauf" ebenfalls zurücksetzen - das Duplikat ist noch nicht
         // bewusst als Verkaufsexemplar markiert worden.
-        if (array_key_exists('Zum Verkauf', $vals)) $vals['Zum Verkauf'] = '';
+        if (array_key_exists('Zum Verkauf', $vals)) $vals['Zum Verkauf'] = 0;
 
         // INSERT
         $cols = array_map(fn($c) => "`$c`", array_keys($vals));
