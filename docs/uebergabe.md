@@ -33,7 +33,7 @@ Git-Stand:
 
 ## 3. Offene Punkte
 
-- **Box 10:** Die Zeile heißt „Regal“, in `Sammlung` steht Box 10 bei 6 Einträgen. Bedeutung klären, bevor D7 den Fremdschlüssel setzt.
+- **Box (Entscheidung 13.10.2026):** Variante 1. `Box` wird in D7 ein Fremdschlüssel mit eigener Pflegeseite `manage_box.php` (über `inc_manage_lookup.php`, Eintrag in der Whitelist `lookup_ident()`). Das Formularfeld in `edit.php` wird dann eine Auswahl mit den Namen aus der Tabelle `Box`. Heute wird die Tabelle vom Code nicht benutzt (Zahl im Textfeld, Filter-Dropdown aus `Sammlung.Box`). **Noch zu klären:** Box 10 heißt „Regal“ und hat 6 Einträge. Was bedeutet das?
 - **HSTS** frühestens am 20.10.2026 auf ein Jahr erhöhen (siehe Abschnitt 4).
 - **Strikter SQL-Modus:** `edit.php` scheitert dort an `Einkaufsdatum = ''` (Altlast). Live nicht-strikt, daher kein Problem; bei einer Umstellung auf strikt vorher beheben.
 - **D5 bis D12** laut Abschnitt 8.
