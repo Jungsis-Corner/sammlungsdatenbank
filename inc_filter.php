@@ -46,10 +46,10 @@ function sammlung_filter_where(array $f, array $alias = ['s' => 'Sammlung', 'k' 
     }
 
     $box = trim((string)($f['box'] ?? ''));
-    if ($box !== '') { $w[] = "$s.Box = ?"; $types .= 's'; $vals[] = $box; }
+    if ($box !== '' && ctype_digit($box)) { $w[] = "$s.Box = ?"; $types .= 'i'; $vals[] = (int)$box; }
 
     $verkauf = $f['verkauf'] ?? false;
-    if ($verkauf === true || $verkauf === '1' || $verkauf === 1) $w[] = "$s.`Zum Verkauf` = '1'";
+    if ($verkauf === true || $verkauf === '1' || $verkauf === 1) $w[] = "$s.`Zum Verkauf` = 1";
 
     $datum = trim((string)($f['einkaufsdatum'] ?? ''));
     if ($datum !== '' && preg_match('~^\d{4}-\d{2}-\d{2}$~', $datum)) {

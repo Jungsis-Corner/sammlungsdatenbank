@@ -339,14 +339,14 @@ function tr_meta_close(): void {
           tr_meta('Anleitung dabei',          $fmtStatus((string)($data['Anleitung Status'] ?? '')));
 
           $sonstBeschr = trim((string)($data['Sonstiges Beschreibung'] ?? ''));
-          $sonstLabel  = (($data['Sonstiges'] ?? '') === '1') ? 'Ja' : 'Nein';
+          $sonstLabel  = ((int)($data['Sonstiges'] ?? 0) === 1) ? 'Ja' : 'Nein';
           if ($sonstBeschr !== '') $sonstLabel .= ' (' . $sonstBeschr . ')';
           tr_meta('Sonstiges dabei', $sonstLabel);
 
           tr_meta('Material',           $data['MaterialName'] ?? '');
 
           tr_meta('Standort', $data['StandortName'] ?? '');
-          tr_meta('Zum Verkauf', ($data['Zum Verkauf'] ?? '') === '1' ? 'Ja' : 'Nein');
+          tr_meta('Zum Verkauf', (int)($data['Zum Verkauf'] ?? 0) === 1 ? 'Ja' : 'Nein');
 
           // Gehört zu (übergeordnetes Gerät / verbaut in oder zugehörig gelagert)
           if ($verbautInId > 0) {

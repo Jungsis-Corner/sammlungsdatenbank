@@ -34,7 +34,7 @@ $verkaeuferList = get_lookup('Verkäufer',    'Verkäufer');
 
 // Liste der tatsächlich verwendeten Box-Werte (fürs Dropdown)
 $boxList = [];
-$boxRes = $conn->query("SELECT DISTINCT Box FROM Sammlung WHERE Box IS NOT NULL AND Box <> '' ORDER BY Box");
+$boxRes = $conn->query("SELECT DISTINCT Box FROM Sammlung WHERE Box IS NOT NULL ORDER BY Box");
 if ($boxRes) {
     while ($r = $boxRes->fetch_row()) {
         $boxList[] = $r[0];
@@ -1076,7 +1076,7 @@ if (!empty($_SESSION['museum_mode'])) {
     <img src="<?= htmlspecialchars($row['SammlungBild1'] ?? '') ?>" height="60" alt="">
   </a>
 </td>
-        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= (($row['Zum Verkauf'] ?? '') === '1') ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>
+        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>
         <td><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
         <td><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
         <td><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
