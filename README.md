@@ -27,7 +27,7 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 - Gast-Modus (Nur-Lese-Ansicht ohne sensible Felder wie Wert/Einkaufspreis, siehe [Gastzugang](#gastzugang))
 - CSV-Export der aktuell gefilterten/sortierten Liste (für Gäste standardmäßig aus)
 - Statistik-Seite mit Verteilungen nach Standort, Material, Kategorie, Einkaufsjahr etc.
-- **Museum-Modus** (`museum/index.php`): Ein Kurzlink, der Besucher automatisch als Gast einloggt und direkt zur Sammlung weiterleitet – gedacht für den Vor-Ort-Einsatz, z. B. per QR-Code an einem Regal oder einer Vitrine (siehe auch `go.php` für numerische Kurzcodes zu gefilterten Ansichten). Kein Passwort nötig, da nur Lesezugriff.
+- **Museum-Modus** (`museum/start.php`, der ältere Kurzlink `museum/index.php` leitet dorthin weiter): Ein Kurzlink, der Besucher automatisch als Gast einloggt und direkt zur Sammlung weiterleitet – gedacht für den Vor-Ort-Einsatz, z. B. per QR-Code an einem Regal oder einer Vitrine (siehe auch `go.php` für numerische Kurzcodes zu gefilterten Ansichten). Kein Passwort nötig, da nur Lesezugriff.
 - **Verkaufsmarkierung**: Duplikate/Mehrfachexemplare lassen sich als „Zum Verkauf“ kennzeichnen, inkl. Schnellfilter in der Listenansicht.
 - **Admin-Log-Viewer** (`logview.php`): Die letzten Zeilen des PHP-Error-Logs direkt im Browser einsehen, ohne FTP-Zugriff – mit einfacher Passwort-/Token-Maskierung.
 

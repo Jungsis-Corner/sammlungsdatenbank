@@ -1,7 +1,7 @@
-const CACHE_NAME = "museum-pwa-v2";
+const CACHE_NAME = "museum-pwa-v3";
 
+// museum/index.php wird nicht mehr vorgeladen: Der Aufruf startet eine Gast-Session und zählt mit.
 const STATIC_ASSETS = [
-  "/sammlung/museum/index.php",
   "/sammlung/museum/offline.php",
   "/sammlung/icons/museum-192.png",
   "/sammlung/icons/museum-512.png",
