@@ -11,6 +11,16 @@ Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradr
 Vorher `git status` (muss sauber sein), `git fetch --all --tags`, `git checkout main && git pull`.
 Die Plandatei ist **nicht im Repo** (siehe Abschnitt 3) und muss auf dem Rechner liegen.
 
+## 1a. Wechsel auf den anderen Rechner (Checkliste)
+
+1. `git status` (sauber?), dann `git fetch --all --tags` und `git checkout main && git pull` (holt D3 bis D11).
+2. **Nicht im Repo, muss auf dem Rechner liegen** (vom WSL-Rechner kopieren, falls noch nicht vorhanden):
+   - `docs/Überarbeitungsplan Sammlungsdatenbank.md` (bleibt lokal, nie committen)
+   - `docs/bestand/` (Sammlungsdaten, nie committen): u. a. `dump.sql` (Live-Stand vom 13.10.2026 vor D3), `kategorie_mapping_vorschlag.csv` (freigegebene Zuordnung, nur zur Nachvollziehbarkeit), `05_dubletten.csv`, `06_kategorien.csv`, `werkzeuge/`
+3. Die lokale **Testumgebung** (Abschnitt 6) existiert nur auf dem WSL-Rechner (Wegwerf-MySQL, App-Kopie) und wird bei Bedarf neu aufgebaut. Für reine Doku- oder Planarbeit ist sie nicht nötig.
+4. Der Server ist auf dem Stand von `main` (alle Uploads und Migrationen bis D10 sind bestätigt, D11 ist reine Dokumentation). Ein Upload steht nicht aus.
+5. Nächster Schritt: Phase 3 (Bilder) planen, siehe Abschnitt 7. Vorher mit Jungsi klären, ob D12 (Altlasten) schon dran ist (frühestens nach vier Wochen Stabilisierung).
+
 ## 2. Wo wir stehen
 
 | Phase | Stand |
@@ -25,8 +35,9 @@ identisch zu einer Datenbank aus Live-Dump plus allen Migrationen).
 
 Sicherungstabellen auf dem Server (bleiben bis D12): `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`.
 
-Git-Stand: `main` = `origin/main`. Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub. Alte lokale Branches (`s1-…` bis `s8-…`, `d1-…` bis
-`d11-…`, `museum-exit`) sind in `main` enthalten und können gelöscht werden (`git branch -d`).
+Git-Stand: `main` = `origin/main` (Stand nach D11). Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub. Auf dem zweiten Rechner (WSL) sind alle
+erledigten lokalen Branches gelöscht; auf GitHub gibt es die Branches `d3-…` bis `d11-…` noch (alle in `main` enthalten, können mit
+`git push origin --delete <name>` entfernt werden, wenn gewünscht). Auf dem anderen Rechner alte lokale Branches mit `git branch -d` aufräumen.
 
 ## 3. Offene Punkte
 
