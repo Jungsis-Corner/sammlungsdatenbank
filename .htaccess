@@ -33,13 +33,17 @@ DirectoryIndex index.php
 RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|exports|docs|migrations|tests|\.claude|\.git)(/|$)
 
 # ---- Security-Header ----
-# Jeder Sicherheitsheader kommt aus genau EINER Stelle: hier. PHP-seitig gesetzte Kopien
-# (z. B. aus einer Server-Konfiguration) werden zuerst entfernt, damit nichts doppelt gesendet wird.
+# Jeder Sicherheitsheader kommt aus genau EINER Stelle: hier. Auf PHP-Antworten erscheint jeder
+# "always"-Header sonst doppelt (gemessen auf Strato, statische Dateien sind nicht betroffen).
+# Darum werden die zusätzlichen Kopien zuerst entfernt. Wer hier einen Header ergänzt,
+# nimmt die passende "onsuccess unset"-Zeile mit auf und prüft per curl -sI, dass er einmal kommt.
 <IfModule mod_headers.c>
   Header onsuccess unset X-Content-Type-Options
   Header onsuccess unset X-Frame-Options
   Header onsuccess unset Referrer-Policy
   Header onsuccess unset Permissions-Policy
+  Header onsuccess unset Strict-Transport-Security
+  Header onsuccess unset Content-Security-Policy
 
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
