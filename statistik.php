@@ -163,7 +163,7 @@ if (!$is_guest) {
     <tr><th>Material</th><th>Anzahl</th></tr>
     <?php foreach ($material_stats as $m): ?>
       <tr>
-        <td><?= htmlspecialchars($m['Name']) ?></td>
+        <td><?= htmlspecialchars($m['Name'] ?? '') ?></td>
         <td><?= htmlspecialchars($m['Anzahl']) ?></td>
       </tr>
     <?php endforeach; ?>
