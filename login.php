@@ -6,6 +6,7 @@ require_once __DIR__ . '/boot.php';
 // 2) Zugangsdaten aus config.php laden (Admin gehasht, niemals im Code selbst)
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_login_throttle.php';
 
 // 2b) Gast-Logins protokollieren (für die Statistik-Seite). Darf den
 //     eigentlichen Login-Vorgang niemals blockieren, daher robust/still.
@@ -74,22 +75,43 @@ if (isset($_GET['autologin']) && $_GET['autologin'] === 'gast') {
 // 6) Formular-Login (POST)
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $u = $_POST['username'] ?? '';
-  $p = $_POST['password'] ?? '';
+  $u = (string)($_POST['username'] ?? '');
+  $p = (string)($_POST['password'] ?? '');
 
   $loginOk = false;
   $role = null;
 
-  if ($u === ADMIN_USERNAME && password_verify($p, ADMIN_PASSWORD_HASH)) {
-      $loginOk = true;
-      $role = 'admin';
-  } elseif ($u === 'gast' && $p === 'gast') {
-      // Gast-Zugang bewusst einfach gehalten (nur Lesezugriff, kein Risiko)
-      $loginOk = true;
-      $role = 'guest';
+  // Gast-Zugang bewusst einfach gehalten (nur Lesezugriff, kein Risiko, öffentlich dokumentiert).
+  // Er wird vor der Drosselung geprüft: nie gesperrt, nie gezählt.
+  $isGuestLogin = ($u === 'gast' && $p === 'gast');
+
+  $blocked = false;
+  $throttleDb = null;
+  $ipHash = $userHash = '';
+  if (!$isGuestLogin) {
+      $throttleDb = login_throttle_open();
+      $ipHash   = login_ip_hash();
+      $userHash = login_user_hash($u);
+      login_throttle_cleanup($throttleDb);
+      $blocked = login_is_blocked($throttleDb, $ipHash, $userHash);
   }
 
-  if ($loginOk) {
+  if ($isGuestLogin) {
+      $loginOk = true;
+      $role = 'guest';
+  } elseif (!$blocked && $u === ADMIN_USERNAME && password_verify($p, ADMIN_PASSWORD_HASH)) {
+      $loginOk = true;
+      $role = 'admin';
+  }
+
+  if ($blocked) {
+    // Gesperrte Versuche werden nicht mitgezählt und das Passwort wird nicht geprüft
+    $error = 'Zu viele Anmeldeversuche. Bitte später erneut versuchen.';
+  } elseif ($loginOk) {
+    if ($role === 'admin') {
+        login_reset($throttleDb, $ipHash, $userHash);
+        login_record($throttleDb, $ipHash, $userHash, true);
+    }
     session_regenerate_id(true);
     // neu + alt-kompatible Flags setzen
     $_SESSION['logged_in'] = true;
@@ -107,6 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Location: ' . safe_target($_POST['to'] ?? null));
     exit;
   } else {
+    login_record($throttleDb, $ipHash, $userHash, false);
+    usleep(LOGIN_DELAY_US);
     $error = 'Ungültige Zugangsdaten.';
   }
 }
