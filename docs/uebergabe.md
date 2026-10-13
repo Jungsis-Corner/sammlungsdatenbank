@@ -1,50 +1,41 @@
-# Übergabe: Stand der Überarbeitung (Rechnerwechsel)
+# Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, Ende der Sitzung auf dem ersten Rechner. Dieses Dokument ist für eine neue Claude-Code-Sitzung
-auf dem zweiten Rechner gedacht. Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
+Stand: 13.10.2026, nach Abschluss von D3 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
-## 1. Einstieg auf dem anderen Rechner
+## 1. Einstieg in eine neue Sitzung
 
-Zuerst die Vorbereitung (Abschnitt 6), dann in Claude Code:
+> Lies CLAUDE.md, docs/Überarbeitungsplan Sammlungsdatenbank.md und docs/uebergabe.md. Wir machen mit der nächsten offenen
+> Aufgabe aus Abschnitt 2 weiter. Zeige mir vor jeder Datenbank- oder Mehrdatei-Änderung zuerst den Plan.
 
-> Lies CLAUDE.md, docs/Überarbeitungsplan Sammlungsdatenbank.md und docs/uebergabe.md. Wir machen mit Aufgabe D3
-> weiter (Branch d3-bereinigung). Zeige mir vor jeder Datenbank- oder Mehrdatei-Änderung zuerst den Plan.
+Vorher `git status` (muss sauber sein, bis auf die untracked Plandatei), `git fetch --all --tags`, `git checkout main && git pull`.
 
 ## 2. Wo wir stehen
 
 | Phase | Stand |
 | --- | --- |
-| 1 Sicherheit | S1 bis S8 sind umgesetzt, **gemergt auf `main` und auf dem Server**. S9 (CSP ohne `unsafe-inline`) ist offen und kommt laut Plan erst nach Phase 5 |
-| 2 Datenbank | **D1** (Migrationsordner, `schema_migrations`, Wartungsmodus) und **D2** (Bestandsaufnahme) sind gemergt, D1 ist auf dem Server eingespielt. **D3** (Bereinigung) ist **fertig und getestet, aber weder gemergt noch auf dem Server** |
+| 1 Sicherheit | S1 bis S8 sind umgesetzt, gemergt und auf dem Server. S9 (CSP ohne `unsafe-inline`) kommt laut Plan erst nach Phase 5 |
+| 2 Datenbank | **D1, D2, D3 sind abgeschlossen**: gemergt auf `main` (`1c28015`), Code hochgeladen, Migration `2026-10-13_03_bereinigung.sql` auf dem Server eingespielt und geprüft. **D4** (Typen anpassen) ist als Nächstes dran |
 | 3 bis 7 | nicht begonnen |
 
 Server-Stand (von Jungsi bestätigt, 13.10.2026):
 
-- Alle Dateien von S1 bis S8 sind hochgeladen, auch beide Uploads von S8 (21 Dateien: u. a. `inc_security.php`, `export.php`, `duplicate.php`, `view.php`, `museum/index.php`, `.htaccess`). `main` bis `dda1a08` entspricht dem Server, abgesehen von `docs/` und `migrations/`, die nie hochgeladen werden.
-- In der Live-Datenbank eingespielt: `0000_login_log`, `2026-10-13_01_login_versuche`, `2026-10-13_02_schema_migrations`.
-- **Noch nicht** auf dem Server: alles aus `d3-bereinigung` (Migration `2026-10-13_03_bereinigung.sql`, `edit.php` und `index.php` mit den D3-Änderungen). Die D3-Fassungen von `edit.php` und `index.php` enthalten alle S8-Änderungen und ersetzen die Server-Dateien sauber.
+- Alle Dateien bis einschließlich D3 sind hochgeladen. Die beiden letzten Korrekturen (`index.php` Zustand/Verpackung ohne NULL als Array-Schlüssel, `statistik.php` Materialname ohne NULL) liegen auf `main`; ob sie schon hochgeladen sind, bei Jungsi erfragen.
+- In der Live-Datenbank eingespielt: `0000_login_log`, `2026-10-13_01_login_versuche`, `2026-10-13_02_schema_migrations`, `2026-10-13_03_bereinigung`.
+  Kontrolle nach D3: Hersteller 1.187, Publisher 429, Verkäufer 277, Box 14, Sammlung 3.799, Einkauf 862, `bak_d3_sammlung` 3.799. Stichprobe in der App bestanden.
+- Die Sicherungstabellen `bak_d3_*` bleiben bis zur Abnahme stehen (Aufräumen in D12).
 
 Git-Stand:
 
-- `main` = `origin/main` = `dda1a08` (Stand nach D2). Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
-- **`d3-vorbereitung`** (`3d3877e`): bringt `schema.sql` auf den Live-Stand (sechs Altspalten ergänzt). Baut auf `main` auf.
-- **`d3-bereinigung`** (aktueller Branch, baut auf `d3-vorbereitung` auf): Migration `migrations/2026-10-13_03_bereinigung.sql`,
-  `edit.php` (schreibt NULL statt 0), `index.php` (NULL-sichere Ausgabe), `schema.sql`, `migrations/README.md` und dieses Dokument.
-- Alle anderen lokalen Branches (`s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`) sind schon in `main` gemergt und nur lokal. Sie können gelöscht werden.
+- `main` = `origin/main` = `1c28015`. Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
+- Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
+- `docs/Überarbeitungsplan Sammlungsdatenbank.md` liegt **untracked**. Jungsi hat nicht entschieden, ob sie committet wird.
 
-## 3. Nächste Schritte für D3
+## 3. Offene Punkte
 
-1. **Frischen Dump** der Live-Datenbank ziehen (phpMyAdmin: Datenbank wählen, Exportieren, Angepasst, alle Tabellen, SQL, Struktur und Daten)
-   und als `docs/bestand/dump.sql` ablegen. Dann `docs/bestand/nas_pfade_backup.csv` aus diesem Dump neu erzeugen
-   (`docs/bestand/werkzeuge/nas_backup.php`), und die Migration noch einmal lokal gegen genau diesen Stand laufen lassen.
-2. `edit.php` und `index.php` per FileZilla hochladen.
-3. Migration `2026-10-13_03_bereinigung.sql` in phpMyAdmin einspielen (kein Wartungsmodus nötig). Die letzte Abfrage zeigt eine
-   Kontrolltabelle mit 18 Zeilen, **alle** müssen `OK` zeigen.
-4. Stichprobe: Liste, einen Eintrag öffnen und speichern, Filter nach Hersteller. Danach `d3-vorbereitung` und `d3-bereinigung` mergen und pushen.
-5. Die Sicherungstabellen `bak_d3_*` bleiben bis zur Abnahme stehen (Aufräumen in D12).
-
-Erwartete Zählung durch die Migration: `Hersteller` 1.193 auf 1.187 Zeilen, `Publisher` 430 auf 429, `Verkäufer` 279 auf 277,
-`Box` 10 auf 14. `Sammlung` bleibt bei 3.799, `Einkauf` bei 862. „mit Jahr“ in der Liste sinkt von 3.799 auf 3.783 (Jahr 0 wird NULL).
+- **Box 10:** Die Zeile heißt „Regal“, in `Sammlung` steht Box 10 bei 6 Einträgen. Bedeutung klären, bevor D4/D7 den Fremdschlüssel setzen.
+- **HSTS** frühestens am 20.10.2026 auf ein Jahr erhöhen (siehe Abschnitt 4).
+- **D4 bis D12** laut Abschnitt 8.
 
 ## 4. Entscheidungen von Jungsi (gelten weiter)
 
@@ -73,41 +64,29 @@ Details: `docs/bestand-auswertung.md`. Das Wichtigste:
 - Der phpMyAdmin-Export „Abfrageergebnis“ funktioniert bei den Abfragen aus `docs/bestand.sql` nicht. Statt dessen: ein SQL-Dump der Datenbank, den Claude lokal einspielt (siehe Abschnitt 7).
 - Der Dump enthält die Spalte `Geaendert_am` nicht in den `INSERT`-Anweisungen. Jeder Import stempelt sie neu. Vergleiche nur innerhalb eines Imports.
 
-## 6. Vorbereitung auf dem zweiten Rechner
+## 6. Zweiter Rechner (WSL): Stand der Einrichtung
 
-**Vorher auf dem ersten Rechner (diese Dinge sind nicht im Git):**
+Auf dem zweiten Rechner läuft Claude Code in WSL (Ubuntu). Die Ordner `docs/bestand/` (nicht in Git, enthält Sammlungsdaten) und die Plandatei sind dort angelegt.
 
-1. Ordner **`docs/bestand/`** komplett kopieren (USB-Stick oder Netzlaufwerk). Er enthält `dump.sql`, alle CSV-Dateien, `einzelfaelle.csv`, `nas_pfade_backup.csv` und `werkzeuge/` (meine Test- und Hilfsskripte). Nicht in Git, nicht in einen Cloud-Ordner mit Freigabe legen (Sammlungsdaten).
-2. Datei **`docs/Überarbeitungsplan Sammlungsdatenbank.md`** kopieren (untracked), Sie ist nicht in Git.
-3. **`config.php`** nicht kopieren, nicht committen. Auf dem zweiten Rechner existiert sie bereits (oder aus `config.example.php` anlegen). Sie enthält die Zugangsdaten und muss die Konstanten `LOGIN_HASH_SALT`, `SESSION_COOKIE_DOMAIN` (bei der Live-Installation `.jungsi.de`) und die Werte aus `config.example.php` haben.
+- Git-E-Mail ist die GitHub-noreply-Adresse (`git config user.email`, sonst lehnt GitHub den Push ab, GH007).
+- Die echte `config.php` wird nie geladen oder kopiert.
+- Der aktuelle Live-Dump liegt als `docs/bestand/dump.sql` (Stand 13.10.2026, 17:43 Uhr, vor dem Einspielen der D3-Migration). Für D4 einen **neuen** Dump ziehen, er enthält dann die D3-Änderungen.
 
-**Auf dem zweiten Rechner:**
+## 7. Lokale Testumgebung (WSL)
 
-```
-git status                      # muss sauber sein, sonst erst klären
-git fetch --all --tags
-git checkout main && git pull
-git checkout d3-bereinigung     # Branch kommt über origin, er wurde gepusht
-git config user.email           # muss die GitHub-noreply-Adresse sein (sonst lehnt GitHub den Push ab, GH007)
-```
+Installiert (apt): PHP 8.5.4 (CLI, mit `mysqli`, `mbstring`), MySQL 8.4.11 (`/usr/sbin/mysqld`, Dienst nicht gestartet). Auf dem Server läuft PHP 8.4, MySQL 8.0.36.
+`sudo` braucht ein Passwort, Pakete installiert Jungsi selbst (`! sudo apt install …`).
 
-Die E-Mail ist `225476313+Jungsis-Corner@users.noreply.github.com`. Dann die Ordner `docs/bestand/` und die Plandatei an ihren Platz kopieren.
-
-## 7. Lokale Testumgebung (nur nötig, wenn Claude Migrationen testen soll)
-
-Claude hat auf dem ersten Rechner PHP 8.4 (Winget) und MySQL 8.4 benutzt. Auf dem zweiten Rechner braucht es dasselbe:
-
-- **PHP:** `php -l` für jede geänderte Datei (Pflicht laut CLAUDE.md). Für Tests mit MySQL die Erweiterungen laden: `php -d extension_dir=<php>/ext -d extension=mysqli -d extension=mbstring -d mysqli.default_port=3399 …`
-- **MySQL 8.4:** Eigene Wegwerf-Instanz mit eigenem Datenordner und eigenem Port, **ohne** die Installation des Rechners zu berühren:
-  `mysqld --no-defaults --initialize-insecure --datadir=<Ordner>`, dann
-  `mysqld --no-defaults --datadir=<Ordner> --port=3399 --bind-address=127.0.0.1 --mysqlx=OFF`. Client immer mit `--default-character-set=utf8mb4`.
-- **Die echte `config.php` nie in Tests laden.** Tests laufen mit einer App-Kopie ohne `config.php` und einer Fake-Konfiguration (Datenbank = lokale Kopie, siehe `werkzeuge/smoke.sh`).
-- Lokal fehlen die MySQL-Zeitzonentabellen: In der Test-Kopie `SET time_zone = 'Europe/Berlin'` in `view.php` und `edit.php` durch `'+02:00'` ersetzen (nur in der Kopie).
-- Die Skripte in `docs/bestand/werkzeuge/` haben **feste Pfade** des ersten Rechners (Scratchpad-Ordner, `C:\temp\sammlungsdatenbank`). Vor dem Einsatz Pfade anpassen:
-  `run_blocks.php` (Blöcke von `bestand.sql` gegen die lokale Kopie, schreibt CSV), `checksum.php` (Prüfsumme je Tabelle, Vorher/Nachher-Vergleich), `smoke.sh` (76 Seiten gegen die App-Kopie), `save_test.sh` (Speichertest für NULL), `einzelfaelle.php`, `nas_backup.php`, `gen_bestand.php` (erzeugt `docs/bestand.sql`), `testdaten.sql`.
-
-Test-Ablauf einer Migration (so wurde D3 geprüft): frische Kopie aus `dump.sql` importieren, Prüfsummen notieren, Migration zweimal
-laufen lassen (zweiter Lauf darf nichts ändern), `DOWN` ausführen (Prüfsummen wieder identisch zum Dump), App-Kopie mit `smoke.sh` und `save_test.sh` prüfen.
+- **MySQL-Wegwerf-Instanz** im Scratchpad, eigener Datenordner, Port 3399, Socket und PID im Datenordner:
+  `mysqld --no-defaults --initialize-insecure --datadir=<ordner>/data`, dann
+  `mysqld --no-defaults --datadir=<ordner>/data --port=3399 --bind-address=127.0.0.1 --mysqlx=OFF --socket=<ordner>/sock --mysqlx-socket=<ordner>/xsock --pid-file=<ordner>/pid --log-error=<ordner>/err.log`.
+  Client: `mysql -uroot -h127.0.0.1 -P3399 --default-character-set=utf8mb4`. Danach `SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION'` (die Live-DB läuft nicht-strikt).
+- **App-Kopie ohne echte `config.php`:** `git archive HEAD | tar -x -C <ordner>/www/sammlung`, eigene Test-`config.php` (DB `127.0.0.1`, root ohne Passwort, `ADMIN_PASSWORD_HASH` für ein Testpasswort, `SESSION_COOKIE_SECURE` false, `LOGIN_HASH_SALT`, `ERROR_LOG_PATH` und **auch `APP_TITLE`, `APP_TITLE_MUSEUM`, `APP_PWA_NAME`, `APP_PWA_SHORT_NAME`**, sonst gibt es 500er).
+  Server: `php -d mysqli.default_port=3399 -S 127.0.0.1:8124` im Ordner `www`. In der Kopie `SET time_zone = 'Europe/Berlin'` durch `'+02:00'` ersetzen (nur Kopie; lokal fehlen die Zeitzonentabellen).
+- **Werkzeuge** in `docs/bestand/werkzeuge/` haben feste Windows-Pfade des ersten Rechners (`C:/temp/sammlungsdatenbank`, `/c/Users/…`). Vor Gebrauch in einer Kopie anpassen: `smoke.sh` (76 Seiten, Admin `admin`, Fehlerlog-Pfad), `save_test.sh` (Speichertest NULL, nutzt den `mysql`-Client), `nas_backup.php` (liest Datenbank `live`), `run_blocks.php`, `einzelfaelle.php`, `gen_bestand.php`, `sync_schema.php`, `keep_geaendert.php`. `checksum.php` läuft unverändert (Prüfsumme je Tabelle, nutzt `127.0.0.1:3399`).
+  In `smoke.sh` ist `view.php?id=3` ein erwarteter 404 (ID gibt es nicht).
+- **Ablauf einer Migrationsprüfung:** frische Datenbank aus `dump.sql`, Prüfsummen notieren (`checksum.php`), Migration zweimal laufen lassen (zweiter Lauf ändert nichts), `DOWN` ausführen (Prüfsummen wieder gleich), App-Kopie mit `smoke.sh` und `save_test.sh` prüfen. Das Log des PHP-Servers (Deprecations) mitlesen, PHP 8.5 meldet strenger als 8.4.
+- Nach jedem Test den Dump nicht überschreiben, sondern in einer eigenen Datenbank (`d3test`, `d3t`, `live`) arbeiten.
 
 ## 8. Weiterer Fahrplan (Phase 2, laut Plan, mit Anpassungen)
 
