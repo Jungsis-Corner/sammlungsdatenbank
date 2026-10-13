@@ -29,6 +29,15 @@ if (!defined('ADMIN_PASSWORD_HASH')) define('ADMIN_PASSWORD_HASH', '');
 // Nur der Hostname, ohne https:// und ohne Pfad. Leer = relative Weiterleitung auf dem aktuellen Host.
 if (!defined('APP_HOST')) define('APP_HOST', '');
 
+// --- Session (boot.php) ---
+// Cookie-Domain der Session. Leer = nur der eigene Host (richtig, wenn die App ohne Subdomain läuft).
+// Für Jungsis Installation: '.jungsi.de', damit www.jungsi.de und jungsi.de dieselbe Session nutzen.
+if (!defined('SESSION_COOKIE_DOMAIN')) define('SESSION_COOKIE_DOMAIN', '');
+// Automatische Abmeldung von Admins nach so vielen Sekunden Inaktivität (Standard 28800 = 8 Stunden).
+if (!defined('SESSION_ADMIN_IDLE'))    define('SESSION_ADMIN_IDLE', 28800);
+// Nur für lokale Tests über http auf false setzen. Auf dem Server immer true lassen.
+if (!defined('SESSION_COOKIE_SECURE')) define('SESSION_COOKIE_SECURE', true);
+
 // --- Gastzugang ---
 // Der Gast-Login gast/gast ist bewusst öffentlich (nur Lesezugriff, siehe README).
 // Dürfen Gäste die Liste exportieren (CSV/Excel)? Standard: nein.
