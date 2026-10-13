@@ -225,54 +225,60 @@ ORDER BY Spalte, Befund;
 -- Schreibweisen = wie viele verschiedene Schreibweisen (Groß/Klein) sich hinter dem Wert verbergen.
 
 SELECT 'Original/Homebrew' AS Spalte,
-  (CASE WHEN S.`Original/Homebrew` IS NULL THEN '(NULL)' WHEN S.`Original/Homebrew` = '' THEN '(leer)' ELSE S.`Original/Homebrew` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Original/Homebrew` IS NULL THEN '(NULL)' WHEN S.`Original/Homebrew` = '' THEN '(leer)' ELSE S.`Original/Homebrew` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Original/Homebrew`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Original/Homebrew`
 UNION ALL
 SELECT 'Verpackung Status' AS Spalte,
-  (CASE WHEN S.`Verpackung Status` IS NULL THEN '(NULL)' WHEN S.`Verpackung Status` = '' THEN '(leer)' ELSE S.`Verpackung Status` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Verpackung Status` IS NULL THEN '(NULL)' WHEN S.`Verpackung Status` = '' THEN '(leer)' ELSE S.`Verpackung Status` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Verpackung Status`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Verpackung Status`
 UNION ALL
 SELECT 'Anleitung Status' AS Spalte,
-  (CASE WHEN S.`Anleitung Status` IS NULL THEN '(NULL)' WHEN S.`Anleitung Status` = '' THEN '(leer)' ELSE S.`Anleitung Status` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Anleitung Status` IS NULL THEN '(NULL)' WHEN S.`Anleitung Status` = '' THEN '(leer)' ELSE S.`Anleitung Status` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Anleitung Status`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Anleitung Status`
 UNION ALL
 SELECT 'Datenträger Status' AS Spalte,
-  (CASE WHEN S.`Datenträger Status` IS NULL THEN '(NULL)' WHEN S.`Datenträger Status` = '' THEN '(leer)' ELSE S.`Datenträger Status` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Datenträger Status` IS NULL THEN '(NULL)' WHEN S.`Datenträger Status` = '' THEN '(leer)' ELSE S.`Datenträger Status` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Datenträger Status`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Datenträger Status`
 UNION ALL
 SELECT 'Zum Verkauf' AS Spalte,
-  (CASE WHEN S.`Zum Verkauf` IS NULL THEN '(NULL)' WHEN S.`Zum Verkauf` = '' THEN '(leer)' ELSE S.`Zum Verkauf` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Zum Verkauf` IS NULL THEN '(NULL)' WHEN S.`Zum Verkauf` = '' THEN '(leer)' ELSE S.`Zum Verkauf` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Zum Verkauf`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Zum Verkauf`
 UNION ALL
 SELECT 'Getestet Status' AS Spalte,
-  (CASE WHEN S.`Getestet Status` IS NULL THEN '(NULL)' WHEN S.`Getestet Status` = '' THEN '(leer)' ELSE S.`Getestet Status` END) COLLATE utf8mb4_general_ci AS Wert,
+  CASE WHEN S.`Getestet Status` IS NULL THEN '(NULL)' WHEN S.`Getestet Status` = '' THEN '(leer)' ELSE S.`Getestet Status` END AS Wert,
   COUNT(*) AS Anzahl, COUNT(DISTINCT BINARY S.`Getestet Status`) AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Getestet Status`
 UNION ALL
-SELECT 'Box' AS Spalte, '(Sammlung) Zeilen mit einem Box-Wert' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(*) FROM `Sammlung` WHERE `Box` IS NOT NULL) AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Sammlung) Zeilen mit einem Box-Wert' AS Wert, COUNT(*) AS Anzahl, '' AS Schreibweisen
+FROM `Sammlung` S WHERE S.`Box` IS NOT NULL
 UNION ALL
-SELECT 'Box' AS Spalte, '(Sammlung) davon: ID existiert in Tabelle Box' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Box` IS NOT NULL AND EXISTS (SELECT 1 FROM `Box` X WHERE X.`ID` = S.`Box`)) AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Sammlung) davon: ID existiert in Tabelle Box' AS Wert, COUNT(*) AS Anzahl, '' AS Schreibweisen
+FROM `Sammlung` S WHERE S.`Box` IS NOT NULL AND EXISTS (SELECT 1 FROM `Box` X WHERE X.`ID` = S.`Box`)
 UNION ALL
-SELECT 'Box' AS Spalte, '(Sammlung) verschiedene Box-Werte' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(DISTINCT `Box`) FROM `Sammlung`) AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Sammlung) verschiedene Box-Werte' AS Wert, COUNT(DISTINCT S.`Box`) AS Anzahl, '' AS Schreibweisen
+FROM `Sammlung` S
 UNION ALL
-SELECT 'Box' AS Spalte, '(Lookup Box) Zeilen' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(*) FROM `Box`) AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Lookup Box) Zeilen' AS Wert, COUNT(*) AS Anzahl, '' AS Schreibweisen
+FROM `Box` B
 UNION ALL
-SELECT 'Box' AS Spalte, '(Lookup Box) Name rein numerisch' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(*) FROM `Box` WHERE `Box` REGEXP '^[0-9]+$') AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Lookup Box) Name rein numerisch' AS Wert, COUNT(*) AS Anzahl, '' AS Schreibweisen
+FROM `Box` B WHERE B.`Box` REGEXP '^[0-9]+$'
 UNION ALL
-SELECT 'Box' AS Spalte, '(Lookup Box) Name nicht numerisch' COLLATE utf8mb4_general_ci AS Wert, (SELECT COUNT(*) FROM `Box` WHERE `Box` IS NOT NULL AND `Box` NOT REGEXP '^[0-9]+$') AS Anzahl, '' AS Schreibweisen
+SELECT 'Box' AS Spalte, '(Lookup Box) Name nicht numerisch' AS Wert, COUNT(*) AS Anzahl, '' AS Schreibweisen
+FROM `Box` B WHERE B.`Box` IS NOT NULL AND B.`Box` NOT REGEXP '^[0-9]+$'
 UNION ALL
-SELECT 'Sonstiges (keiner Tabelle zugeordnet)' AS Spalte, (CASE WHEN S.`Sonstiges` IS NULL THEN '(NULL)' ELSE CAST(S.`Sonstiges` AS CHAR) END) COLLATE utf8mb4_general_ci AS Wert,
+SELECT 'Sonstiges (keiner Tabelle zugeordnet)' AS Spalte, CASE WHEN S.`Sonstiges` IS NULL THEN '(NULL)' ELSE CONCAT('', S.`Sonstiges`) END AS Wert,
   COUNT(*) AS Anzahl, '' AS Schreibweisen
 FROM `Sammlung` S
 GROUP BY S.`Sonstiges`
@@ -351,8 +357,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Hersteller` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Hersteller`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Hersteller` = L.`ID`) AS Verwendet
-      FROM `Hersteller` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Hersteller` L
+      LEFT JOIN `Sammlung` S ON S.`Hersteller` = L.`ID`
+      GROUP BY L.`ID`, L.`Hersteller`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -376,8 +384,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Hersteller` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Hersteller`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Hersteller` = L.`ID`) AS Verwendet
-      FROM `Hersteller` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Hersteller` L
+      LEFT JOIN `Sammlung` S ON S.`Hersteller` = L.`ID`
+      GROUP BY L.`ID`, L.`Hersteller`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -401,8 +411,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Publisher` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Publisher`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Publisher` = L.`ID`) AS Verwendet
-      FROM `Publisher` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Publisher` L
+      LEFT JOIN `Sammlung` S ON S.`Publisher` = L.`ID`
+      GROUP BY L.`ID`, L.`Publisher`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -426,8 +438,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Publisher` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Publisher`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Publisher` = L.`ID`) AS Verwendet
-      FROM `Publisher` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Publisher` L
+      LEFT JOIN `Sammlung` S ON S.`Publisher` = L.`ID`
+      GROUP BY L.`ID`, L.`Publisher`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -451,8 +465,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Verkäufer` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Verkäufer`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Verkäufer` = L.`ID`) AS Verwendet
-      FROM `Verkäufer` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Verkäufer` L
+      LEFT JOIN `Sammlung` S ON S.`Verkäufer` = L.`ID`
+      GROUP BY L.`ID`, L.`Verkäufer`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -476,8 +492,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Verkäufer` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Verkäufer`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Verkäufer` = L.`ID`) AS Verwendet
-      FROM `Verkäufer` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Verkäufer` L
+      LEFT JOIN `Sammlung` S ON S.`Verkäufer` = L.`ID`
+      GROUP BY L.`ID`, L.`Verkäufer`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -501,8 +519,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Standort` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Standort`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Standort` = L.`ID`) AS Verwendet
-      FROM `Standort` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Standort` L
+      LEFT JOIN `Sammlung` S ON S.`Standort` = L.`ID`
+      GROUP BY L.`ID`, L.`Standort`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -526,8 +546,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Standort` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Standort`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Standort` = L.`ID`) AS Verwendet
-      FROM `Standort` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Standort` L
+      LEFT JOIN `Sammlung` S ON S.`Standort` = L.`ID`
+      GROUP BY L.`ID`, L.`Standort`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -551,8 +573,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Material` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Material`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Material` = L.`ID`) AS Verwendet
-      FROM `Material` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Material` L
+      LEFT JOIN `Sammlung` S ON S.`Material` = L.`ID`
+      GROUP BY L.`ID`, L.`Material`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -576,8 +600,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Material` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Material`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Material` = L.`ID`) AS Verwendet
-      FROM `Material` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Material` L
+      LEFT JOIN `Sammlung` S ON S.`Material` = L.`ID`
+      GROUP BY L.`ID`, L.`Material`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -601,8 +627,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Zustand` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Zustand`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Zustand` = L.`ID`) AS Verwendet
-      FROM `Zustand` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Zustand` L
+      LEFT JOIN `Sammlung` S ON S.`Zustand` = L.`ID`
+      GROUP BY L.`ID`, L.`Zustand`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -626,8 +654,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Zustand` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Zustand`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Zustand` = L.`ID`) AS Verwendet
-      FROM `Zustand` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Zustand` L
+      LEFT JOIN `Sammlung` S ON S.`Zustand` = L.`ID`
+      GROUP BY L.`ID`, L.`Zustand`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -651,8 +681,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Verpackung` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Verpackung`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Verpackung` = L.`ID`) AS Verwendet
-      FROM `Verpackung` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Verpackung` L
+      LEFT JOIN `Sammlung` S ON S.`Verpackung` = L.`ID`
+      GROUP BY L.`ID`, L.`Verpackung`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -676,8 +708,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Verpackung` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Verpackung`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Verpackung` = L.`ID`) AS Verwendet
-      FROM `Verpackung` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Verpackung` L
+      LEFT JOIN `Sammlung` S ON S.`Verpackung` = L.`ID`
+      GROUP BY L.`ID`, L.`Verpackung`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -701,8 +735,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Datentrager` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Datentrager`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Datentraeger` = L.`ID`) AS Verwendet
-      FROM `Datentraeger` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Datentraeger` L
+      LEFT JOIN `Sammlung` S ON S.`Datentraeger` = L.`ID`
+      GROUP BY L.`ID`, L.`Datentrager`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -726,8 +762,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Datentrager` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Datentrager`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Datentraeger` = L.`ID`) AS Verwendet
-      FROM `Datentraeger` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Datentraeger` L
+      LEFT JOIN `Sammlung` S ON S.`Datentraeger` = L.`ID`
+      GROUP BY L.`ID`, L.`Datentrager`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -751,8 +789,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Box` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Box`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Box` = L.`ID`) AS Verwendet
-      FROM `Box` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Box` L
+      LEFT JOIN `Sammlung` S ON S.`Box` = L.`ID`
+      GROUP BY L.`ID`, L.`Box`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -776,8 +816,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Box` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Box`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Box` = L.`ID`) AS Verwendet
-      FROM `Box` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Box` L
+      LEFT JOIN `Sammlung` S ON S.`Box` = L.`ID`
+      GROUP BY L.`ID`, L.`Box`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -801,8 +843,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Kategorie` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Kategorie`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Kategorie` = L.`ID`) AS Verwendet
-      FROM `Kategorie` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Kategorie` L
+      LEFT JOIN `Sammlung` S ON S.`Kategorie` = L.`ID`
+      GROUP BY L.`ID`, L.`Kategorie`) m
 ) n
 GROUP BY n.n1
 HAVING COUNT(*) > 1 AND n.n1 <> ''
@@ -826,8 +870,10 @@ FROM (
         ELSE m.n1 END AS n2
     FROM (SELECT L.`ID` AS ID, L.`Kategorie` AS Name,
         REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE(L.`Kategorie`, '')), ' ', ''), '.', ''), ',', ''), '-', ''), '_', ''), '''', ''), '"', ''), '/', ''), '(', ''), ')', ''), '&', 'and') AS n1,
-        (SELECT COUNT(*) FROM `Sammlung` S WHERE S.`Kategorie` = L.`ID`) AS Verwendet
-      FROM `Kategorie` L) m
+        COUNT(S.`ID`) AS Verwendet
+      FROM `Kategorie` L
+      LEFT JOIN `Sammlung` S ON S.`Kategorie` = L.`ID`
+      GROUP BY L.`ID`, L.`Kategorie`) m
 ) n
 GROUP BY n.n2
 HAVING COUNT(*) > 1 AND n.n2 <> '' AND COUNT(DISTINCT n.n1) > 1
@@ -843,31 +889,31 @@ ORDER BY K.`Kategorie`;
 
 -- ===== BLOCK 7: Server, Tabellen, Spalten, Fremdschlüssel, Indizes (docs/bestand/07_server.csv) =====
 -- Enthält VERSION() und die Collation je Tabelle und Spalte (Grundlage für D4 und D7).
-SELECT 'Server' AS Bereich, 'Version' AS Objekt, CONVERT(CAST(VERSION() AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'Version' AS Objekt, CONVERT(CAST(VERSION() AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Server' AS Bereich, 'sql_mode' AS Objekt, CONVERT(CAST(@@sql_mode AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'sql_mode' AS Objekt, CONVERT(CAST(@@sql_mode AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Server' AS Bereich, 'Zeichensatz (Datenbank)' AS Objekt, CONVERT(CAST(@@character_set_database AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'Zeichensatz (Datenbank)' AS Objekt, CONVERT(CAST(@@character_set_database AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Server' AS Bereich, 'Collation (Datenbank)' AS Objekt, CONVERT(CAST(@@collation_database AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'Collation (Datenbank)' AS Objekt, CONVERT(CAST(@@collation_database AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Server' AS Bereich, 'lower_case_table_names' AS Objekt, CONVERT(CAST(@@lower_case_table_names AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'lower_case_table_names' AS Objekt, CONVERT(CAST(@@lower_case_table_names AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Server' AS Bereich, 'group_concat_max_len' AS Objekt, CONVERT(CAST(@@group_concat_max_len AS CHAR) USING utf8mb4) COLLATE utf8mb4_general_ci AS Detail, '' AS Detail2
+SELECT 'Server' AS Bereich, 'group_concat_max_len' AS Objekt, CONVERT(CAST(@@group_concat_max_len AS CHAR) USING utf8mb4) AS Detail, '' AS Detail2
 UNION ALL
-SELECT 'Tabelle', CONVERT(t.table_name USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(COALESCE(t.engine, '') USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(CONCAT(COALESCE(t.table_collation, ''), ' / ca. ', COALESCE(t.table_rows, 0), ' Zeilen') USING utf8mb4) COLLATE utf8mb4_general_ci
+SELECT 'Tabelle', CONVERT(t.table_name USING utf8mb4), CONVERT(COALESCE(t.engine, '') USING utf8mb4), CONVERT(CONCAT(COALESCE(t.table_collation, ''), ' / ca. ', COALESCE(t.table_rows, 0), ' Zeilen') USING utf8mb4)
 FROM information_schema.tables t WHERE t.table_schema = DATABASE() AND t.table_type = 'BASE TABLE'
 UNION ALL
-SELECT 'Spalte', CONVERT(CONCAT(c.table_name, '.', c.column_name) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(c.column_type USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(CONCAT(IF(c.is_nullable = 'YES', 'NULL', 'NOT NULL'), COALESCE(CONCAT(' / ', c.collation_name), '')) USING utf8mb4) COLLATE utf8mb4_general_ci
+SELECT 'Spalte', CONVERT(CONCAT(c.table_name, '.', c.column_name) USING utf8mb4), CONVERT(c.column_type USING utf8mb4), CONVERT(CONCAT(IF(c.is_nullable = 'YES', 'NULL', 'NOT NULL'), COALESCE(CONCAT(' / ', c.collation_name), '')) USING utf8mb4)
 FROM information_schema.columns c WHERE c.table_schema = DATABASE()
 UNION ALL
-SELECT 'Fremdschlüssel', CONVERT(CONCAT(k.table_name, '.', k.column_name) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(CONCAT(k.referenced_table_name, '.', k.referenced_column_name) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(k.constraint_name USING utf8mb4) COLLATE utf8mb4_general_ci
+SELECT 'Fremdschlüssel', CONVERT(CONCAT(k.table_name, '.', k.column_name) USING utf8mb4), CONVERT(CONCAT(k.referenced_table_name, '.', k.referenced_column_name) USING utf8mb4), CONVERT(k.constraint_name USING utf8mb4)
 FROM information_schema.key_column_usage k WHERE k.table_schema = DATABASE() AND k.referenced_table_name IS NOT NULL
 UNION ALL
-SELECT 'Fremdschlüssel-Regel', CONVERT(r.constraint_name USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(CONCAT('DELETE ', r.delete_rule) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(CONCAT('UPDATE ', r.update_rule) USING utf8mb4) COLLATE utf8mb4_general_ci
+SELECT 'Fremdschlüssel-Regel', CONVERT(r.constraint_name USING utf8mb4), CONVERT(CONCAT('DELETE ', r.delete_rule) USING utf8mb4), CONVERT(CONCAT('UPDATE ', r.update_rule) USING utf8mb4)
 FROM information_schema.referential_constraints r WHERE r.constraint_schema = DATABASE()
 UNION ALL
-SELECT 'Index', CONVERT(CONCAT(s.table_name, '.', s.index_name) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(GROUP_CONCAT(s.column_name ORDER BY s.seq_in_index) USING utf8mb4) COLLATE utf8mb4_general_ci, CONVERT(IF(s.non_unique = 0, 'UNIQUE', '') USING utf8mb4) COLLATE utf8mb4_general_ci
+SELECT 'Index', CONVERT(CONCAT(s.table_name, '.', s.index_name) USING utf8mb4), CONVERT(GROUP_CONCAT(s.column_name ORDER BY s.seq_in_index) USING utf8mb4), CONVERT(IF(s.non_unique = 0, 'UNIQUE', '') USING utf8mb4)
 FROM information_schema.statistics s WHERE s.table_schema = DATABASE()
 GROUP BY s.table_name, s.index_name, s.non_unique
 ORDER BY 1, 2;
