@@ -29,7 +29,7 @@ Git-Stand:
 
 - `main` = `origin/main` (Stand nach D7). Die Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
 - Die Branches `d3-vorbereitung` und `d3-bereinigung` sind vollständig in `main` enthalten und können gelöscht werden. Ebenso die alten lokalen Branches `s1-…` bis `s8-…`, `d1-…`, `d2-…`, `museum-exit`.
-- `docs/Überarbeitungsplan Sammlungsdatenbank.md` liegt **untracked**. Jungsi hat nicht entschieden, ob sie committet wird.
+- `docs/Überarbeitungsplan Sammlungsdatenbank.md` ist **nicht öffentlich**: nur lokal, per `.gitignore` ausgeschlossen, nie committen oder pushen (Entscheidung Jungsi 13.10.2026). Auf einem neuen Rechner muss die Datei von Hand kopiert werden.
 
 ## 3. Offene Punkte
 
@@ -48,7 +48,7 @@ Git-Stand:
 - 38 kaputte NAS-Bildpfade werden auf `''` gesetzt (Sicherung als CSV unter `docs/bestand/` und in `bak_d3_sammlung`).
 - Die sechs Altspalten in `Sammlung` bleiben vorerst. Entfernen erst am Ende (D12), **nachdem Jungsi die Daten exportiert hat**.
 - `docs/bestand/` wird **nie** committet (enthält Sammlungsdaten).
-- `docs/Überarbeitungsplan Sammlungsdatenbank.md` liegt noch **untracked**. Jungsi hat nicht entschieden, ob sie committet wird.
+- `docs/Überarbeitungsplan Sammlungsdatenbank.md`: lokal und ignoriert, nie ins Repo (siehe oben).
 
 ## 5. Wichtige Erkenntnisse aus der Auswertung
 
