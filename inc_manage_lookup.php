@@ -56,6 +56,7 @@ if (isset($_POST['delete'])) {
         if ((int)$e->getCode() === 1451) {
             $n = 0;
             foreach (lookup_refs($cfg['table']) as [$rt, $rc]) {
+                if ($rt !== '`Sammlung`') continue;   // nur Sammlung sperrt das Löschen (Einkauf: ON DELETE SET NULL)
                 $stmt = $conn->prepare("SELECT COUNT(*) FROM $rt WHERE $rc = ?");
                 $stmt->bind_param('i', $del_id);
                 $stmt->execute();

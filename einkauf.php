@@ -548,7 +548,7 @@ function build_href_with(array $set): string {
 
           // ---- Übernahme nach edit.php (Sammlung) vorbereiten ----
           // Bestelldatum wird bewusst NICHT übernommen.
-          // Lieferdatum -> Einkaufsdatum, Preis -> Wert (wie besprochen).
+          // Lieferdatum -> Einkaufsdatum, Preis -> Einkaufspreis und Wert (beide gleich, später im Formular anpassbar).
           $prefill = [];
           if (trim((string)($r['Bezeichnung'] ?? '')) !== '') {
               $prefill['pf_Bezeichnung'] = $r['Bezeichnung'];
@@ -564,6 +564,7 @@ function build_href_with(array $set): string {
           }
           $preisFmt = format_price_de($r['Preis'] ?? '');
           if ($preisFmt !== '' && $preisFmt !== '0,00') {
+              $prefill['pf_Einkaufspreis'] = $preisFmt;
               $prefill['pf_Wert'] = $preisFmt;
           }
           $liefRaw = trim((string)($r['Lieferdatum'] ?? ''));
@@ -600,7 +601,7 @@ function build_href_with(array $set): string {
             </form>
             <a class="btn" href="<?= htmlspecialchars($transferHref, ENT_QUOTES, 'UTF-8') ?>"
                target="_blank" rel="noopener"
-               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Wert) – öffnet in neuem Tab">➡️ Sammlung</a>
+               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Einkaufspreis und Wert) – öffnet in neuem Tab">➡️ Sammlung</a>
           </td>
         </tr>
       <?php endforeach; ?>

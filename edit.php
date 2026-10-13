@@ -770,6 +770,7 @@ if ($id > 0) {
         'pf_Bezeichnung'   => 'Bezeichnung',
         'pf_Kategorie'     => 'Kategorie',
         'pf_Verkaeufer'    => 'Verkäufer',
+        'pf_Einkaufspreis' => 'Einkaufspreis',
         'pf_Wert'          => 'Wert',
         'pf_Einkaufsdatum' => 'Einkaufsdatum',
         'pf_Anzahl'        => 'Anzahl',
