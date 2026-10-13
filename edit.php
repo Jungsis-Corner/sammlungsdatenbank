@@ -7,6 +7,7 @@ date_default_timezone_set('Europe/Berlin');
 // ---- Login prüfen & nur Admin zulassen ----
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
@@ -607,6 +608,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             continue;
         }
 
+        // Geldbeträge (DECIMAL): Komma/Punkt, leer oder ungültig = NULL
+        if ($col === 'Einkaufspreis' || $col === 'Wert') {
+            $vals[$col] = parse_decimal($_POST[$name] ?? '');
+            $types     .= 's';
+            continue;
+        }
+
         // text/textarea oder alles andere als String
         $vals[$col] = (string)($_POST[$name] ?? '');
         $types     .= 's';
@@ -634,7 +642,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
         // Preis/Datum/Wert ggf. leeren
         if ($action === 'dup') {
             foreach (['Einkaufsdatum','Einkaufspreis','Wert'] as $c) {
-                if (array_key_exists($c, $vals)) $vals[$c] = '';
+                if (array_key_exists($c, $vals)) $vals[$c] = ($c === 'Einkaufsdatum') ? '' : null;
             }
         }
         // Testdaten werden bei JEDEM Duplikat zurückgesetzt (auch bei "dup_keepcost"),
@@ -779,7 +787,7 @@ if ($id > 0) {
     }
     if ($sort === 'Wert') {
         // numerische Sortierung + NULL ans Ende
-        $order_by_core = 'S.Wert IS NULL, (S.Wert+0) ' . strtoupper($dir);
+        $order_by_core = 'S.Wert IS NULL, S.Wert ' . strtoupper($dir);
     }
 
     // stabile Zweitsortierung
@@ -1293,6 +1301,11 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
            autocomplete="off"
            placeholder="TT.MM.JJJJ"
            pattern="\d{1,2}\.\d{1,2}\.\d{4}">
+
+  <?php elseif ($col === 'Einkaufspreis' || $col === 'Wert'): ?>
+
+    <?php $geldVal = parse_decimal($value); $geldVal = ($geldVal !== null) ? fmt_dec($geldVal) : (string)$value; ?>
+    <input type="text" name="<?= $htmlName ?>" value="<?= htmlspecialchars($geldVal) ?>" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,50">
 
   <?php else: ?>
 

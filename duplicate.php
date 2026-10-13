@@ -64,10 +64,9 @@ $sql = "INSERT INTO Sammlung ($colList) VALUES ($placeholders)";
 $stmt = $conn->prepare($sql);
 if (!$stmt) fail_db('Duplizieren fehlgeschlagen.', 'Prepare: ' . $conn->error);
 
-// Typen-String für bind_param bauen (i = int, d = double, s = string, b = blob)
-// Wir behandeln hier pragmatisch alles als string, außer bekannten Zahlenspalten:
+// Typen-String für bind_param bauen (i = int, s = string). Alles als String außer den Zahlenspalten.
+// Wert/Einkaufspreis (DECIMAL) gehen als String durch, so bleiben die Cent exakt:
 $intCols = ['Kategorie','Jahr','Material','Zustand','Verpackung','Standort','Hersteller','Publisher','Verkäufer','Anzahl','Datentraeger','Sonstiges','Box'];
-$doubleCols = ['Wert'];
 
 $types = '';
 $params = [];
@@ -75,9 +74,6 @@ foreach ($cols as $c) {
     if (in_array($c, $intCols, true)) {
         $types .= 'i';
         $params[] = is_null($data[$c]) || $data[$c]==='' ? ($c === 'Anzahl' ? 1 : null) : (int)$data[$c];
-    } elseif (in_array($c, $doubleCols, true)) {
-        $types .= 'd';
-        $params[] = is_null($data[$c]) || $data[$c]==='' ? null : (float)$data[$c];
     } else {
         $types .= 's';
         $params[] = $data[$c]; // string oder null (mysqli wandelt null korrekt)

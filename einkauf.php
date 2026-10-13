@@ -5,6 +5,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
 require_once __DIR__ . '/config.php';
@@ -265,15 +266,7 @@ function sort_link(string $label, string $key, string $sort, string $dir): strin
 }
 
 function format_price_de($v): string {
-  $s = trim((string)$v);
-  if ($s === '' || $s === '0' || $s === '0.00' || $s === '0,00') return $s;
-
-  $s = str_replace([' ', "\t"], '', $s);
-  $s = str_replace(',', '.', $s);
-
-  if (!is_numeric($s)) return trim((string)$v);
-
-  return number_format((float)$s, 2, ',', '.');
+  return fmt_dec($v);
 }
 
 // Quickfilter Links

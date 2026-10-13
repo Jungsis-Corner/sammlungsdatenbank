@@ -216,7 +216,7 @@ if (!$is_guest) {
   <!-- Gesamtsumme -->
   <?php if (!$is_guest): ?>
     <h2>💰 Gesamtsumme</h2>
-    <p class="center"><strong><?= number_format($wert, 2, ',', '.') ?> €</strong></p>
+    <p class="center"><strong><?= number_format((float)$wert, 2, ',', '.') ?> €</strong></p>
   <?php endif; ?>
 
   <p class="center"><a href="index.php">🔙 Zurück</a></p>

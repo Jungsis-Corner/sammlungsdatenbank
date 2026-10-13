@@ -7,6 +7,7 @@ date_default_timezone_set('Europe/Berlin');
 // ---- Login prüfen (Gäste erlaubt) ----
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
 if (!function_exists('is_guest')) { function is_guest(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'guest'; } }
 if (!function_exists('is_admin')) { function is_admin(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; } }
@@ -377,8 +378,8 @@ function tr_meta_close(): void {
           tr_meta('Einkaufsdatum', $einkaufsdatum);
           tr_meta('Verkäufer',     $data['VerkaeuferName'] ?? '');
 
-          tr_meta('Einkaufspreis', $data['Einkaufspreis'] ?? '');
-          tr_meta('Wert',          $data['Wert'] ?? '');
+          tr_meta('Einkaufspreis', fmt_eur($data['Einkaufspreis'] ?? null));
+          tr_meta('Wert',          fmt_eur($data['Wert'] ?? null));
 
           // Getestet: Status + Datum kombiniert anzeigen
           $gStatus = $data['Getestet Status'] ?? '';

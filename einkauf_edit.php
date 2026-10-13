@@ -5,6 +5,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';   // db_select()
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
@@ -128,9 +129,7 @@ function insert_or_update(mysqli $conn, int $id, array $v): int {
   $bez     = trim((string)($v['Bezeichnung'] ?? ''));
   $notiz   = trim((string)($v['Notizen'] ?? ''));
 
-  $preisRaw = trim((string)($v['Preis'] ?? ''));
-  $preisRaw = str_replace([' ', "\t"], '', $preisRaw);
-  $preisRaw = str_replace(',', '.', $preisRaw);
+  $preisRaw = parse_decimal($v['Preis'] ?? '');   // "12,50" -> "12.50", leer/ungültig -> NULL
 
   $foto = (int)($v['Foto_erstellt'] ?? 0);
   $db   = (int)($v['DB_Eintrag_erstellt'] ?? 0);
@@ -507,8 +506,8 @@ if ($selV > 0) {
         <div class="field">
           <span class="label">Preis</span>
           <input type="text" name="Preis"
-                 value="<?= htmlspecialchars((string)($data['Preis'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-                 placeholder="z.B. 12,50">
+                 value="<?php $pv = parse_decimal($data['Preis'] ?? ''); echo htmlspecialchars($pv !== null ? fmt_dec($pv) : (string)($data['Preis'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                 inputmode="decimal" autocomplete="off" placeholder="z.B. 12,50">
         </div>
 
         <div class="field">

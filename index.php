@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
@@ -89,7 +90,7 @@ $sort_map = [
   'Standort'            => 'Standort.Standort',
   'Box'                 => 'Sammlung.Box',
   'Einkaufsdatum'       => 'Sammlung.Einkaufsdatum',
-  'Wert'                => 'CAST(REPLACE(REPLACE(Sammlung.Wert, ".", ""), ",", ".") AS DECIMAL(10,2))',
+  'Wert'                => 'Sammlung.Wert',
   'Link zu YouTube'     => 'Sammlung.`Link zu YouTube`' // <- NEU
 ];
 
@@ -235,18 +236,11 @@ if ($resY = db_select($conn, $year_sql, $flt['types'], $flt['values'])) {
     $yearCount = (int)($rowY[0] ?? 0);
 }
 
-// Summe Wert (nur Admin, robust gegen Formatvarianten)
+// Summe Wert (nur Admin)
 $sumValue = null;
 if (!$is_guest) {
     $sum_sql = "
-      SELECT SUM(
-        CASE
-          WHEN NULLIF(TRIM(Wert),'') IS NULL THEN 0
-          WHEN REPLACE(REPLACE(Wert,'.',''),',','.') REGEXP '^[0-9]+(\\.[0-9]+)?$'
-            THEN REPLACE(REPLACE(Wert,'.',''),',','.') + 0
-          ELSE 0
-        END
-      ) AS s
+      SELECT SUM(Sammlung.Wert) AS s
       FROM Sammlung
       LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
       LEFT JOIN Material   ON Sammlung.Material   = Material.ID
@@ -1097,7 +1091,7 @@ if (!empty($_SESSION['museum_mode'])) {
 <?php endif; ?>
 
 <?php if (!$is_guest): ?>
-  <td><?= htmlspecialchars($row['Wert'] ?? '') ?></td>
+  <td><?= htmlspecialchars(fmt_dec($row['Wert'] ?? null)) ?></td>
   <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-p="<?= htmlspecialchars(json_encode($rowP), ENT_QUOTES, 'UTF-8') ?>">🗑️</a></td>
 <?php endif; ?>
 

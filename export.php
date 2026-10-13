@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc_errors.php';
 
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
 $is_guest = is_guest();
 
@@ -57,7 +58,7 @@ $sort_map = [
   'Standort'            => 'Standort.Standort',
   'Box'                 => 'Sammlung.Box',
   'Einkaufsdatum'       => 'Sammlung.Einkaufsdatum',
-  'Wert'                => 'CAST(REPLACE(REPLACE(Sammlung.Wert, ".", ""), ",", ".") AS DECIMAL(10,2))',
+  'Wert'                => 'Sammlung.Wert',
   'Getestet am'         => 'Sammlung.`Getestet am`',
   'Getestet Status'     => 'Sammlung.`Getestet Status`'
 ];
@@ -181,7 +182,7 @@ while ($row = $res->fetch_assoc()){
             ? date('d.m.Y', strtotime($row['Getestet am'])) : '';
     $line[] = $gd;
     $line[] = $row['Getestet Status'] ?? '';
-    $line[] = $row['Wert'] ?? '';
+    $line[] = fmt_dec($row['Wert'] ?? null);
   }
 
   // Zeilenumbrüche für CSV/Excel glätten und Formel-Injection verhindern (=, +, -, @ am Anfang)
