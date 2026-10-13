@@ -18,6 +18,12 @@ Zuerst die Vorbereitung (Abschnitt 6), dann in Claude Code:
 | 2 Datenbank | **D1** (Migrationsordner, `schema_migrations`, Wartungsmodus) und **D2** (Bestandsaufnahme) sind gemergt, D1 ist auf dem Server eingespielt. **D3** (Bereinigung) ist **fertig und getestet, aber weder gemergt noch auf dem Server** |
 | 3 bis 7 | nicht begonnen |
 
+Server-Stand (von Jungsi bestätigt, 13.10.2026):
+
+- Alle Dateien von S1 bis S8 sind hochgeladen, auch beide Uploads von S8 (21 Dateien: u. a. `inc_security.php`, `export.php`, `duplicate.php`, `view.php`, `museum/index.php`, `.htaccess`). `main` bis `dda1a08` entspricht dem Server, abgesehen von `docs/` und `migrations/`, die nie hochgeladen werden.
+- In der Live-Datenbank eingespielt: `0000_login_log`, `2026-10-13_01_login_versuche`, `2026-10-13_02_schema_migrations`.
+- **Noch nicht** auf dem Server: alles aus `d3-bereinigung` (Migration `2026-10-13_03_bereinigung.sql`, `edit.php` und `index.php` mit den D3-Änderungen). Die D3-Fassungen von `edit.php` und `index.php` enthalten alle S8-Änderungen und ersetzen die Server-Dateien sauber.
+
 Git-Stand:
 
 - `main` = `origin/main` = `dda1a08` (Stand nach D2). Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub.
