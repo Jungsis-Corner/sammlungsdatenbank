@@ -45,4 +45,41 @@ function boot_session(): void {
     }
 }
 
+/**
+ * Wartungsmodus: Liegt die Datei maintenance.flag im App-Ordner, antworten alle Seiten mit 503 und
+ * einer Hinweisseite. Ausnahmen: login.php/logout.php (damit man sich anmelden kann) und angemeldete
+ * Admins. Geprüft wird die serverseitige Session (role = admin), nie ein Cookie-Wert oder URL-Parameter.
+ */
+function boot_maintenance(): void {
+    if (!is_file(__DIR__ . '/maintenance.flag')) {
+        return;
+    }
+    $script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    if (in_array($script, ['login.php', 'logout.php'], true)) {
+        return;
+    }
+    if (($_SESSION['role'] ?? '') === 'admin' && !empty($_SESSION['logged_in'])) {
+        return;
+    }
+    $title = defined('APP_TITLE') ? (string)APP_TITLE : 'Sammlung';
+    if (!headers_sent()) {
+        http_response_code(503);
+        header('Retry-After: 600');
+        header('Cache-Control: no-store');
+        header('X-Robots-Tag: noindex');
+        header('Content-Type: text/html; charset=UTF-8');
+    }
+    echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">'
+       . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+       . '<meta name="robots" content="noindex">'
+       . '<title>Wartungsarbeiten – ' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</title>'
+       . '<style>body{font-family:system-ui,Arial,sans-serif;max-width:520px;margin:12vh auto 0;padding:0 16px;'
+       . 'background:#fff;color:#222}@media (prefers-color-scheme:dark){body{background:#121418;color:#e6e6e6}}</style>'
+       . '</head><body><h1>Wartungsarbeiten</h1>'
+       . '<p>Die Sammlung wird gerade aktualisiert und ist in Kürze wieder erreichbar. Bitte versuche es in ein paar Minuten noch einmal.</p>'
+       . '</body></html>';
+    exit;
+}
+
 boot_session();
+boot_maintenance();

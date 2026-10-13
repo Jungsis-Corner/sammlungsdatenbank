@@ -35,3 +35,9 @@ Thumbs.db
 
 # --- Lokale Testskripte (nie hochladen/committen) ---
 logtest.php
+
+# --- Wartungsmodus-Flag (lokal/auf dem Server, nie committen) ---
+maintenance.flag
+
+# --- Ergebnisse der Bestandsaufnahme (enthalten Sammlungsdaten, nur lokal) ---
+docs/bestand/

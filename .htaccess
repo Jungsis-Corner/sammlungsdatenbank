@@ -25,7 +25,7 @@ DirectoryIndex index.php
 # Versteckte Dateien (+ sensible Dateitypen) sperren
 # .sql/.md (Schema, Migrationen, README, CLAUDE.md), Backups und Vorlagen sind nie öffentlich.
 # .json bleibt frei (museum/manifest.json).
-<FilesMatch "(^\.|\.(ini|log|sh|sql|md|bak|dist|orig|old|swp)$|~$|^composer\.|package\.json$|yarn\.lock$|^config\.php$|phpinfo\.php$)">
+<FilesMatch "(^\.|\.(ini|log|sh|sql|md|bak|dist|orig|old|swp|flag)$|~$|^composer\.|package\.json$|yarn\.lock$|^config\.php$|phpinfo\.php$)">
   Require all denied
 </FilesMatch>
 
