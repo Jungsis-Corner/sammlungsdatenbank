@@ -313,10 +313,13 @@ function render_pagination(int $page, int $pages, array $params, bool $mitOption
       echo '<label>Seite <input type="number" name="page" min="1" max="' . $pages . '" value="' . $page . '" style="width:5em;"> von ' . $pages . '</label>';
       echo '<button type="submit">Los</button>';
       echo '<span>pro Seite: ';
+      $aktuell = page_size();
       foreach (PAGE_SIZES as $n) {
-          echo $n === page_size()
+          // Seite so wählen, dass der erste sichtbare Eintrag sichtbar bleibt (Seite 30 bei 25 = Seite 15 bei 50)
+          $neueSeite = intdiv(($page - 1) * $aktuell, $n) + 1;
+          echo $n === $aktuell
               ? '<strong>' . $n . '</strong> '
-              : '<a href="?' . htmlspecialchars(http_build_query(array_merge($params, ['pp' => $n, 'page' => 1]))) . '">' . $n . '</a> ';
+              : '<a href="?' . htmlspecialchars(http_build_query(array_merge($params, ['pp' => $n, 'page' => $neueSeite]))) . '">' . $n . '</a> ';
       }
       echo '</span></form>';
   }
