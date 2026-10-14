@@ -5,6 +5,7 @@ require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
+require_once __DIR__ . '/inc_image.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
@@ -1085,7 +1086,7 @@ if (!empty($_SESSION['museum_mode'])) {
         <?php endif; ?>
         <td class="click-open">
   <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
-    <img src="<?= htmlspecialchars($row['SammlungBild1'] ?? '') ?>" height="60" alt="">
+    <?= image_img($row['SammlungBild1'] ?? '', (string)($row['Bezeichnung'] ?? ''), ['height' => 60]) ?>
   </a>
 </td>
         <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>

@@ -64,6 +64,16 @@ if (!defined('ERROR_LOG_PATH')) define('ERROR_LOG_PATH', '');
 // Ohne Eintrag gilt false: Fehler stehen nur im Log (siehe inc_errors.php).
 if (!defined('APP_DEBUG')) define('APP_DEBUG', false);
 
+// --- Bilder (optional: ohne Eintrag gelten die Standardwerte aus inc_image.php) ---
+// Der gespeicherte Wert in Sammlung.SammlungBild1 darf eine volle WordPress-URL oder ein relativer Pfad sein.
+//   IMAGE_SOURCE    'wordpress' (Standard) | 'local' (Ordner medien/) | 'auto' (erst lokal, dann WordPress)
+//   IMAGE_WP_BASE   URL-Pfad der WordPress-Uploads, z. B. '/blog/wp-content/uploads/' (oder volle URL)
+//   IMAGE_WP_DIR    Dateisystem-Pfad dazu; Standard: DOCUMENT_ROOT + IMAGE_WP_BASE-Pfad '/blog/wp-content/uploads/'.
+//                   Nur zum Prüfen, ob eine Datei vorhanden ist; ist der Ordner nicht lesbar, wird angenommen, dass sie da ist.
+// if (!defined('IMAGE_SOURCE'))   define('IMAGE_SOURCE', 'wordpress');
+// if (!defined('IMAGE_WP_BASE'))  define('IMAGE_WP_BASE', '/blog/wp-content/uploads/');
+// if (!defined('IMAGE_WP_DIR'))   define('IMAGE_WP_DIR', '/pfad/zum/webroot/blog/wp-content/uploads/');
+
 // --- App-Titel (zentral an EINER Stelle änderbar) ---
 if (!defined('APP_TITLE'))          define('APP_TITLE', 'Meine Sammlung');
 if (!defined('APP_TITLE_MUSEUM'))   define('APP_TITLE_MUSEUM', 'Meine Sammlung (Gast-Ansicht)');

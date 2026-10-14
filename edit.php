@@ -8,6 +8,7 @@ date_default_timezone_set('Europe/Berlin');
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_format.php';
+require_once __DIR__ . '/inc_image.php';
 require_once __DIR__ . '/inc_filter.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 
@@ -1368,8 +1369,8 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         </div>
       </div>
 
-      <?php if (!empty($data['SammlungBild1'])): ?>
-        <div class="image"><img src="<?= htmlspecialchars($data['SammlungBild1']) ?>" alt="Bild"></div>
+      <?php if (image_parse($data['SammlungBild1'] ?? '')): ?>
+        <div class="image"><?= image_img($data['SammlungBild1'] ?? '', (string)($data['Bezeichnung'] ?? '')) ?></div>
       <?php endif; ?>
      </form>
 

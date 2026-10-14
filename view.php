@@ -8,6 +8,7 @@ date_default_timezone_set('Europe/Berlin');
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_format.php';
+require_once __DIR__ . '/inc_image.php';
 require_once __DIR__ . '/inc_filter.php';
 if (!function_exists('is_guest')) { function is_guest(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'guest'; } }
 if (!function_exists('is_admin')) { function is_admin(): bool { return isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; } }
@@ -419,11 +420,11 @@ tr_meta('Link zu YouTube', $ytHtml, true);
       </div>
     </div>
 
+    <?php if (image_parse($bild)): ?>
     <div class="pic">
-      <?php if ($bild): ?>
-        <img id="mainPic" src="<?= htmlspecialchars($bild) ?>" alt="Bild" loading="lazy">
-      <?php endif; ?>
+      <?= image_img($bild, (string)($data['Bezeichnung'] ?? ''), ['id' => 'mainPic', 'priority' => 'high']) ?>
     </div>
+    <?php endif; ?>
   </div>
 
   <!-- Lightbox -->
