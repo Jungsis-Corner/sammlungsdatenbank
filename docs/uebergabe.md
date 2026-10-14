@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D11 und Phase 3 Schritt 2 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D11 und Phase 3 (außer B5/B6) (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -19,7 +19,7 @@ Die Plandatei ist **nicht im Repo** (siehe Abschnitt 3) und muss auf dem Rechner
    - `docs/bestand/` (Sammlungsdaten, nie committen): u. a. `dump.sql` (Live-Stand vom 13.10.2026 vor D3), `kategorie_mapping_vorschlag.csv` (freigegebene Zuordnung, nur zur Nachvollziehbarkeit), `05_dubletten.csv`, `06_kategorien.csv`, `werkzeuge/`
 3. Die lokale **Testumgebung** (Abschnitt 6) existiert nur auf dem WSL-Rechner (Wegwerf-MySQL, App-Kopie) und wird bei Bedarf neu aufgebaut. Für reine Doku- oder Planarbeit ist sie nicht nötig.
 4. Der Server ist auf dem Stand von `main` (alle Uploads und Migrationen bis D10 sind bestätigt, D11 ist reine Dokumentation). Ein Upload steht nicht aus.
-5. Nächster Schritt: Phase 3 Schritt 3 (Migration der URLs auf Dateinamen, Bildprüfung; braucht Freigabe), siehe Abschnitt 7. D12 (Altlasten) frühestens nach vier Wochen Stabilisierung.
+5. Nächster Schritt: Phase 4 (Performance) oder die zurückgestellten Teile von Phase 3 (B5/B6), siehe Abschnitt 7. Vorher mit Jungsi klären. D12 (Altlasten) frühestens nach vier Wochen Stabilisierung.
 
 ## 2. Wo wir stehen
 
@@ -30,10 +30,10 @@ Die Plandatei ist **nicht im Repo** (siehe Abschnitt 3) und muss auf dem Rechner
 | 3 bis 7 | nicht begonnen |
 
 Eingespielte Migrationen (Live): `0000_login_log`, `2026-10-13_01_login_versuche`, `_02_schema_migrations`, `_03_bereinigung`, `_04_typen`,
-`_05_lookup_unique`, `_06_geld`, `_07_fremdschluessel`, `_08_kategorie_hierarchie`. `schema.sql` bildet diesen Stand ab (geprüft: Struktur
+`_05_lookup_unique`, `_06_geld`, `_07_fremdschluessel`, `_08_kategorie_hierarchie`, `2026-10-14_01_bild_pfade`. `schema.sql` bildet diesen Stand ab (geprüft: Struktur
 identisch zu einer Datenbank aus Live-Dump plus allen Migrationen).
 
-Sicherungstabellen auf dem Server (bleiben bis D12): `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`.
+Sicherungstabellen auf dem Server (bleiben bis D12): `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`, `bak_b2_bild`.
 
 Git-Stand: `main` = `origin/main` (Stand nach D11). Tags `vor-phase-1` und `vor-phase-2` sind auf GitHub. Auf dem zweiten Rechner (WSL) sind alle
 erledigten lokalen Branches gelöscht; auf GitHub gibt es die Branches `d3-…` bis `d11-…` noch (alle in `main` enthalten, können mit
@@ -89,7 +89,7 @@ Installiert (apt): PHP 8.5.4 (CLI, `mysqli`, `mbstring`), MySQL 8.4.11 (Dienst n
 ## 7. Weiterer Fahrplan
 
 - **D12 (Altlasten, nur mit Freigabe):** Nach mindestens vier Wochen Stabilisierung die Altspalten in `Sammlung` und `Kategorie.Spiele` entfernen (Jungsi exportiert vorher die Daten), die `bak_*`-Tabellen löschen (`DROP TABLE`). Spaltenumbenennungen sind laut E7 nicht Teil dieser Runde.
-- **Phase 3 Bilder** in drei Schritten: **Schritt 1 erledigt** (`inc_image.php`: `image_url()`, `image_exists()`, `image_img()`, Altwerte lesen, `alt`/`lazy`/Maße/Platzhalter in Liste, Detail, Bearbeiten; ohne Datenbankänderung). **Schritt 2 erledigt** (`thumb.php`: nur eingeloggt, Breiten aus Whitelist, zuerst WordPress-Zwischengrößen, sonst GD, Cache `cache/thumbs/`, bei jedem Problem das Original; `srcset`; `cache/.htaccess` und `medien/.htaccess` ohne `php_flag`; Service-Worker-Bildcache mit höchstens 200 Einträgen; auf dem Server geprüft: Cache-Ordner 403, `thumb.php?f=../config.php` 400). **Schritt 3** nach Freigabe: Migration B2 (URLs auf relativen Pfad kürzen), Bildprüfung B9; Upload und Auswahl im lokalen Modus (B5, B6) auf später verschoben (Entscheidung Jungsi). Lokal ist GD installiert (auf dem WSL-Rechner). Die Testumgebung im Scratchpad geht bei einem WSL-Neustart verloren und wird dann neu aufgebaut: MySQL, Datenbank aus `dump.sql` plus Migrationen D3 bis D9, App-Kopie per `git ls-files`, Testbilder mit GD. Danach **4** Performance, **5** UI (Kaskade Marke/Plattform/Typ, Statistik-Kacheln U16), **6** Barrierefreiheit, **7** Tests. Siehe Plan.
+- **Phase 3 Bilder** in drei Schritten: **Schritt 1 erledigt** (`inc_image.php`: `image_url()`, `image_exists()`, `image_img()`, Altwerte lesen, `alt`/`lazy`/Maße/Platzhalter in Liste, Detail, Bearbeiten; ohne Datenbankänderung). **Schritt 2 erledigt** (`thumb.php`: nur eingeloggt, Breiten aus Whitelist, zuerst WordPress-Zwischengrößen, sonst GD, Cache `cache/thumbs/`, bei jedem Problem das Original; `srcset`; `cache/.htaccess` und `medien/.htaccess` ohne `php_flag`; Service-Worker-Bildcache mit höchstens 200 Einträgen; auf dem Server geprüft: Cache-Ordner 403, `thumb.php?f=../config.php` 400). **Schritt 3 erledigt** (Migration `2026-10-14_01_bild_pfade.sql`: `SammlungBild1` enthält nur noch den relativen Pfad, Sicherung `bak_b2_bild` bis D12; `edit.php` kürzt eingefügte WordPress-URLs beim Speichern; `bildpruefung.php` zeigt GD-Status, fehlende Dateien, Originale über 2 MB, verwaiste Dateien in `medien/`). Stand der Bildprüfung auf dem Server: 3.756 Einträge mit Bild, 4 mit fehlender Datei (von Jungsi zu korrigieren), 3 Originale über 2 MB. **Offen:** Upload und Auswahl im lokalen Modus (B5, B6), von Jungsi auf später verschoben; außerdem B-Reste aus dem Plan nur bei Bedarf. Lokal ist GD installiert (auf dem WSL-Rechner). Die Testumgebung im Scratchpad geht bei einem WSL-Neustart verloren und wird dann neu aufgebaut: MySQL, Datenbank aus `dump.sql` plus Migrationen D3 bis D9, App-Kopie per `git ls-files`, Testbilder mit GD. Danach **4** Performance, **5** UI (Kaskade Marke/Plattform/Typ, Statistik-Kacheln U16), **6** Barrierefreiheit, **7** Tests. Siehe Plan.
 
 ## 8. Arbeitsregeln (aus CLAUDE.md und aus dieser Sitzung)
 
