@@ -1086,7 +1086,7 @@ if (!empty($_SESSION['museum_mode'])) {
         <?php endif; ?>
         <td class="click-open">
   <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
-    <?= image_img($row['SammlungBild1'] ?? '', (string)($row['Bezeichnung'] ?? ''), ['height' => 60]) ?>
+    <?= image_img($row['SammlungBild1'] ?? '', (string)($row['Bezeichnung'] ?? ''), ['height' => 60, 'widths' => [80, 160]]) ?>
   </a>
 </td>
         <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>

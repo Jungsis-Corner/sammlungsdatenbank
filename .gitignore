@@ -44,3 +44,10 @@ docs/bestand/
 
 # Interner Überarbeitungsplan (nicht öffentlich)
 docs/Überarbeitungsplan*.md
+
+# --- Miniatur-Cache und lokale Bilder (nur die Platzhalter-Dateien gehören ins Repo) ---
+cache/thumbs/*
+!cache/thumbs/.gitkeep
+medien/*
+!medien/.gitkeep
+!medien/.htaccess

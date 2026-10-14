@@ -1370,7 +1370,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       </div>
 
       <?php if (image_parse($data['SammlungBild1'] ?? '')): ?>
-        <div class="image"><?= image_img($data['SammlungBild1'] ?? '', (string)($data['Bezeichnung'] ?? '')) ?></div>
+        <div class="image"><?= image_img($data['SammlungBild1'] ?? '', (string)($data['Bezeichnung'] ?? ''), ['widths' => [320, 640], 'sizes' => '(max-width: 767px) 100vw, 480px']) ?></div>
       <?php endif; ?>
      </form>
 

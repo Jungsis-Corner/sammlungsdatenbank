@@ -1,0 +1,7 @@
+# Lokale Bilder (Modus IMAGE_SOURCE=local/auto). Es werden nur Bilddateien ausgeliefert, nie Skripte.
+# Bewusst ohne php_flag/php_value: je nach PHP-Anbindung (CGI/FPM) führen sie zu einem 500er.
+Options -Indexes
+Require all denied
+<FilesMatch "\.(?i:jpe?g|png|gif|webp)$">
+  Require all granted
+</FilesMatch>

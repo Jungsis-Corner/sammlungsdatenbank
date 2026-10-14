@@ -1,4 +1,7 @@
-const CACHE_NAME = "sammlung-pwa-v6";
+const CACHE_NAME = "sammlung-pwa-v7";
+// Miniaturen (thumb.php) und lokale Bilder (medien/): eigener Cache mit Obergrenze, bleibt bei Updates bestehen
+const IMG_CACHE = "sammlung-img-v1";
+const IMG_CACHE_MAX = 200;
 
 // Nur wirklich statische Sachen cachen:
 const STATIC_ASSETS = [
@@ -25,7 +28,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+      Promise.all(keys.map((k) => (k !== CACHE_NAME && k !== IMG_CACHE ? caches.delete(k) : null)))
     )
   );
   self.clients.claim();
@@ -37,6 +40,24 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== location.origin) return;
   if (!url.pathname.startsWith("/sammlung/")) return;
+
+  // Miniaturen und lokale Bilder: cache-first mit Obergrenze (die URL enthält die Änderungszeit, ein Austausch ist also eine neue URL)
+  if (req.method === "GET" && (url.pathname === "/sammlung/thumb.php" || url.pathname.startsWith("/sammlung/medien/"))) {
+    event.respondWith(
+      caches.open(IMG_CACHE).then((cache) =>
+        cache.match(req).then((cached) => {
+          if (cached) return cached;
+          return fetch(req).then((res) => {
+            if (res.ok) {
+              cache.put(req, res.clone()).then(() => trimImageCache(cache));
+            }
+            return res;
+          });
+        })
+      )
+    );
+    return;
+  }
 
   const accept = req.headers.get("accept") || "";
   const isHTML = req.mode === "navigate" || accept.includes("text/html");
@@ -64,3 +85,12 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+// Älteste Einträge entfernen, wenn mehr als IMG_CACHE_MAX Bilder gespeichert sind
+function trimImageCache(cache) {
+  return cache.keys().then((keys) => {
+    const extra = keys.length - IMG_CACHE_MAX;
+    if (extra <= 0) return null;
+    return Promise.all(keys.slice(0, extra).map((k) => cache.delete(k)));
+  });
+}

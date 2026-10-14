@@ -26,6 +26,11 @@ if (!defined('IMAGE_WP_DIR'))     define('IMAGE_WP_DIR', rtrim((string)($_SERVER
 if (!defined('IMAGE_LOCAL_DIR'))  define('IMAGE_LOCAL_DIR', 'medien/');
 if (!defined('IMAGE_APP_BASE'))   define('IMAGE_APP_BASE', '/sammlung/');
 if (!defined('IMAGE_THUMB_WIDTHS')) define('IMAGE_THUMB_WIDTHS', [80, 160, 320, 640, 1200]);
+if (!defined('IMAGE_THUMBS'))     define('IMAGE_THUMBS', true);          // false = überall die Originale (Notbremse)
+if (!defined('IMAGE_THUMB_QUALITY')) define('IMAGE_THUMB_QUALITY', 82); // JPEG/WebP-Qualität der Miniaturen
+
+/** Endung (klein) -> Ausgabeformat der Miniaturen; nur diese Dateitypen werden verkleinert. */
+const IMAGE_EXT = ['jpg' => 'jpg', 'jpeg' => 'jpg', 'png' => 'png', 'gif' => 'png', 'webp' => 'webp'];
 
 /** Prüft einen relativen Bildpfad (Segmente mit /): nur sichere Zeichen, kein "..", kein versteckter Ordner. */
 function image_safe_name(string $name): ?string {
@@ -80,14 +85,27 @@ function image_encode_path(string $name): string {
     return implode('/', array_map('rawurlencode', explode('/', $name)));
 }
 
+/** Kann es für dieses Bild eine Miniatur geben? (eigene Datei, unterstützter Typ, Miniaturen eingeschaltet) */
+function image_thumb_possible(?array $p): bool {
+    if (!$p || $p['kind'] === 'external' || !IMAGE_THUMBS) return false;
+    return isset(IMAGE_EXT[strtolower(pathinfo((string)$p['name'], PATHINFO_EXTENSION))]);
+}
+
 /**
  * URL für den gespeicherten Wert, oder '' wenn es kein Bild gibt.
- * $width ist für die Miniaturen reserviert (kommt mit thumb.php); bisher wird immer das Original geliefert.
+ * Mit $width (nur Werte aus IMAGE_THUMB_WIDTHS) kommt die Miniatur über thumb.php, sonst das Original.
+ * Der Parameter v (Änderungszeit der Datei) macht die URL bei einem ausgetauschten Bild neu.
  */
 function image_url($stored, int $width = 0): string {
     $p = image_parse($stored);
     if (!$p) return '';
     if ($p['kind'] === 'external') return (string)$p['url'];
+    if ($width > 0 && in_array($width, IMAGE_THUMB_WIDTHS, true) && image_thumb_possible($p)) {
+        $url = IMAGE_APP_BASE . 'thumb.php?f=' . str_replace('%2F', '/', rawurlencode((string)$p['name'])) . '&w=' . $width;
+        $root = image_root($p['kind']);
+        $mt = $root !== null ? @filemtime($root . $p['name']) : false;
+        return $url . ($mt ? '&v=' . $mt : '');
+    }
     $enc = image_encode_path((string)$p['name']);
     if ($p['kind'] === 'local') {
         return IMAGE_APP_BASE . trim((string)IMAGE_LOCAL_DIR, '/') . '/' . $enc;
@@ -133,11 +151,18 @@ function image_placeholder(int $height = 0, string $class = ''): string {
 /**
  * Fertiges <img> (oder Platzhalter, wenn das Bild fehlt).
  * Optionen: id, class, height (feste Höhe in px, Breite aus dem Seitenverhältnis), lazy (Standard true),
+ *           widths (Liste aus IMAGE_THUMB_WIDTHS: srcset mit Miniaturen), sizes (Bildbreite für den Browser, z. B. "(max-width: 767px) 100vw, 640px";
+ *           bei fester Höhe und bekannten Maßen automatisch die Breite in px), src_width (Miniatur für src, Standard: mittlere Breite),
  *           priority ('high' für das Bild oberhalb der Falz: kein lazy, fetchpriority="high"),
  *           placeholder (Standard true; false = bei fehlendem Bild leerer String)
  */
 function image_img($stored, string $alt, array $o = []): string {
-    $url = image_url($stored);
+    $p = image_parse($stored);
+    $widths = array_values(array_filter((array)($o['widths'] ?? []), fn($w) => in_array($w, IMAGE_THUMB_WIDTHS, true)));
+    sort($widths);
+    $thumbs = $widths && image_thumb_possible($p);
+    $srcW = (int)($o['src_width'] ?? ($widths ? $widths[intdiv(count($widths), 2)] : 0));
+    $url = image_url($stored, $thumbs ? $srcW : 0);
     if ($url === '' || !image_exists($stored)) {
         return ($o['placeholder'] ?? true) ? image_placeholder((int)($o['height'] ?? 0), (string)($o['class'] ?? '')) : '';
     }
@@ -147,11 +172,18 @@ function image_img($stored, string $alt, array $o = []): string {
 
     $size = image_size($stored);
     $h = (int)($o['height'] ?? 0);
+    $dispW = null;
     if ($h > 0) {
         $attr .= ' height="' . $h . '"';
-        if ($size) $attr .= ' width="' . max(1, (int)round($h * $size[0] / $size[1])) . '"';
+        if ($size) { $dispW = max(1, (int)round($h * $size[0] / $size[1])); $attr .= ' width="' . $dispW . '"'; }
     } elseif ($size) {
         $attr .= ' width="' . $size[0] . '" height="' . $size[1] . '"';
+    }
+    if ($thumbs) {
+        $set = [];
+        foreach ($widths as $w) $set[] = $e(image_url($stored, $w)) . ' ' . $w . 'w';
+        $sizes = (string)($o['sizes'] ?? ($dispW !== null ? $dispW . 'px' : '100vw'));
+        $attr .= ' srcset="' . implode(', ', $set) . '" sizes="' . $e($sizes) . '"';
     }
     if (($o['priority'] ?? '') === 'high') {
         $attr .= ' fetchpriority="high"';

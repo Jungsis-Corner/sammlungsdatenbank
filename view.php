@@ -422,7 +422,7 @@ tr_meta('Link zu YouTube', $ytHtml, true);
 
     <?php if (image_parse($bild)): ?>
     <div class="pic">
-      <?= image_img($bild, (string)($data['Bezeichnung'] ?? ''), ['id' => 'mainPic', 'priority' => 'high']) ?>
+      <?= image_img($bild, (string)($data['Bezeichnung'] ?? ''), ['id' => 'mainPic', 'priority' => 'high', 'widths' => [320, 640, 1200], 'sizes' => '(max-width: 767px) 100vw, 640px']) ?>
     </div>
     <?php endif; ?>
   </div>

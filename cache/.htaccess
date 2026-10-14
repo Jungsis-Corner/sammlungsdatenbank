@@ -1,0 +1,3 @@
+# Wegwerf-Cache der Miniaturen (thumb.php). Wird nur von PHP gelesen und geschrieben, nie direkt per URL.
+# Der Inhalt darf jederzeit gelöscht werden.
+Require all denied
