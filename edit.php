@@ -820,7 +820,7 @@ if ($id > 0) {
     }
 
     // stabile Zweitsortierung
-    $order_by = $order_by_core . ', S.Bezeichnung ASC';
+    $order_by = $order_by_core . ', S.Bezeichnung ASC, S.ID ASC';   // ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
 
     // WHERE-Klausel (gemeinsam in inc_filter.php, mit Prepared Statements)
     $flt = sammlung_filter_where([

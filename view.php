@@ -63,7 +63,7 @@ $sort_map = [
 ];
 $order_by_core = ($sort_map[$sort] ?? 'S.Bezeichnung') . ' ' . strtoupper($dir);
 if ($sort === 'Einkaufsdatum' || $sort === 'Getestet am') $order_by_core = "S.`$sort` IS NULL, " . $order_by_core;
-$order_by = $order_by_core . ', S.Bezeichnung ASC';
+$order_by = $order_by_core . ', S.Bezeichnung ASC, S.ID ASC';   // ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
 
 // ---- WHERE nach aktiven Filtern (EXAKT wie index.php) ----
 // Filter wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements)

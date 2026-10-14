@@ -70,7 +70,7 @@ if ($sort === 'Einkaufsdatum' || $sort === 'Getestet am') {
     // NULL-Daten ans Ende
     $order_by_core = "Sammlung.`$sort` IS NULL, " . $order_by_core;
 }
-$order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
+$order_by = $order_by_core . ', Sammlung.Bezeichnung ASC, Sammlung.ID ASC';   // ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
 
 // ---------- WHERE wie index.php (gemeinsam in inc_filter.php, mit Prepared Statements) ----------
 $flt = sammlung_filter_where([

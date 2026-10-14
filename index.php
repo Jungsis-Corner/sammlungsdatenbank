@@ -116,7 +116,7 @@ if ($sort === 'Einkaufsdatum') {
     $order_by_core = 'Sammlung.Einkaufsdatum IS NULL, ' . $order_by_core;
 }
 // stabile Zweitsortierung
-$order_by = $order_by_core . ', Sammlung.Bezeichnung ASC';
+$order_by = $order_by_core . ', Sammlung.Bezeichnung ASC, Sammlung.ID ASC';   // ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
 
 // Basis-Params für Links (ohne page)
 $params = ['sort' => $sort, 'dir' => $dir];
@@ -198,32 +198,39 @@ $flt = sammlung_filter_where([
 $where_sql = $flt['sql'];
 
 // ---------------------- Pagination ----------------------
-$limit  = 50;
+$limit  = page_size();
+if (isset($_GET['pp']) && is_string($_GET['pp']) && ctype_digit($_GET['pp']) && in_array((int)$_GET['pp'], PAGE_SIZES, true)
+    && ($_COOKIE['pp'] ?? '') !== $_GET['pp']) {
+    // Wahl merken (für alle Seiten und delete.php)
+    setcookie('pp', $_GET['pp'], ['expires' => time() + 31536000, 'path' => '/sammlung/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax']);
+}
 $page   = max(1, intval($_GET['page'] ?? 1));
-$offset = ($page-1)*$limit;
 
-// Gesamtzahl
-$count_sql = "
-  SELECT COUNT(*) FROM Sammlung
-    LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
-    LEFT JOIN Material   ON Sammlung.Material   = Material.ID
-    LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
-    LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
-    LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
+// Zähler, Einträge mit Jahr und (nur Admin) Summe Wert in EINER Abfrage; nur die Joins, die der Filter braucht
+$agg_sql = "
+  SELECT COUNT(*), SUM(Sammlung.Jahr IS NOT NULL)" . ($is_guest ? '' : ', SUM(Sammlung.Wert)') . "
+  FROM Sammlung
+  LEFT JOIN Kategorie ON Sammlung.Kategorie = Kategorie.ID
+  LEFT JOIN Material  ON Sammlung.Material  = Material.ID
   $where_sql
 ";
-$count_res = db_select($conn, $count_sql, $flt['types'], $flt['values']);
-$total     = ($count_res && $r = $count_res->fetch_row()) ? intval($r[0]) : 0;
-$pages     = max(1, ceil($total/$limit));
+$agg = ($aggRes = db_select($conn, $agg_sql, $flt['types'], $flt['values'])) ? $aggRes->fetch_row() : [0, 0, 0];
+$total      = (int)($agg[0] ?? 0);
+$totalCount = $total;                                     // Einträge unter den aktuellen Filtern
+$yearCount  = (int)($agg[1] ?? 0);                        // davon mit Jahr
+$sumValue   = $is_guest ? null : (float)($agg[2] ?? 0.0); // Summe Wert (nur Admin)
+$pages      = max(1, (int)ceil($total / $limit));
+$page       = min($page, $pages);
+$offset     = ($page - 1) * $limit;
 
 // ---------------------- Daten ----------------------
+// Nur die Spalten, die die Zeile anzeigt (kein Sammlung.*: die Beschreibungstexte werden hier nicht gebraucht)
 $sql = "
   SELECT
-    Sammlung.*,
+    Sammlung.ID, Sammlung.SammlungBild1, Sammlung.Bezeichnung, Sammlung.`Zum Verkauf`, Sammlung.Jahr,
+    Sammlung.`Original/Homebrew`, Sammlung.Zustand, Sammlung.Verpackung, Sammlung.Einkaufsdatum, Sammlung.Wert,
     Kategorie.Kategorie   AS KategorieName,
     Material.Material     AS MaterialName,
-    Zustand.Zustand       AS ZustandName,
-    Verpackung.Verpackung AS VerpackungName,
     Standort.Standort     AS StandortName,
     Box.Box               AS BoxName
   FROM Sammlung
@@ -238,45 +245,6 @@ $sql = "
   LIMIT $limit OFFSET $offset
 ";
 $result = db_select($conn, $sql, $flt['types'], $flt['values']);
-
-// ---------------------- Mini-Statistik ----------------------
-// Hinweis: totalCount = $total (bereits gefiltert)
-$totalCount = (int)$total;
-
-// Einträge mit Jahr (unter aktuellen Filtern)
-$yearCount = 0;
-$year_sql = "
-  SELECT COUNT(*) FROM Sammlung
-  LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
-  LEFT JOIN Material   ON Sammlung.Material   = Material.ID
-  LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
-  LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
-  LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
-  " . ($where_sql ? $where_sql . " AND " : "WHERE ") . " Sammlung.Jahr IS NOT NULL
-";
-if ($resY = db_select($conn, $year_sql, $flt['types'], $flt['values'])) {
-    $rowY = $resY->fetch_row();
-    $yearCount = (int)($rowY[0] ?? 0);
-}
-
-// Summe Wert (nur Admin)
-$sumValue = null;
-if (!$is_guest) {
-    $sum_sql = "
-      SELECT SUM(Sammlung.Wert) AS s
-      FROM Sammlung
-      LEFT JOIN Kategorie  ON Sammlung.Kategorie  = Kategorie.ID
-      LEFT JOIN Material   ON Sammlung.Material   = Material.ID
-      LEFT JOIN Zustand    ON Sammlung.Zustand    = Zustand.ID
-      LEFT JOIN Verpackung ON Sammlung.Verpackung = Verpackung.ID
-      LEFT JOIN Standort   ON Sammlung.Standort   = Standort.ID
-      $where_sql
-    ";
-    if ($resS = db_select($conn, $sum_sql, $flt['types'], $flt['values'])) {
-        $rowS = $resS->fetch_assoc();
-        $sumValue = (float)($rowS['s'] ?? 0.0);
-    }
-}
 
 // ---------------------- Helfer für Links ----------------------
 /** Sortierlink mit Toggle und Pfeil */
@@ -310,7 +278,7 @@ function url_remove_only(array $keysToRemove, array $additions = []): string {
 }
 
 /** Einheitliche, ellipsierte Pagination (oben & unten) */
-function render_pagination(int $page, int $pages, array $params): void {
+function render_pagination(int $page, int $pages, array $params, bool $mitOptionen = false): void {
   $window = 2;
   echo '<div class="pagination">';
   if ($page > 1) {
@@ -335,6 +303,23 @@ function render_pagination(int $page, int $pages, array $params): void {
       echo '<a href="?'.http_build_query(array_merge($params,['page'=>$pages])).'">Letzte »</a>';
   }
   echo '</div>';
+  if ($mitOptionen) {
+      // Seitensprung (GET mit allen aktiven Filtern) und Seitengröße (Cookie pp, gesetzt über ?pp=…)
+      echo '<form method="get" class="pg-optionen" style="margin:6px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">';
+      foreach ($params as $k => $v) {
+          if ($k === 'page' || $k === 'pp' || $v === '' || $v === null || is_array($v)) continue;
+          echo '<input type="hidden" name="' . htmlspecialchars((string)$k) . '" value="' . htmlspecialchars((string)$v) . '">';
+      }
+      echo '<label>Seite <input type="number" name="page" min="1" max="' . $pages . '" value="' . $page . '" style="width:5em;"> von ' . $pages . '</label>';
+      echo '<button type="submit">Los</button>';
+      echo '<span>pro Seite: ';
+      foreach (PAGE_SIZES as $n) {
+          echo $n === page_size()
+              ? '<strong>' . $n . '</strong> '
+              : '<a href="?' . htmlspecialchars(http_build_query(array_merge($params, ['pp' => $n, 'page' => 1]))) . '">' . $n . '</a> ';
+      }
+      echo '</span></form>';
+  }
 }
 
 // -------- Toolbar Link-Builder --------
@@ -855,11 +840,7 @@ cursor: pointer;
         <div style="display:flex; gap:6px; align-items:center; min-width:0;">
         <select name="kat" onchange="this.form.submit()" style="flex:1; min-width:0;">
           <option value="">— alle Kategorien —</option>
-          <?php foreach ($katBaum as $kn): ?>
-            <option value="<?= $kn['id'] ?>" <?= ($kat === $kn['id'] ? 'selected' : '') ?>>
-              <?= str_repeat('&nbsp;&nbsp;&nbsp;', $kn['depth']) . ($kn['depth'] ? '↳ ' : '') . htmlspecialchars($kn['name']) ?>
-            </option>
-          <?php endforeach; ?>
+          <?php foreach ($katBaum as $kn): ?><option value="<?= $kn['id'] ?>"<?= $kat === $kn['id'] ? ' selected' : '' ?>><?= str_repeat('&nbsp;&nbsp;', $kn['depth']) . ($kn['depth'] ? '↳ ' : '') . htmlspecialchars($kn['name']) ?></option><?php endforeach; ?>
         </select>
         <label style="white-space:nowrap;" title="Auch Einträge aus allen Unterkategorien zeigen">
           <input type="checkbox" name="inkl" value="1" <?= $inkl ? 'checked' : '' ?> onchange="this.form.submit()"> inkl. Unterkategorien
@@ -991,7 +972,14 @@ $activeCount  = count($activeBadges);
   <?php render_pagination($page, $pages, $params); ?>
 
   <!-- Tabelle -->
-<table class="list">
+<?php
+  // Kontext für Duplizieren/Löschen (Filter, Seite, Sortierung) einmal an der Tabelle statt in jeder Zeile
+  $ctx = ['page' => $page, 'sort' => $sort, 'dir' => $dir];
+  foreach (['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p) {
+      if (!empty($_GET[$p])) $ctx[$p] = $_GET[$p];
+  }
+?>
+<table class="list" data-ctx="<?= htmlspecialchars(json_encode($ctx), ENT_QUOTES, 'UTF-8') ?>">
     <colgroup>
   <col class="col-icon"><!-- 🔍 -->
   <?php if (!$is_guest): ?>
@@ -1056,7 +1044,7 @@ $activeCount  = count($activeBadges);
 ?>
 
     </tr>
-    <?php while($row = $result->fetch_assoc()):
+    <?php ob_start(); while($row = $result->fetch_assoc()):
       $rowP = ['id'=>$row['ID'],'page'=>$page,'sort'=>$sort,'dir'=>$dir];
       foreach(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p){
         if (!empty($_GET[$p])) $rowP[$p]=$_GET[$p];
@@ -1076,7 +1064,7 @@ if (!empty($_SESSION['museum_mode'])) {
 </td>
         <?php if (!$is_guest): ?>
           <td><a href="edit.php?<?= http_build_query($rowP) ?>">📝</a></td>
-          <td><a href="#" class="row-action" data-action="duplicate.php" data-p="<?= htmlspecialchars(json_encode($rowP), ENT_QUOTES, 'UTF-8') ?>" title="Datensatz duplizieren">📄</a></td>
+          <td><a href="#" class="row-action" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren">📄</a></td>
         <?php endif; ?>
         <td class="click-open">
   <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
@@ -1105,15 +1093,15 @@ if (!empty($_SESSION['museum_mode'])) {
 
 <?php if (!$is_guest): ?>
   <td><?= htmlspecialchars(fmt_dec($row['Wert'] ?? null)) ?></td>
-  <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-p="<?= htmlspecialchars(json_encode($rowP), ENT_QUOTES, 'UTF-8') ?>">🗑️</a></td>
+  <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>">🗑️</a></td>
 <?php endif; ?>
 
       </tr>
-    <?php endwhile; ?>
+    <?php endwhile; echo preg_replace('~>\s+<~', '><', preg_replace('~\s{2,}~', ' ', ob_get_clean())); /* Leerraum der Zeilen entfernen */ ?>
   </table>
 
   <!-- Pagination UNTERHALB der Tabelle -->
-  <?php render_pagination($page, $pages, $params); ?>
+  <?php render_pagination($page, $pages, $params, true); ?>
 
   <?php if (!$is_guest): ?>
     <p><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>">➕ Neuer Eintrag</a></p>
@@ -1187,7 +1175,9 @@ if (!empty($_SESSION['museum_mode'])) {
     if (!a) return;
     e.preventDefault();
     if (a.dataset.confirm && !confirm(a.dataset.confirm)) return;
-    var p = JSON.parse(a.dataset.p || '{}');
+    var tbl = a.closest('table');
+    var p = JSON.parse((tbl && tbl.dataset.ctx) || '{}');   // Filter, Seite, Sortierung (einmal an der Tabelle)
+    p.id = a.dataset.id;
     p.csrf = CSRF;
     var f = document.createElement('form');
     f.method = 'post';

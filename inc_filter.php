@@ -118,3 +118,17 @@ function kategorie_baum(mysqli $conn): array {
     $walk(0, 0);
     return $out;
 }
+
+/** Erlaubte Seitengrößen der Liste. */
+const PAGE_SIZES = [25, 50, 100];
+
+/**
+ * Seitengröße der Liste: ?pp=… (nur 25, 50, 100), sonst der Cookie "pp", sonst 25.
+ * index.php setzt den Cookie, damit Liste, Rückkehr aus Detail/Bearbeiten und delete.php dieselbe Größe benutzen.
+ */
+function page_size(): int {
+    foreach ([$_GET['pp'] ?? null, $_COOKIE['pp'] ?? null] as $v) {
+        if (is_string($v) && ctype_digit($v) && in_array((int)$v, PAGE_SIZES, true)) return (int)$v;
+    }
+    return 25;
+}

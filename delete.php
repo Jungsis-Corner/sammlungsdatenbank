@@ -28,7 +28,7 @@ $stmt->execute();
 $stmt->close();
 
 // 3) Optional: Seite anpassen, falls nach dem Löschen leer
-$limit = 50; // muss mit index.php übereinstimmen
+$limit = page_size(); // gleiche Seitengröße wie index.php (Cookie pp)
 
 // WHERE wie in index.php (gemeinsam in inc_filter.php, mit Prepared Statements)
 $flt = sammlung_filter_where([
