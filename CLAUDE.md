@@ -36,6 +36,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Bei Änderungen an `app.css`: `?v=N` in **allen** Dateien hochzählen, die sie einbinden.
 - Bei Änderungen an `theme-toggle.js`: `?v=N` an **allen** Seiten hochzählen, die das Skript einbinden (u. a. `edit.php`, `view.php`, `index.php`, `einkauf.php`, `einkauf_edit.php`, `statistik.php`, `einstellungen.php`, `inc_head_admin.php`). **Zusätzlich** `CACHE_NAME` in `sw.js` erhöhen. Beides immer zusammen.
 - Der Service Worker cached Assets cache-first. Eine unversionierte URL wird nie neu geladen.
+- `sw.js` wird mit `updateViaCache: "none"` registriert (`inc_pwa_footer.php`), weil Strato es sonst mit 30 Tagen HTTP-Cache ausliefert. `assets/.htaccess` ergänzt die Kompression für `text/javascript` (die Liste in der `.htaccess` im App-Ordner kennt nur `application/javascript`). Nach Header-Änderungen immer per `curl -sI -H "Accept-Encoding: gzip" <URL>` prüfen (`content-encoding`, `cache-control`).
 - Vor Abschluss einer solchen Änderung per Suche prüfen, dass keine Einbindung ohne `?v=` übrig ist.
 
 ## Regeln: Frontend

@@ -1,0 +1,7 @@
+# assets/.htaccess: gilt nur für CSS und JS in diesem Ordner.
+# Strato liefert .js als "text/javascript" aus. Die Kompressionsliste in der .htaccess im App-Ordner kennt nur
+# "application/javascript", deshalb blieb das JS unkomprimiert (gemessen: Content-Type text/javascript, kein
+# Content-Encoding). Hier kommt nur der fehlende Typ dazu (CSS ist dort schon enthalten, doppelt würde doppelt komprimieren).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/javascript
+</IfModule>
