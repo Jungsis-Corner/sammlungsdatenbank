@@ -1,6 +1,6 @@
 # Übergabe: Stand der Überarbeitung
 
-Stand: 13.10.2026, nach Abschluss von D11 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
+Stand: 13.10.2026, nach Abschluss von D11 und Phase 3 Schritt 1 (zweiter Rechner, WSL). Dieses Dokument ist für eine neue Claude-Code-Sitzung gedacht.
 Es enthält **keine** Zugangsdaten, keine Namen von Personen und keine Serveradressen.
 
 ## 1. Einstieg in eine neue Sitzung
@@ -19,7 +19,7 @@ Die Plandatei ist **nicht im Repo** (siehe Abschnitt 3) und muss auf dem Rechner
    - `docs/bestand/` (Sammlungsdaten, nie committen): u. a. `dump.sql` (Live-Stand vom 13.10.2026 vor D3), `kategorie_mapping_vorschlag.csv` (freigegebene Zuordnung, nur zur Nachvollziehbarkeit), `05_dubletten.csv`, `06_kategorien.csv`, `werkzeuge/`
 3. Die lokale **Testumgebung** (Abschnitt 6) existiert nur auf dem WSL-Rechner (Wegwerf-MySQL, App-Kopie) und wird bei Bedarf neu aufgebaut. Für reine Doku- oder Planarbeit ist sie nicht nötig.
 4. Der Server ist auf dem Stand von `main` (alle Uploads und Migrationen bis D10 sind bestätigt, D11 ist reine Dokumentation). Ein Upload steht nicht aus.
-5. Nächster Schritt: Phase 3 (Bilder) planen, siehe Abschnitt 7. Vorher mit Jungsi klären, ob D12 (Altlasten) schon dran ist (frühestens nach vier Wochen Stabilisierung).
+5. Nächster Schritt: Phase 3 Schritt 2 (Miniaturen, `thumb.php`), siehe Abschnitt 7. D12 (Altlasten) frühestens nach vier Wochen Stabilisierung.
 
 ## 2. Wo wir stehen
 
@@ -68,7 +68,7 @@ erledigten lokalen Branches gelöscht; auf GitHub gibt es die Branches `d3-…` 
 - Fremdschlüssel: `Sammlung` → alle Lookups mit `RESTRICT`, `VerbautIn` → `Sammlung.ID` mit `SET NULL`; `Einkauf` → Kategorie/Verkäufer mit `SET NULL`. Die Verweise je Lookup stehen zentral in `lookup_refs()` (`inc_security.php`).
 - Der phpMyAdmin-Export „Abfrageergebnis“ funktioniert bei den Abfragen aus `docs/bestand.sql` nicht; stattdessen ein SQL-Dump, den Claude lokal einspielt.
 - Der Dump enthält `Geaendert_am` nicht in den `INSERT`-Anweisungen; Vergleiche nur innerhalb eines Imports.
-- Bilder liegen unter `…/blog/wp-content/uploads/` (nicht `/wp-content/uploads/`), flach ohne Jahr/Monat, 619 Einträge mit Doppelschrägstrich `//blog`. Phase 3: `IMAGE_WP_BASE` entsprechend; 38 kaputte NAS-Pfade wurden in D3 auf `''` gesetzt.
+- Bilder liegen unter `…/blog/wp-content/uploads/` (WordPress liegt im Ordner `blog` neben `sammlung` auf demselben Webspace, per Dateisystem lesbar). 136 Einträge haben Unterordner (`2014/11/…`), 50 Namen enthalten Umlaute, 619 Werte `//blog`. WordPress erzeugt Zwischengrößen (z. B. 225x300 mit ca. 32 KB). 38 kaputte NAS-Pfade wurden in D3 auf `''` gesetzt.
 
 ## 6. Zweiter Rechner (WSL) und lokale Testumgebung
 
@@ -89,7 +89,7 @@ Installiert (apt): PHP 8.5.4 (CLI, `mysqli`, `mbstring`), MySQL 8.4.11 (Dienst n
 ## 7. Weiterer Fahrplan
 
 - **D12 (Altlasten, nur mit Freigabe):** Nach mindestens vier Wochen Stabilisierung die Altspalten in `Sammlung` und `Kategorie.Spiele` entfernen (Jungsi exportiert vorher die Daten), die `bak_*`-Tabellen löschen (`DROP TABLE`). Spaltenumbenennungen sind laut E7 nicht Teil dieser Runde.
-- **Phase 3** Bilder (WordPress und lokal), **4** Performance, **5** UI (Kaskade Marke/Plattform/Typ, Statistik-Kacheln U16), **6** Barrierefreiheit, **7** Tests. Siehe Plan.
+- **Phase 3 Bilder** in drei Schritten: **Schritt 1 erledigt** (`inc_image.php`: `image_url()`, `image_exists()`, `image_img()`, Altwerte lesen, `alt`/`lazy`/Maße/Platzhalter in Liste, Detail, Bearbeiten; ohne Datenbankänderung). **Schritt 2:** `thumb.php` (nur eingeloggt, Breiten aus Whitelist, WordPress-Zwischengrößen nutzen, sonst GD, Cache `cache/thumbs/`), `medien/` mit `.htaccess` ohne `php_flag` (stattdessen `Require all denied` plus Freigabe der Bildendungen), `srcset`, Service Worker. **Schritt 3** nach Freigabe: Migration B2 (URLs auf relativen Pfad kürzen), Bildprüfung B9; Upload und Auswahl im lokalen Modus (B5, B6) auf später verschoben (Entscheidung Jungsi). Lokal fehlt GD (`sudo apt install php8.5-gd` muss Jungsi in einem normalen WSL-Terminal ausführen). Danach **4** Performance, **5** UI (Kaskade Marke/Plattform/Typ, Statistik-Kacheln U16), **6** Barrierefreiheit, **7** Tests. Siehe Plan.
 
 ## 8. Arbeitsregeln (aus CLAUDE.md und aus dieser Sitzung)
 
