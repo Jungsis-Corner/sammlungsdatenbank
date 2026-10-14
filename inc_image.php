@@ -69,6 +69,18 @@ function image_parse($stored): ?array {
     return ['kind' => $kind, 'name' => $name, 'url' => null];
 }
 
+/**
+ * Wert für die Datenbank aus einer Eingabe (Formularfeld): eine volle URL der WordPress-Uploads wird zum relativen Pfad,
+ * ein relativer Pfad bleibt, eine fremde http(s)-URL bleibt. Alles andere wird unverändert (getrimmt) gespeichert,
+ * damit nichts stillschweigend verloren geht; ausgegeben wird es ohnehin nur über image_img() (dann als Platzhalter).
+ */
+function image_normalize_for_storage($input): string {
+    $s = trim((string)$input);
+    $p = image_parse($s);
+    if (!$p) return $s;
+    return $p['kind'] === 'external' ? (string)$p['url'] : (string)$p['name'];
+}
+
 /** Absoluter Pfad des lokalen Bildordners (mit Schrägstrich am Ende). */
 function image_local_root(): string {
     return __DIR__ . '/' . trim((string)IMAGE_LOCAL_DIR, '/') . '/';

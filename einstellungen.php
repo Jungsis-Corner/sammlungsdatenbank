@@ -90,6 +90,7 @@ require_once __DIR__ . '/config.php';
         <a href="manage_zustand.php">Zustände verwalten</a>
         <a href="manage_box.php">Boxen verwalten</a>
         <a href="einkauf.php">Einkäufe verwalten</a>
+        <a href="bildpruefung.php">Bildprüfung</a>
     </div>
 </body>
 </html>

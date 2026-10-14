@@ -634,6 +634,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
             continue;
         }
 
+        // Bild: eingefügte WordPress-URL als relativen Pfad speichern
+        if ($col === 'SammlungBild1') {
+            $vals[$col] = image_normalize_for_storage($_POST[$name] ?? '');
+            $types     .= 's';
+            continue;
+        }
+
         // Geldbeträge (DECIMAL): Komma/Punkt, leer oder ungültig = NULL
         if ($col === 'Einkaufspreis' || $col === 'Wert') {
             $vals[$col] = parse_decimal($_POST[$name] ?? '');
@@ -1334,6 +1341,11 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
            autocomplete="off"
            placeholder="TT.MM.JJJJ"
            pattern="\d{1,2}\.\d{1,2}\.\d{4}">
+
+  <?php elseif ($col === 'SammlungBild1'): ?>
+
+    <input type="text" name="<?= $htmlName ?>" value="<?= htmlspecialchars((string)$value) ?>" autocomplete="off"
+           placeholder="Dateiname oder Pfad unter wp-content/uploads, z. B. 2014/11/bild.jpg (volle URL geht auch)">
 
   <?php elseif ($col === 'Einkaufspreis' || $col === 'Wert'): ?>
 

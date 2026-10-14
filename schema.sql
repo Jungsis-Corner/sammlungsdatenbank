@@ -340,6 +340,7 @@ INSERT INTO `schema_migrations` (`Dateiname`) VALUES
   ('2026-10-13_05_lookup_unique.sql'),
   ('2026-10-13_06_geld.sql'),
   ('2026-10-13_07_fremdschluessel.sql'),
-  ('2026-10-13_08_kategorie_hierarchie.sql');
+  ('2026-10-13_08_kategorie_hierarchie.sql'),
+  ('2026-10-14_01_bild_pfade.sql');
 
 SET FOREIGN_KEY_CHECKS=1;

@@ -34,7 +34,7 @@ bei Bedarf den Dump einspielen.
 ## Sicherungstabellen (`bak_*`)
 
 Migrationen, die Daten verändern, sichern den Stand vorher in Tabellen mit dem Präfix `bak_` (z. B. `bak_d3_sammlung`
-bei `2026-10-13_03_bereinigung.sql`). Aktuell vorhanden: `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`. Die `DOWN`-Sektion der Migration stellt daraus den alten Stand wieder her.
+bei `2026-10-13_03_bereinigung.sql`). Aktuell vorhanden: `bak_d3_*`, `bak_d6_geld`, `bak_d9_kategorie`, `bak_b2_bild`. Die `DOWN`-Sektion der Migration stellt daraus den alten Stand wieder her.
 Die Tabellen bleiben bis zur Abnahme stehen und werden danach mit `DROP TABLE` gelöscht. Ein zweiter Lauf der
 Migration überschreibt eine vorhandene Sicherung nicht. Die `bak_*`-Tabellen gehören nicht in `schema.sql`.
 
