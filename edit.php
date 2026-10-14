@@ -369,10 +369,12 @@ function get_options($table, $field, $selected='') {
     return $opts;
 }
 
-// Text+Datalist-Suchfeld statt langem <select> fuer iPad (nativer Wheel-Picker
-// erzwingt sonst Scrollen durch die komplette Liste + keine Bildschirmtastatur).
-// Nutzt dieselbe generische Sync-Logik wie theme-toggle.js
-// (.lookup-search[data-hidden-target] -> Label wird nach Auswahl von "(#ID)" bereinigt).
+// Suchfeld mit Vorschlagsliste (assets/typeahead.js, Vorschläge aus api_lookup.php) statt eines Feldes mit allen Werten.
+// Das versteckte ID-Feld trägt die Auswahl; ohne JavaScript oder bei geändertem Text löst der Server den exakt getippten
+// Namen beim Speichern selbst auf (resolve_lookup_id).
+function lookup_api_key(string $table): string {
+    return ['Verkäufer' => 'verkaeufer'][$table] ?? strtolower($table);
+}
 function render_lookup_search($htmlName, $table, $field, $selectedId) {
     global $conn;
     [$t, $f] = lookup_ident($table, $field);
@@ -380,20 +382,13 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
     $curLabel = '';
     if ($selectedId > 0) {
         $lr = db_select($conn, "SELECT $f FROM $t WHERE ID = ?", 'i', [$selectedId])->fetch_row();
-        if ($lr) $curLabel = $lr[0] . ' (#' . $selectedId . ')';
+        if ($lr) $curLabel = (string)$lr[0];
     }
-    $listId = 'lookupList_' . preg_replace('/[^a-zA-Z0-9]/', '', $htmlName);
-    echo '<input type="text" name="' . $htmlName . '_text" class="lookup-search" list="' . $listId . '" autocomplete="off"'
+    echo '<input type="text" name="' . $htmlName . '_text" class="lookup-search ta-input" autocomplete="off"'
        . ' placeholder="Tippen zum Suchen…"'
        . ' value="' . htmlspecialchars($curLabel, ENT_QUOTES, 'UTF-8') . '"'
-       . ' data-hidden-target="' . $htmlName . '_hidden">';
+       . ' data-ta="' . lookup_api_key($table) . '" data-ta-hidden="' . $htmlName . '_hidden">';
     echo '<input type="hidden" name="' . $htmlName . '" id="' . $htmlName . '_hidden" value="' . $selectedId . '">';
-    echo '<datalist id="' . $listId . '">';
-    $res = $conn->query("SELECT ID, $f FROM $t ORDER BY $f");
-    while ($r = $res->fetch_assoc()) {
-        echo '<option value="' . htmlspecialchars($r[$field] . ' (#' . $r['ID'] . ')', ENT_QUOTES, 'UTF-8') . '">';
-    }
-    echo '</datalist>';
 }
 
 // ID aus Such-Textfeld ermitteln, falls das versteckte ID-Feld leer ankommt
@@ -977,6 +972,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+<script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
 
 <style>
@@ -1264,22 +1260,12 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         }
       ?>
       <input type="text"
-             class="verbautin-search"
-             list="verbautInList"
+             class="ta-input"
              autocomplete="off"
              placeholder="Tippen zum Suchen…"
              value="<?= htmlspecialchars($vbCurrentLabel) ?>"
-             data-hidden-target="<?= $htmlName ?>">
+             data-ta="sammlung" data-ta-exclude="<?= (int)$id ?>" data-ta-hidden="<?= $htmlName ?>">
       <input type="hidden" name="<?= $htmlName ?>" id="<?= $htmlName ?>" value="<?= $vbCurrentId ?>">
-      <datalist id="verbautInList">
-        <?php
-          $vbOptions = db_select($conn, "SELECT ID, Bezeichnung, Seriennummer FROM Sammlung WHERE ID != ? ORDER BY Bezeichnung", 'i', [(int)$id]);
-          while ($vbRow = $vbOptions->fetch_assoc()):
-            $vbId = (int)$vbRow['ID'];
-        ?>
-          <option value="<?= htmlspecialchars($vbLabel($vbRow['Bezeichnung'], (string)($vbRow['Seriennummer'] ?? ''), $vbId)) ?>">
-        <?php endwhile; ?>
-      </datalist>
 
     <?php else: ?>
       <select name="<?= $htmlName ?>">
@@ -1667,23 +1653,6 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
   window.addEventListener('beforeunload', stopScanner);
 })();
 </script>
-
-  <!-- "Verbaut in": Textfeld+Datalist -> verstecktes ID-Feld synchronisieren -->
-  <script>
-(function(){
-  document.querySelectorAll('.verbautin-search').forEach(function(searchInput){
-    var hidden = document.getElementById(searchInput.getAttribute('data-hidden-target'));
-    if (!hidden) return;
-
-    function sync(){
-      var m = searchInput.value.match(/\(#(\d+)\)/);
-      hidden.value = m ? m[1] : '0';
-    }
-    searchInput.addEventListener('input', sync);
-    searchInput.addEventListener('change', sync);
-  });
-})();
-  </script>
 
   <!-- Sonstiges-Beschreibung nur zeigen, wenn Sonstiges angehakt ist -->
   <script>

@@ -31,9 +31,15 @@ $zustand        = get_lookup('Zustand',      'Zustand');
 $verpackung     = get_lookup('Verpackung',   'Verpackung');
 $material       = get_lookup('Material',     'Material');
 $standortList   = get_lookup('Standort',     'Standort');
-$herstellerList = get_lookup('Hersteller',   'Hersteller');
-$publisherList  = get_lookup('Publisher',    'Publisher');
-$verkaeuferList = get_lookup('Verkäufer',    'Verkäufer');
+/** Name eines Eintrags für das Filter-Badge (eine Einzelabfrage statt der ganzen Liste; Hersteller, Publisher und Verkäufer haben tausend Einträge). */
+function lookup_name(string $table, string $field, int $id): string {
+    global $conn;
+    [$t, $f] = lookup_ident($table, $field);
+    $stmt = $conn->prepare("SELECT $f FROM $t WHERE `ID` = ?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    return (string)($stmt->get_result()->fetch_row()[0] ?? '');
+}
 
 // Liste der tatsächlich verwendeten Box-Werte (fürs Dropdown)
 $boxList = [];
@@ -156,14 +162,17 @@ if ($search !== '') {
 }
 
 // Hersteller/Publisher/Verkäufer/Standort
-if ($herstellerId && isset($herstellerList[$herstellerId])) {
-    $activeBadges[] = ['label' => '🏭 ' . $herstellerList[$herstellerId], 'remove' => ['hersteller' => '']];
+$herstellerName = $herstellerId ? lookup_name('Hersteller', 'Hersteller', $herstellerId) : '';
+$publisherName  = $publisherId  ? lookup_name('Publisher', 'Publisher', $publisherId) : '';
+$verkaeuferName = $verkaeuferId ? lookup_name('Verkäufer', 'Verkäufer', $verkaeuferId) : '';
+if ($herstellerId && $herstellerName !== '') {
+    $activeBadges[] = ['label' => '🏭 ' . $herstellerName, 'remove' => ['hersteller' => '']];
 }
-if ($publisherId && isset($publisherList[$publisherId])) {
-    $activeBadges[] = ['label' => '🏷️ ' . $publisherList[$publisherId], 'remove' => ['publisher' => '']];
+if ($publisherId && $publisherName !== '') {
+    $activeBadges[] = ['label' => '🏷️ ' . $publisherName, 'remove' => ['publisher' => '']];
 }
-if ($verkaeuferId && isset($verkaeuferList[$verkaeuferId])) {
-    $activeBadges[] = ['label' => '🧑‍💼 ' . $verkaeuferList[$verkaeuferId], 'remove' => ['verkaeufer' => '']];
+if ($verkaeuferId && $verkaeuferName !== '') {
+    $activeBadges[] = ['label' => '🧑‍💼 ' . $verkaeuferName, 'remove' => ['verkaeufer' => '']];
 }
 if ($standortId && isset($standortList[$standortId])) {
     $activeBadges[] = ['label' => '📍 ' . $standortList[$standortId], 'remove' => ['standort' => '']];
@@ -346,6 +355,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+<script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 
 <?php
 $isMuseum = !empty($_SESSION['museum_mode']);
@@ -873,35 +883,19 @@ cursor: pointer;
           <?php endforeach; ?>
         </select>
 
-        <!-- Hersteller -->
-        <select name="hersteller" onchange="this.form.submit()">
-          <option value="">— Hersteller —</option>
-          <?php foreach($herstellerList as $idH=>$nameH): ?>
-            <option value="<?= $idH ?>" <?= ($herstellerId===$idH?'selected':'') ?>>
-              <?= htmlspecialchars($nameH) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-
-        <!-- Publisher -->
-        <select name="publisher" onchange="this.form.submit()">
-          <option value="">— Publisher —</option>
-          <?php foreach($publisherList as $idP=>$nameP): ?>
-            <option value="<?= $idP ?>" <?= ($publisherId===$idP?'selected':'') ?>>
-              <?= htmlspecialchars($nameP) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-
-        <!-- Verkäufer -->
-        <select name="verkaeufer" onchange="this.form.submit()">
-          <option value="">— Verkäufer —</option>
-          <?php foreach($verkaeuferList as $idV=>$nameV): ?>
-            <option value="<?= $idV ?>" <?= ($verkaeuferId===$idV?'selected':'') ?>>
-              <?= htmlspecialchars($nameV) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+        <!-- Hersteller, Publisher, Verkäufer: Suchfeld mit Vorschlägen (api_lookup.php) statt Listen mit tausend Einträgen -->
+        <?php foreach ([
+            ['hersteller', 'Hersteller', $herstellerId, $herstellerName],
+            ['publisher',  'Publisher',  $publisherId,  $publisherName],
+            ['verkaeufer', 'Verkäufer',  $verkaeuferId, $verkaeuferName],
+        ] as [$taKey, $taLabel, $taId, $taName]): ?>
+          <?php if ($taKey === 'verkaeufer' && $is_guest && in_array('Verkäufer', guest_hidden_fields(), true)) continue; ?>
+          <?php if ($taId): ?>
+            <button type="button" onclick="location.href='<?= url_remove_only([$taKey]) ?>'" title="Filter entfernen">✖ <?= htmlspecialchars($taLabel) ?>: <?= htmlspecialchars($taName !== '' ? $taName : '#' . $taId) ?></button>
+          <?php else: ?>
+            <input type="text" data-ta="<?= $taKey ?>" data-ta-nav="<?= $taKey ?>" placeholder="<?= htmlspecialchars($taLabel) ?> suchen…" style="width:100%; box-sizing:border-box;" aria-label="<?= htmlspecialchars($taLabel) ?> filtern">
+          <?php endif; ?>
+        <?php endforeach; ?>
 
         <?php if (!$is_guest): ?>
           <!-- Standort -->

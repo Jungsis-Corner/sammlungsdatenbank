@@ -225,6 +225,7 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
 <html lang="de">
 <head>
   <?php $page_title = $cfg['title']; include __DIR__ . '/inc_head_admin.php'; ?>
+  <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 </head>
 <body class="admin-page">
 
@@ -263,16 +264,12 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
     </div>
 
     <?php if ($canMerge): ?>
-      <?php $dl = $conn->query("SELECT $col FROM $tbl WHERE `ID` <> " . (int)$id . " ORDER BY $col"); ?>
       <!-- Zusammenführen: alle Verweise auf einen anderen Eintrag umstellen, diesen Eintrag löschen -->
       <div class="form-line-center">
         <form method="post" class="admin-inline-form"
               onsubmit="return confirm('Alle Verweise von „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ auf den gewählten Eintrag umstellen und „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ löschen?')">
           <?= csrf_field() ?>
-          <input type="text" name="merge_into" list="merge-targets" placeholder="In diesen Eintrag überführen…" required>
-          <datalist id="merge-targets">
-            <?php while ($d = $dl->fetch_row()): ?><option value="<?= htmlspecialchars($d[0]) ?>"><?php endwhile; ?>
-          </datalist>
+          <input type="text" name="merge_into" data-ta="<?= htmlspecialchars(['Verkäufer' => 'verkaeufer'][$cfg['table']] ?? strtolower($cfg['table'])) ?>" placeholder="In diesen Eintrag überführen…" autocomplete="off" required>
           <input type="submit" class="btn btn-red is-small" value="Überführen und löschen">
         </form>
       </div>
