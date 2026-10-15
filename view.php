@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
+require_once __DIR__ . '/inc_nav.php';
 
 
 date_default_timezone_set('Europe/Berlin');
@@ -205,7 +206,7 @@ $HIDE_FOR_GUEST = guest_hidden_fields();
 
 // Gruppierung der Felder für die neue Karten-Ansicht (analog zu edit.php)
 $VIEW_FIELD_GROUPS = [
-  'Bezeichnung' => 'Grunddaten', 'Kategorie' => 'Grunddaten', 'Jahr' => 'Grunddaten',
+  'Kategorie' => 'Grunddaten', 'Jahr' => 'Grunddaten',
   'Original/Homebrew' => 'Grunddaten', 'Hersteller' => 'Grunddaten', 'Publisher' => 'Grunddaten',
   'Verkäufer' => 'Kauf & Test', 'Seriennummer' => 'Grunddaten', 'Anzahl' => 'Grunddaten',
 
@@ -231,29 +232,55 @@ $VIEW_CURRENT_GROUP = null;
 function tr_meta(string $label, string $value = '', bool $rawHtml = false): void {
     global $is_guest, $HIDE_FOR_GUEST, $VIEW_FIELD_GROUPS, $VIEW_WIDE_FIELDS, $VIEW_CURRENT_GROUP;
     if ($is_guest && in_array($label, $HIDE_FOR_GUEST, true)) return;
+    if (trim(strip_tags($value)) === '' && stripos($value, '<svg') === false) return;   // leere Felder nicht anzeigen
 
     $group = $VIEW_FIELD_GROUPS[$label] ?? 'Weitere Angaben';
     if ($group !== $VIEW_CURRENT_GROUP) {
-        if ($VIEW_CURRENT_GROUP !== null) echo '</div></div>'; // .form-grid + .form-group schließen
-        echo '<div class="form-group"><h3>'.htmlspecialchars($group).'</h3><div class="form-grid">';
+        if ($VIEW_CURRENT_GROUP !== null) echo '</dl></section>';
+        echo '<section class="dgruppe"><h2>' . htmlspecialchars($group) . '</h2><dl>';
         $VIEW_CURRENT_GROUP = $group;
     }
-
     $isWide = in_array($label, $VIEW_WIDE_FIELDS, true);
-    echo '<div class="field'.($isWide ? ' wide' : '').'">';
-    echo '<span class="label">'.htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE).'</span>';
-    echo '<span class="value">';
+    echo '<div class="zeile' . ($isWide ? ' breit' : '') . '"><dt>' . htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE) . '</dt><dd>';
     echo $rawHtml ? $value : htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE);
-    echo '</span></div>';
+    echo '</dd></div>';
 }
 
 // Muss nach dem letzten tr_meta()-Aufruf einmal ausgeführt werden,
 // um die letzte offene Gruppe zu schließen.
 function tr_meta_close(): void {
     global $VIEW_CURRENT_GROUP;
-    if ($VIEW_CURRENT_GROUP !== null) echo '</div></div>';
+    if ($VIEW_CURRENT_GROUP !== null) echo '</dl></section>';
     $VIEW_CURRENT_GROUP = null;
 }
+?>
+<?php
+// ---- Navigation, Chips und Aktionen für die Darstellung ----
+$isMuseum = !empty($_SESSION['museum_mode']);
+$navOpt = [
+    'is_guest' => $is_guest, 'is_admin' => is_admin(), 'museum' => $isMuseum,
+    'export' => (!$isMuseum && (!$is_guest || guest_export_allowed())), 'params' => $params,
+];
+$selfHref  = link_to_view($params, (int)$id);
+$firstHref = $first_id ? link_to_view($params, (int)$first_id) : $selfHref;
+$prevHref  = $prev_id  ? link_to_view($params, (int)$prev_id)  : $selfHref;
+$nextHref  = $next_id  ? link_to_view($params, (int)$next_id)  : $selfHref;
+$lastHref  = $last_id  ? link_to_view($params, (int)$last_id)  : $selfHref;
+$backHref  = $backUrl ?: $listUrl;
+$editHref  = 'edit.php?' . http_build_query(array_merge($params, ['id' => $id]));
+$hatErste  = (bool)($first_id && $id != $first_id);
+$hatLetzte = (bool)($last_id && $id != $last_id);
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+/** Navigationsknopf (Erste/Vorheriger/…): ohne Ziel als deaktiviert markiert (kein Inline-Handler) */
+$navBtn = function (string $cls, bool $aktiv, string $href, string $titel, string $inhalt) use ($e) {
+    return '<a class="' . $cls . ($aktiv ? '' : ' disabled') . '" href="' . $e($href) . '"'
+         . ($aktiv ? '' : ' aria-disabled="true" tabindex="-1"') . ' title="' . $e($titel) . '">' . $inhalt . '</a>';
+};
+$verwandt = [];
+if (!empty($data['Hersteller']) && !empty($data['HerstellerName'])) $verwandt[] = ['Alle von Hersteller', $data['HerstellerName'], link_to_index_with($params, ['hersteller' => (int)$data['Hersteller']])];
+if (!empty($data['Publisher']) && !empty($data['PublisherName'])) $verwandt[] = ['Alle vom Publisher', $data['PublisherName'], link_to_index_with($params, ['publisher' => (int)$data['Publisher']])];
+if (!empty($data['Verkäufer']) && !empty($data['VerkaeuferName']) && !($is_guest && in_array('Verkäufer', $HIDE_FOR_GUEST, true))) $verwandt[] = ['Alle vom Verkäufer', $data['VerkaeuferName'], link_to_index_with($params, ['verkaeufer' => (int)$data['Verkäufer']])];
+$hatBild = (bool)image_parse($bild);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -261,68 +288,58 @@ function tr_meta_close(): void {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
+<title><?= $e($pageTitle) ?></title>
 <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
+<link rel="stylesheet" href="/sammlung/assets/detail.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<script src="/sammlung/assets/detail.js?v=1" defer></script>
 </head>
 <body class="view-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-<main id="inhalt">
-  <h1><?= htmlspecialchars($data['Bezeichnung'] ?? '') ?></h1>
 
-  <!-- Toolbar oben -->
-  <div class="toolbar">
-    <a class="btn-back" href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>"><?= icon('back') ?> Zurück zur Liste</a>
+<header class="appbar">
+  <p class="appbar-titel"><a href="index.php<?= $isMuseum ? '?museum=1' : '' ?>"><?= $isMuseum ? $e(APP_TITLE_MUSEUM) : $e(APP_TITLE) ?></a></p>
+  <?= nav_appnav($navOpt) ?>
+  <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
+</header>
+
+<main id="inhalt" data-prev="<?= $prev_id ? $e($prevHref) : '' ?>" data-next="<?= $next_id ? $e($nextHref) : '' ?>">
+
+  <!-- Werkzeugleiste (ab 600 px; auf dem iPhone steht die Aktionsleiste unten) -->
+  <div class="detail-werkzeug">
+    <a class="btn btn-back" href="<?= $e($backHref) ?>"><?= icon('back') ?> Zurück zur Liste</a>
+    <?= $navBtn('btn btn-nav', $hatErste, $firstHref, $hatErste ? 'Erster Datensatz' : 'Kein erster Datensatz', icon('back') . ' Erste') ?>
+    <?= $navBtn('btn btn-nav', (bool)$prev_id, $prevHref, $prev_id ? 'Vorheriger Datensatz' : 'Kein vorheriger Datensatz', icon('back') . ' Vorheriger') ?>
+    <?= $navBtn('btn btn-nav', (bool)$next_id, $nextHref, $next_id ? 'Nächster Datensatz' : 'Kein nächster Datensatz', 'Nächster ' . icon('forward')) ?>
+    <?= $navBtn('btn btn-nav', $hatLetzte, $lastHref, $hatLetzte ? 'Letzter Datensatz' : 'Kein letzter Datensatz', 'Letzte ' . icon('forward')) ?>
     <?php if (!$is_guest): ?>
-    <a class="btn-edit" href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params,['id'=>$id]))) ?>"><?= icon('edit') ?> Bearbeiten</a>
-    <?php endif; ?>
-
-    <?php
-      $selfHref  = link_to_view($params, (int)$id);
-      $firstHref = $first_id ? link_to_view($params, (int)$first_id) : $selfHref;
-      $prevHref  = $prev_id  ? link_to_view($params, (int)$prev_id)  : $selfHref;
-      $nextHref  = $next_id  ? link_to_view($params, (int)$next_id)  : $selfHref;
-      $lastHref  = $last_id  ? link_to_view($params, (int)$last_id)  : $selfHref;
-    ?>
-
-    <a class="btn-nav<?= $first_id && $id!=$first_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($firstHref) ?>"
-       <?= ($first_id && $id!=$first_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= ($first_id && $id!=$first_id) ? 'Erster Datensatz' : 'Kein erster Datensatz' ?>"><?= icon('back') ?> Erste</a>
-
-    <a class="btn-nav<?= $prev_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($prevHref) ?>"
-       <?= $prev_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= $prev_id ? 'Vorheriger Datensatz' : 'Kein vorheriger Datensatz' ?>"><?= icon('back') ?> Vorheriger</a>
-
-    <a class="btn-nav<?= $next_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($nextHref) ?>"
-       <?= $next_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= $next_id ? 'Nächster Datensatz' : 'Kein nächster Datensatz' ?>">Nächster <?= icon('forward') ?></a>
-
-    <a class="btn-nav<?= $last_id && $id!=$last_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($lastHref) ?>"
-       <?= ($last_id && $id!=$last_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= ($last_id && $id!=$last_id) ? 'Letzter Datensatz' : 'Kein letzter Datensatz' ?>">Letzte <?= icon('forward') ?></a>
-
-    <?php if (!empty($data['Hersteller']) && !empty($data['HerstellerName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['hersteller'=>(int)$data['Hersteller']])) ?>"><?= icon('search') ?> Alle von Hersteller: <?= htmlspecialchars($data['HerstellerName']) ?></a>
-    <?php endif; ?>
-    <?php if (!empty($data['Publisher']) && !empty($data['PublisherName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['publisher'=>(int)$data['Publisher']])) ?>"><?= icon('search') ?> Alle vom Publisher: <?= htmlspecialchars($data['PublisherName']) ?></a>
-    <?php endif; ?>
-    <?php if (!empty($data['Verkäufer']) && !empty($data['VerkaeuferName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['verkaeufer'=>(int)$data['Verkäufer']])) ?>"><?= icon('search') ?> Alle vom Verkäufer: <?= htmlspecialchars($data['VerkaeuferName']) ?></a>
+      <span class="spacer"></span>
+      <a class="btn btn-edit" href="<?= $e($editHref) ?>"><?= icon('edit') ?> Bearbeiten</a>
+      <button type="button" class="btn delete" data-loeschen><?= icon('trash') ?> Löschen</button>
     <?php endif; ?>
   </div>
 
-  <!-- Layout -->
-  <div class="layout">
-    <div class="meta">
-      <div class="form-groups">
+  <article class="detail<?= $hatBild ? '' : ' ohne-bild' ?>">
+    <?php if ($hatBild): ?>
+    <div class="detail-bild">
+      <button type="button" class="bild-knopf" data-lightbox data-gross="<?= $e(image_url($bild, 1200)) ?>" aria-label="Bild vergrößern">
+        <?= image_img($bild, $bez, ['id' => 'mainPic', 'priority' => 'high', 'widths' => [320, 640, 1200], 'sizes' => '(max-width: 899px) 100vw, 480px']) ?>
+      </button>
+    </div>
+    <?php endif; ?>
+
+    <div class="detail-info">
+      <h1><?= $e($data['Bezeichnung'] ?? '') ?></h1>
+      <div class="chips-detail">
+        <?php if (!empty($data['KategorieName'])): ?>
+          <a class="chip-d" href="<?= $e(link_to_index_with($params, ['kat' => (int)$data['Kategorie'], 'inkl' => ''])) ?>"><?= $e($data['KategorieName']) ?></a>
+        <?php endif; ?>
+        <?php if (!empty($data['ZustandName'])): ?><span class="chip-d"><?= $e($data['ZustandName']) ?></span><?php endif; ?>
+        <?php if ((int)($data['Zum Verkauf'] ?? 0) === 1): ?><span class="chip-d chip-verkauf"><?= icon('tag') ?> Zum Verkauf</span><?php endif; ?>
+      </div>
+
+      <div class="detail-gruppen">
         <?php
-          tr_meta('Bezeichnung',        $data['Bezeichnung'] ?? '');
           tr_meta('Kategorie',          $data['KategorieName'] ?? '');
           tr_meta('Jahr',               $data['Jahr'] ?? '');
           tr_meta('Original/Homebrew',  $data['Original/Homebrew'] ?? '');
@@ -395,10 +412,10 @@ function tr_meta_close(): void {
           $gDatum  = (!empty($data['Getestet am']) && $data['Getestet am'] !== '0000-00-00')
                      ? date('d.m.Y', strtotime($data['Getestet am'])) : '';
           $gLabel  = '';
-          if ($gStatus === 'OK')          $gLabel = '✅ OK';
-          elseif ($gStatus === 'Defekt')  $gLabel = '❌ Defekt';
-          if ($gDatum) $gLabel .= ($gLabel ? ' (' . $gDatum . ')' : $gDatum);
-          tr_meta('Getestet', $gLabel);
+          if ($gStatus === 'OK')          $gLabel = icon('check') . ' OK';
+          elseif ($gStatus === 'Defekt')  $gLabel = icon('close') . ' Defekt';
+          if ($gDatum) $gLabel .= ($gLabel ? ' (' . htmlspecialchars($gDatum) . ')' : htmlspecialchars($gDatum));
+          tr_meta('Getestet', $gLabel, true);
 
           $blog = trim((string)($data['Link zum Blog'] ?? ''));
           $blogHtml = $blog
@@ -422,20 +439,57 @@ tr_meta('Link zu YouTube', $ytHtml, true);
           tr_meta_close();
         ?>
       </div>
-    </div>
 
-    <?php if (image_parse($bild)): ?>
-    <div class="pic">
-      <?= image_img($bild, (string)($data['Bezeichnung'] ?? ''), ['id' => 'mainPic', 'priority' => 'high', 'widths' => [320, 640, 1200], 'sizes' => '(max-width: 767px) 100vw, 640px']) ?>
+      <?php if ($verwandt): ?>
+      <section class="dgruppe verwandt">
+        <h2>Mehr aus der Sammlung</h2>
+        <div class="verwandt-liste">
+          <?php foreach ($verwandt as [$vl, $vn, $vh]): ?>
+            <a class="btn btn-search" href="<?= $e($vh) ?>"><?= icon('search') ?> <?= $e($vl) ?>: <?= $e($vn) ?></a>
+          <?php endforeach; ?>
+        </div>
+      </section>
+      <?php endif; ?>
     </div>
-    <?php endif; ?>
-  </div>
-
-  <!-- Lightbox -->
-  <div id="lb" class="lb" hidden>
-    <button class="lb-close" aria-label="Schließen">×</button>
-    <img id="lbImg" alt="">
-  </div>
+  </article>
 </main>
+
+<!-- Aktionsleiste (nur iPhone, unter 600 px) -->
+<nav class="aktionsleiste" aria-label="Aktionen">
+  <a href="<?= $e($backHref) ?>"><?= icon('menu') ?><span>Liste</span></a>
+  <?= $navBtn('', (bool)$prev_id, $prevHref, 'Vorheriger Datensatz', icon('back') . '<span>Zurück</span>') ?>
+  <?= $navBtn('', (bool)$next_id, $nextHref, 'Nächster Datensatz', icon('forward') . '<span>Weiter</span>') ?>
+  <?php if (!$is_guest): ?>
+    <a href="<?= $e($editHref) ?>"><?= icon('edit') ?><span>Bearbeiten</span></a>
+    <button type="button" data-loeschen><?= icon('trash') ?><span>Löschen</span></button>
+  <?php endif; ?>
+</nav>
+
+<?php if ($hatBild): ?>
+<!-- Bild groß -->
+<dialog id="lb" class="lb" aria-label="Bild vergrößert">
+  <button type="button" class="lb-close" data-lb-zu aria-label="Schließen"><?= icon('close') ?></button>
+  <img id="lbImg" alt="<?= $e($bez) ?>">
+</dialog>
+<?php endif; ?>
+
+<?php if (!$is_guest): ?>
+<!-- Löschen bestätigen (POST mit CSRF an delete.php, Filter und Seite werden mitgegeben) -->
+<dialog id="loeschDialog" class="loesch-dialog" aria-labelledby="loeschTitel">
+  <form method="post" action="delete.php">
+    <?= csrf_field() ?>
+    <?php foreach (array_merge($params, ['id' => $id]) as $dk => $dv): ?>
+      <input type="hidden" name="<?= $e($dk) ?>" value="<?= $e($dv) ?>">
+    <?php endforeach; ?>
+    <h2 id="loeschTitel">Eintrag löschen?</h2>
+    <p>„<?= $e($bez) ?>“ wird unwiderruflich gelöscht.</p>
+    <div class="loesch-knoepfe">
+      <button type="button" class="btn" data-loeschen-zu>Abbrechen</button>
+      <button type="submit" class="btn delete"><?= icon('trash') ?> Löschen</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
+<?php include __DIR__ . '/inc_pwa_footer.php'; ?>
 </body>
 </html>

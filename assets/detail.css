@@ -1,0 +1,90 @@
+/* =========================================================
+   detail.css – Detailseite (view.php), Phase 5c
+   Tokens aus base.css (wird danach geladen). Ein Aufbau für alle Geräte:
+     unter 900 px  einspaltig, Bild oben
+     ab 900 px     zwei Spalten, Bild links (haftet beim Scrollen)
+   Auf dem iPhone (unter 600 px) steht unten eine feste Aktionsleiste.
+   ========================================================= */
+body{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:0; padding:20px; }
+.appbar-titel{ color:var(--text); }
+main{ display:block; }
+.spacer{ flex:1 1 auto; }
+html[data-theme="dark"] .appbar-titel{ color:#a9b8ff; }
+
+/* ---------- Werkzeugleiste (ab 600 px) ---------- */
+.detail-werkzeug{ display:flex; flex-wrap:wrap; gap:var(--s2); align-items:center; margin:0 0 var(--s4); }
+.detail-werkzeug .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; text-decoration:none; }
+.btn.disabled, a.disabled{ opacity:.45; pointer-events:none; cursor:default; }
+
+/* ---------- Seitenaufbau ---------- */
+.detail{ display:grid; grid-template-columns:minmax(0,1fr); gap:var(--s4); align-items:start; max-width:1280px; }
+.detail-bild{ margin:0; }
+.bild-knopf{ display:block; width:100%; padding:0; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface-2); cursor:zoom-in; overflow:hidden; }
+.bild-knopf img{ display:block; width:100%; height:auto; max-height:60vh; object-fit:contain; margin:0 auto; }
+.detail-info h1{ margin:0 0 var(--s2); font-size:var(--fs-xl); line-height:1.2; text-align:left; color:var(--text); word-break:break-word; }
+@media (min-width:900px){
+  .detail{ grid-template-columns:minmax(300px,480px) minmax(0,1fr); gap:var(--s5); }
+  .detail.ohne-bild{ grid-template-columns:minmax(0,1fr); }
+  .detail-bild{ position:sticky; top:var(--s4); }
+  .bild-knopf img{ max-height:70vh; }
+}
+
+/* ---------- Chips ---------- */
+.chips-detail{ display:flex; flex-wrap:wrap; gap:var(--s2); margin:0 0 var(--s4); }
+.chip-d{ display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); text-decoration:none; font-size:var(--fs-sm); }
+a.chip-d:hover{ background:var(--neutral-hover); }
+.chip-verkauf{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+.chip-d .ico{ margin:0; }
+
+/* ---------- Daten als Beschreibungsliste in Gruppen ---------- */
+.detail-gruppen{ display:flex; flex-direction:column; gap:var(--s4); }
+.dgruppe{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); overflow:hidden; }
+.dgruppe h2{ margin:0; padding:var(--s2) var(--s4); font-size:var(--fs-base); background:var(--surface-2); border-bottom:1px solid var(--border); }
+.dgruppe dl{ margin:0; padding:var(--s2) var(--s4); }
+.zeile{ display:grid; grid-template-columns:minmax(0,1fr); gap:2px; padding:var(--s2) 0; border-bottom:1px solid var(--border); }
+.zeile:last-child{ border-bottom:0; }
+.zeile dt{ color:var(--muted); font-size:var(--fs-sm); }
+.zeile dd{ margin:0; word-break:break-word; }
+.zeile dd a{ color:var(--link); }
+.zeile dd .ico{ margin-right:4px; vertical-align:-0.2em; }
+@media (min-width:600px){
+  .zeile{ grid-template-columns:minmax(120px,200px) minmax(0,1fr); gap:var(--s4); }
+}
+.verwandt{ margin-top:var(--s4); }
+.verwandt-liste{ display:flex; flex-direction:column; align-items:flex-start; gap:var(--s2); padding:var(--s3) var(--s4); }
+.verwandt-liste .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:var(--r-sm); text-decoration:none; font-weight:600; }
+
+/* ---------- Bild groß (Lightbox) ---------- */
+dialog.lb{ border:0; padding:0; background:transparent; width:100vw; height:100vh; max-width:none; max-height:none; overflow:hidden; }
+dialog.lb::backdrop{ background:rgba(0,0,0,.88); }
+dialog.lb img{ position:absolute; inset:0; margin:auto; max-width:96vw; max-height:92vh; object-fit:contain; }
+.lb-close{ position:absolute; top:max(var(--s3),env(safe-area-inset-top)); right:var(--s3); z-index:2; width:var(--tap); height:var(--tap); border-radius:50%; border:0; background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.lb-close .ico{ width:24px; height:24px; margin:0; }
+
+/* ---------- Löschen bestätigen ---------- */
+dialog.loesch-dialog{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); color:var(--text); padding:var(--s4); max-width:min(92vw,420px); }
+dialog.loesch-dialog::backdrop{ background:rgba(0,0,0,.55); }
+dialog.loesch-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
+.loesch-knoepfe{ display:flex; gap:var(--s2); justify-content:flex-end; margin-top:var(--s4); }
+.loesch-knoepfe .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; }
+
+/* ---------- iPhone: Aktionsleiste unten, Werkzeugleiste aus ---------- */
+.aktionsleiste{ display:none; }
+@media (max-width:599px){
+  body{ padding:12px 12px calc(88px + env(safe-area-inset-bottom)); }
+  .detail-werkzeug{ display:none; }
+  .aktionsleiste{
+    display:flex; position:fixed; left:0; right:0; bottom:0; z-index:1800; background:var(--surface);
+    border-top:1px solid var(--border); padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav.aktionsleiste a, nav.aktionsleiste button{
+    flex:1 1 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:56px;
+    background:none; border:0; color:var(--text); font:inherit; font-size:12px; text-decoration:none; cursor:pointer;
+  }
+  nav.aktionsleiste a.disabled{ opacity:.35; pointer-events:none; }
+  nav.aktionsleiste button[data-loeschen]{ color:var(--danger); }
+  nav.aktionsleiste .ico{ width:24px; height:24px; margin:0; }
+  .detail-info h1{ font-size:var(--fs-lg); }
+}
+/* Wischen zum nächsten/vorherigen Eintrag: senkrechtes Scrollen und Zoomen bleiben erlaubt */
+@media (pointer:coarse){ main{ touch-action:pan-y pinch-zoom; } }

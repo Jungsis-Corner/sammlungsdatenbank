@@ -376,7 +376,8 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=9">
+  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=10">
   <script src="/sammlung/assets/liste.js?v=6" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
