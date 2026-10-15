@@ -1040,7 +1040,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 }
 </style>
 
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 
 

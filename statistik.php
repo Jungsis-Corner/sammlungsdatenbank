@@ -213,7 +213,7 @@ if (!$is_guest) {
       cursor: pointer;
     }
   </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
