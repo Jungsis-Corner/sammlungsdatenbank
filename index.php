@@ -365,7 +365,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=6">
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=7">
   <script src="/sammlung/assets/liste.js?v=5" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
@@ -674,7 +674,7 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
     ?>
       <tr role="row" class="liste-zeile" data-href="<?= $viewHref ?>">
         <td role="cell" class="c-bild"><a class="img-link" href="<?= $viewHref ?>" tabindex="-1" aria-hidden="true"><?= image_img($row['SammlungBild1'] ?? '', $bez, ['widths' => [80, 160, 320], 'sizes' => '(max-width: 599px) 72px, (max-width: 899px) 25vw, 90px']) ?></a></td>
-        <td role="cell" class="c-titel"><a class="titel-link" href="<?= $viewHref ?>"><?= htmlspecialchars($bez) ?></a><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span class="verkauf-tag" title="Zum Verkauf">' . icon('tag', 'Zum Verkauf') . '</span>' : '' ?></td>
+        <td role="cell" class="c-titel<?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' hat-tag' : '' ?>"><a class="titel-link" href="<?= $viewHref ?>"><?= htmlspecialchars($bez) ?></a><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span class="verkauf-tag" title="Zum Verkauf">' . icon('tag', 'Zum Verkauf') . '</span>' : '' ?></td>
         <td role="cell" class="c-kat"><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
         <td role="cell" class="c-zust"><?= htmlspecialchars($zustand[$row['Zustand'] ?? ''] ?? '') ?></td>
         <td role="cell" class="c-jahr"><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>

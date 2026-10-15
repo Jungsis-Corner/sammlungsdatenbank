@@ -162,6 +162,12 @@ table.list tr.liste-zeile{
 .titel-link:hover{ text-decoration:underline; }
 .verkauf-tag{ margin-left:6px; color:var(--primary); }
 .verkauf-tag .ico{ margin:0; }
+/* Karten und Raster: das Verkaufs-Abzeichen sitzt oben rechts auf der Karte, damit der Titel es nicht wegschneidet */
+table.list td.c-titel .verkauf-tag{
+  position:absolute; top:var(--s2); right:var(--s2); margin:0; z-index:2; display:inline-flex; line-height:0;
+  padding:5px; border-radius:999px; background:var(--surface); box-shadow:var(--shadow-1); pointer-events:none;
+}
+table.list td.c-titel.hat-tag{ padding-right:30px; }
 .c-akt{ display:flex; gap:var(--s1); }
 .akt{ display:inline-flex; align-items:center; justify-content:center; width:var(--tap); height:var(--tap); border-radius:var(--r-sm); color:var(--text); text-decoration:none; position:relative; z-index:1; }
 .akt:hover{ background:var(--surface-2); }
@@ -201,6 +207,7 @@ table.list td.c-akt{ display:flex; grid-column:2 / -1; grid-row:3; justify-conte
   .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-zust, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-jahr, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-wert{ grid-column:auto; grid-row:auto; }
   .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) table.list td.c-akt{ grid-column:1 / -1; grid-row:auto; }
   .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-bild img, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-bild svg{ width:100%; height:auto; aspect-ratio:4 / 3; }
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) table.list td.c-titel.hat-tag{ padding-right:0; }
 }
 @media (min-width:900px){
   .liste-ergebnis-inhalt[data-ansicht="raster"] table.list tr.liste-zeile{ grid-template-columns:minmax(0,1fr) auto auto; margin:0; }
@@ -208,6 +215,7 @@ table.list td.c-akt{ display:flex; grid-column:2 / -1; grid-row:3; justify-conte
   .liste-ergebnis-inhalt[data-ansicht="raster"] .c-zust, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-jahr, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-wert{ grid-column:auto; grid-row:auto; }
   .liste-ergebnis-inhalt[data-ansicht="raster"] table.list td.c-akt{ grid-column:1 / -1; grid-row:auto; }
   .liste-ergebnis-inhalt[data-ansicht="raster"] .c-bild img, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-bild svg{ width:100%; height:auto; aspect-ratio:4 / 3; }
+  .liste-ergebnis-inhalt[data-ansicht="raster"] table.list td.c-titel.hat-tag{ padding-right:0; }
 }
 
 /* Tabelle: ab 900 px (Standard) oder ab 600 px, wenn gewählt. Gleicher Block zweimal, weil @media-Bedingungen sich nicht mischen lassen. */
@@ -234,6 +242,8 @@ table.list td.c-akt{ display:flex; grid-column:2 / -1; grid-row:3; justify-conte
   .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt{ display:table-cell; white-space:nowrap; }
   .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt .akt{ display:inline-flex; }
   .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .titel-link::after{ display:none; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list td.c-titel .verkauf-tag{ position:static; display:inline; padding:0; background:transparent; box-shadow:none; margin-left:6px; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list td.c-titel.hat-tag{ padding-right:8px; }
   .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-bild, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-titel, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-kat, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-zust, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-jahr, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-wert, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt{ grid-column:auto; grid-row:auto; }
 }
 @media (min-width:600px) and (max-width:899px){
@@ -259,6 +269,8 @@ table.list td.c-akt{ display:flex; grid-column:2 / -1; grid-row:3; justify-conte
   .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt{ display:table-cell; white-space:nowrap; }
   .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt .akt{ display:inline-flex; }
   .liste-ergebnis-inhalt[data-ansicht="tabelle"] .titel-link::after{ display:none; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list td.c-titel .verkauf-tag{ position:static; display:inline; padding:0; background:transparent; box-shadow:none; margin-left:6px; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list td.c-titel.hat-tag{ padding-right:8px; }
   .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-bild, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-titel, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-kat, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-zust, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-jahr, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-wert, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt{ grid-column:auto; grid-row:auto; }
 }
 @media (min-width:1280px){
