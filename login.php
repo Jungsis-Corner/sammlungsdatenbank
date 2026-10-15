@@ -157,7 +157,7 @@ $to = safe_target($_GET['to'] ?? null);
       cursor: pointer;
     }
   </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
 </head>
 <body style="font-family:system-ui,Arial,sans-serif; max-width:520px; margin:5vh auto; padding:0 16px;">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>

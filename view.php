@@ -264,7 +264,7 @@ function tr_meta_close(): void {
 <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
 <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
 </head>
 <body class="view-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>

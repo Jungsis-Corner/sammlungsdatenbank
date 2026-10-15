@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <link rel="stylesheet" href="/sammlung/assets/admin.css?v=12">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
 <?php include __DIR__ . '/inc_pwa_head.php'; ?>
 <?php if (function_exists('is_museum_mode') && is_museum_mode()): ?>
   <div class="museum-banner">

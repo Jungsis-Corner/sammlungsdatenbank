@@ -79,8 +79,7 @@ html body :is(.btn,.btn-back,.btn-edit,.btn-nav,.btn-wrap,.btn-search,.btn-new,.
 /* Hauptaktion */
 html body :is(.save,.btn-edit,.btn-search,.btn-green,.searchbox button,
               .form-container input[type="submit"],.form-container button[type="submit"],
-              .admin-inline-form input[type="submit"],.admin-inline-form button[type="submit"],
-              .btn-filter.active){
+              .admin-inline-form input[type="submit"],.admin-inline-form button[type="submit"]){
   background:var(--primary);
   color:var(--on-primary);
   border-color:var(--primary);
@@ -122,13 +121,22 @@ html body .theme-toggle{
     background:var(--neutral-hover);
     filter:none;
   }
-  html body :is(.save,.btn-edit,.btn-search,.btn-green,.searchbox button,.btn-filter.active,
+  html body :is(.save,.btn-edit,.btn-search,.btn-green,.searchbox button,
                 .form-container input[type="submit"],.admin-inline-form input[type="submit"],
                 .form-container button[type="submit"],.admin-inline-form button[type="submit"]):hover{
     background:var(--primary-hover);
     filter:none;
   }
   html body :is(.delete,.btn-red):hover{ background:var(--danger-hover); filter:none; }
+}
+
+/* Filterknöpfe: immer neutral, nur der aktive ist blau (steht bewusst nach allen anderen Knopfregeln;
+   die alten Farbklassen btn-green/btn-red usw. an den Filterknöpfen sind damit wirkungslos) */
+html body a.btn-filter{ background:var(--neutral); color:var(--on-neutral); border-color:var(--border); }
+html body a.btn-filter.active{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+@media (hover:hover){
+  html body a.btn-filter:hover{ background:var(--neutral-hover); }
+  html body a.btn-filter.active:hover{ background:var(--primary-hover); }
 }
 
 /* ---------- Fokus: gut sichtbar für Tastatur (nicht für Mausklicks) ---------- */

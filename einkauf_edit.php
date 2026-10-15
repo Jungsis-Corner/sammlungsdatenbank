@@ -403,7 +403,7 @@ if ($selV > 0) {
       color:#777 !important;
     }
   </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=2">
 </head>
 <body class="edit-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
