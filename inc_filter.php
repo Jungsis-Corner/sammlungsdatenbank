@@ -119,6 +119,58 @@ function kategorie_baum(mysqli $conn): array {
     return $out;
 }
 
+/**
+ * Kaskade Marke/Plattform → Plattform → Typ für den Kategorie-Filter der Liste.
+ * Liefert drei Stufen mit Auswahlwerten der Form "<ID>:<inkl>" (inkl = 1: samt Unterkategorien); "" = kein Kategorie-Filter.
+ *   ['s1' => ['wahl' => '318:1', 'optionen' => [[wert, name], ...]],
+ *    's2' => [... , 'leer' => '318:1' (Wert für "alle Plattformen")] | null,
+ *    's3' => [...] | null,
+ *    'pfad' => ['Atari', 'Atari VCS', 'Spiele']]   (Namen von der Wurzel bis zum gewählten Knoten, für die Filter-Chips)
+ * Stufe 1 = Wurzelknoten (Marke oder Plattform ohne Marke), Stufe 2 = Plattformen einer Marke,
+ * Stufe 3 = Typ: Alles (inkl. Unterkategorien) / Hardware & Zubehör (nur der Plattform-Knoten selbst) / die Kinder (Spiele, Anwendungen, Sonstiges).
+ * Die Parameter bleiben kat und inkl; die Filterlogik steht weiter nur in sammlung_filter_where().
+ */
+function kategorie_kaskade(array $baum, int $kat, bool $inkl): array {
+    $nodes = []; $kids = [];
+    foreach ($baum as $n) {
+        $nodes[$n['id']] = $n;
+        $kids[$n['parent'] ?? 0][] = $n['id'];
+    }
+    $wert = fn(int $id, bool $mitKindern) => $id . ':' . (($mitKindern && !empty($kids[$id])) ? '1' : '0');
+    $pfad = [];
+    for ($id = $kat; $id && isset($nodes[$id]) && count($pfad) < 8; $id = $nodes[$id]['parent'] ?? 0) { array_unshift($pfad, $id); }
+    $wurzel = $pfad[0] ?? 0;
+
+    $opt1 = [];
+    foreach ($kids[0] ?? [] as $id) { $opt1[] = [$wert($id, true), $nodes[$id]['name']]; }
+    $out = [
+        's1' => ['wahl' => $wurzel ? $wert($wurzel, true) : '', 'optionen' => $opt1],
+        's2' => null, 's3' => null,
+        'pfad' => array_map(fn($id) => $nodes[$id]['name'], $pfad),
+    ];
+    if (!$wurzel) return $out;
+
+    // Plattform-Knoten: bei einer Marke die zweite Stufe, bei einer Wurzel-Plattform die Wurzel selbst
+    $plattform = 0;
+    if (($nodes[$wurzel]['ebene'] ?? '') === 'marke' && !empty($kids[$wurzel])) {
+        $opt2 = [];
+        foreach ($kids[$wurzel] as $id) { $opt2[] = [$wert($id, true), $nodes[$id]['name']]; }
+        $p2 = $pfad[1] ?? 0;
+        $out['s2'] = ['wahl' => $p2 ? $wert($p2, true) : '', 'leer' => $wert($wurzel, true), 'optionen' => $opt2];
+        $plattform = $p2;
+    } else {
+        $plattform = $wurzel;
+    }
+    if ($plattform && !empty($kids[$plattform])) {
+        $opt3 = [[$plattform . ':1', 'Alles (mit Unterkategorien)'], [$plattform . ':0', 'Hardware & Zubehör']];
+        foreach ($kids[$plattform] as $id) { $opt3[] = [$wert($id, true), $nodes[$id]['name']]; }
+        $typ = $pfad[count($pfad) - 1] ?? 0;
+        $wahl3 = ($typ === $plattform) ? $plattform . ':' . ($inkl ? '1' : '0') : ($typ ? $wert($typ, true) : '');
+        $out['s3'] = ['wahl' => $wahl3, 'optionen' => $opt3];
+    }
+    return $out;
+}
+
 /** Erlaubte Seitengrößen der Liste. */
 const PAGE_SIZES = [25, 50, 100];
 

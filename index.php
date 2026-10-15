@@ -133,33 +133,34 @@ $activeBadges = [];
 
 // Kategorie
 if ($filter === 'spiel') {
-    $activeBadges[] = ['label' => '🎮 Spiel', 'remove' => ['filter' => '']];
+    $activeBadges[] = ['label' => 'Spiel', 'remove' => ['filter' => '']];
 } elseif ($filter === 'spiel_original') {
-    $activeBadges[] = ['label' => '✅ Spiel (Original)', 'remove' => ['filter' => '']];
+    $activeBadges[] = ['label' => 'Spiel (Original)', 'remove' => ['filter' => '']];
 } elseif ($filter === 'spiel_homebrew') {
-    $activeBadges[] = ['label' => '🧪 Spiel (Homebrew)', 'remove' => ['filter' => '']];
+    $activeBadges[] = ['label' => 'Spiel (Homebrew)', 'remove' => ['filter' => '']];
 }
+$kaskade = kategorie_kaskade($katBaum, $kat, $inkl);
 if ($kat > 0 && isset($kategorien[$kat])) {
     $katHatKinder = false;
     foreach ($katBaum as $kn) { if ($kn['id'] === $kat) { $katHatKinder = $kn['kinder'] > 0; break; } }
-    $activeBadges[] = ['label' => '🗂️ ' . $kategorien[$kat] . ($inkl && $katHatKinder ? ' (inkl. Unterkategorien)' : ''), 'remove' => ['kat' => '', 'inkl' => '']];
+    $activeBadges[] = ['label' => implode(' › ', $kaskade['pfad']) . ($inkl && $katHatKinder ? ' (mit Unterkategorien)' : ''), 'remove' => ['kat' => '', 'inkl' => '']];
 }
 
 // Original/Homebrew
 if ($oh === 'Original') {
-    $activeBadges[] = ['label' => '✅ Original', 'remove' => ['oh' => '']];
+    $activeBadges[] = ['label' => 'Original', 'remove' => ['oh' => '']];
 } elseif ($oh === 'Homebrew') {
-    $activeBadges[] = ['label' => '🧪 Homebrew', 'remove' => ['oh' => '']];
+    $activeBadges[] = ['label' => 'Homebrew', 'remove' => ['oh' => '']];
 }
 
 // Material
 if ($material_filter !== '') {
-    $activeBadges[] = ['label' => '🧩 ' . $material_filter, 'remove' => ['material' => '']];
+    $activeBadges[] = ['label' => 'Material: ' . preg_replace('/^Hardware\s*-\s*/u', '', $material_filter), 'remove' => ['material' => '']];
 }
 
 // Suche
 if ($search !== '') {
-    $activeBadges[] = ['label' => '🔎 „' . $search . '“', 'remove' => ['q' => '']];
+    $activeBadges[] = ['label' => 'Suche: „' . $search . '“', 'remove' => ['q' => '']];
 }
 
 // Hersteller/Publisher/Verkäufer/Standort
@@ -167,25 +168,25 @@ $herstellerName = $herstellerId ? lookup_name('Hersteller', 'Hersteller', $herst
 $publisherName  = $publisherId  ? lookup_name('Publisher', 'Publisher', $publisherId) : '';
 $verkaeuferName = $verkaeuferId ? lookup_name('Verkäufer', 'Verkäufer', $verkaeuferId) : '';
 if ($herstellerId && $herstellerName !== '') {
-    $activeBadges[] = ['label' => '🏭 ' . $herstellerName, 'remove' => ['hersteller' => '']];
+    $activeBadges[] = ['label' => 'Hersteller: ' . $herstellerName, 'remove' => ['hersteller' => '']];
 }
 if ($publisherId && $publisherName !== '') {
-    $activeBadges[] = ['label' => '🏷️ ' . $publisherName, 'remove' => ['publisher' => '']];
+    $activeBadges[] = ['label' => 'Publisher: ' . $publisherName, 'remove' => ['publisher' => '']];
 }
 if ($verkaeuferId && $verkaeuferName !== '') {
-    $activeBadges[] = ['label' => '🧑‍💼 ' . $verkaeuferName, 'remove' => ['verkaeufer' => '']];
+    $activeBadges[] = ['label' => 'Verkäufer: ' . $verkaeuferName, 'remove' => ['verkaeufer' => '']];
 }
 if ($standortId && isset($standortList[$standortId])) {
-    $activeBadges[] = ['label' => '📍 ' . $standortList[$standortId], 'remove' => ['standort' => '']];
+    $activeBadges[] = ['label' => 'Standort: ' . $standortList[$standortId], 'remove' => ['standort' => '']];
 }
 if ($boxId !== '') {
-    $activeBadges[] = ['label' => '📦 ' . ($boxList[(int)$boxId] ?? ('Box ' . $boxId)), 'remove' => ['box' => '']];
+    $activeBadges[] = ['label' => '' . ($boxList[(int)$boxId] ?? ('Box ' . $boxId)), 'remove' => ['box' => '']];
 }
 if ($verkaufFilter) {
-    $activeBadges[] = ['label' => '🏷️ Zum Verkauf', 'remove' => ['verkauf' => '']];
+    $activeBadges[] = ['label' => 'Zum Verkauf', 'remove' => ['verkauf' => '']];
 }
 if ($einkaufsdatumFilter !== '') {
-    $activeBadges[] = ['label' => '📅 ' . date('d.m.Y', strtotime($einkaufsdatumFilter)), 'remove' => ['einkaufsdatum' => '']];
+    $activeBadges[] = ['label' => 'Einkauf: ' . date('d.m.Y', strtotime($einkaufsdatumFilter)), 'remove' => ['einkaufsdatum' => '']];
 }
 
 // ---------------------- WHERE ----------------------
@@ -306,12 +307,12 @@ function render_pagination(int $page, int $pages, array $params, bool $mitOption
   echo '</div>';
   if ($mitOptionen) {
       // Seitensprung (GET mit allen aktiven Filtern) und Seitengröße (Cookie pp, gesetzt über ?pp=…)
-      echo '<form method="get" class="pg-optionen" style="margin:6px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">';
+      echo '<form method="get" class="pg-optionen">';
       foreach ($params as $k => $v) {
           if ($k === 'page' || $k === 'pp' || $v === '' || $v === null || is_array($v)) continue;
           echo '<input type="hidden" name="' . htmlspecialchars((string)$k) . '" value="' . htmlspecialchars((string)$v) . '">';
       }
-      echo '<label>Seite <input type="number" name="page" min="1" max="' . $pages . '" value="' . $page . '" style="width:5em;"> von ' . $pages . '</label>';
+      echo '<label>Seite <input type="number" name="page" min="1" max="' . $pages . '" value="' . $page . '"> von ' . $pages . '</label>';
       echo '<button type="submit">Los</button>';
       echo '<span>pro Seite: ';
       $aktuell = page_size();
@@ -364,355 +365,13 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;padding:20px}
-    .logout{float:right}
-    h1{color:blue;text-align:center}
-
-    /* ===== Toolbar (neu) ===== */
-    .toolbar {
-      position: sticky; top: 0;
-      background: #fff;
-      z-index: 5;
-      padding: 12px 12px 10px;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-      margin: 12px 0 16px;
-    }
-    .toolbar-row1 {
-      display: grid;
-      grid-template-columns: minmax(260px, 1fr) auto auto; /* Suche | Stat | Statistik */
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .toolbar-block {
-      display: grid;
-      grid-template-columns: repeat(8, minmax(0,1fr));
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    @media (max-width: 1100px) { .toolbar-block { grid-template-columns: repeat(5, 1fr); } }
-    @media (max-width: 800px)  { .toolbar-block { grid-template-columns: repeat(3, 1fr); } }
-    .toolbar-label { grid-column: 1 / -1; font-weight:700; color:#444; margin-top:4px; }
-
-    /* Ein-/Ausklappbarer Filterbereich */
-    .filter-panel { margin-top: 4px; }
-    .filter-toggle-btn{
-      display:inline-block; padding:8px 12px; border-radius:6px;
-      background:#34495e; color:#fff; border:1px solid #2c3e50;
-      cursor:pointer; font:inherit;
-    }
-    .filter-toggle-btn:hover{ filter:brightness(.96); }
-
-    .searchbox { display:flex; gap:8px; align-items:center; }
-    .searchbox input[type="text"]{
-      width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; font:inherit;
-    }
-    .searchbox button{
-      padding:8px 12px; border:1px solid #0b6d57; background:#16a085; color:#fff; border-radius:6px; cursor:pointer;
-    }
-    .searchbox button:hover{ filter:brightness(.95); }
-
-    .stat { display:inline-flex; gap:10px; align-items:center; font-size:.95em; color:#333; }
-    .stat .chip { display:inline-block; padding:6px 10px; border-radius:999px; background:#f5f5f5; border:1px solid #ddd; }
-
-    .btn-reset {
-      display:inline-block; padding:8px 12px; border-radius:6px;
-      background:#e74c3c; color:#fff; border:1px solid #c0392b; text-decoration:none;
-    }
-    .btn-reset:hover { filter:brightness(.96); }
-
-    .btn-stat {
-      display:inline-block; padding:8px 12px; border-radius:6px;
-      background:#34495e; color:#fff; border:1px solid #2c3e50; text-decoration:none;
-    }
-    .btn-stat:hover { filter:brightness(.96); }
-
-    .btn-filter {
-      display:block; text-align:center; padding:5px 8px; border-radius:5px;
-      color:#fff; text-decoration:none; border:1px solid transparent; font-weight:600;
-      font-size:0.85em;
-    }
-    .btn-filter:hover { filter:brightness(.96); }
-    .btn-filter.active { outline:2px solid rgba(0,0,0,.15); }
-
-    .btn-blue   { background:#3498db; border-color:#2980b9; }
-    .btn-green  { background:#2ecc71; border-color:#27ae60; }
-    .btn-purple { background:#8e44ad; border-color:#6f2f95; }
-    .btn-teal   { background:#16a085; border-color:#0f6f5d; }
-    .btn-orange { background:#f39c12; border-color:#d68910; }
-    .btn-pink   { background:#e91e63; border-color:#ad1457; }
-    .btn-gray   { background:#7f8c8d; border-color:#707b7c; }
-    .btn-red    { background:#c0392b; border-color:#922b21; }
-
-    /* Filter-Zusammenfassung */
-    .filter-summary{
-      display:flex; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; gap:8px;
-      background:#f7f7ff; border:1px solid #cfd2ff; padding:8px 10px; margin:10px 0;
-    }
-    .filter-summary .badges { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .filter-summary strong{ margin-right:6px; }
-    .filter-summary .badge{
-      display:inline-block; padding:2px 8px; border-radius:12px;
-      background:#e8ecff; border:1px solid #bfc7ff; font-size:0.9em;
-      text-decoration:none; color:inherit;
-    }
-    .filter-summary .badge .x{ margin-right:4px; font-weight:bold; }
-    .filter-summary .count{ font-weight:bold; margin-left:8px; }
-    .filter-summary .actions { margin-left:auto; }
-    .filter-summary .btn-new{
-      display:inline-block; background:#6f42c1; color:#fff; padding:6px 10px;
-      border-radius:4px; text-decoration:none; border:1px solid #5832a4;
-    }
-    .filter-summary .btn-new:hover{ filter:brightness(0.95); }
-
-    /* Tabelle */
-    table{ width:100%; table-layout: fixed; border-collapse:collapse; margin-top:10px }
-    th,td{ border:1px solid #888; padding:4px; overflow:hidden; text-overflow: ellipsis; word-break: break-word; }
-    th{ background:#eee; white-space:nowrap; }
-    th a.th-sort{text-decoration:none;color:inherit}
-    th a.th-sort:hover{text-decoration:underline}
-	
-	/* Bildzelle komplett klickbar */
-table.list td.click-open { padding: 0; }
-table.list td.click-open a.img-link{
-  display: block;            /* füllt die ganze Zelle */
-  padding: 4px;              /* entspricht deinen Zell-Paddings */
-  height: 100%;
-  text-decoration: none;
-}
-table.list td.click-open a.img-link:hover{ background: #f5faff; } /* dezentes Hover */
-table.list td.click-open a.img-link:focus{
-  outline: 2px solid #a6c8ff;
-  outline-offset: -2px;
-}
-
-
-    /* Spaltenbreiten via colgroup */
-    .col-icon   { width:36px;  }  /* 🔍/📝/📄/🗑 */
-    .col-img    { width:90px;  }  /* Vorschaubild */
-    .col-title  { width:24%;  }   /* Bezeichnung */
-    .col-cat    { width:17%;  }   /* Kategorie */
-    .col-year   { width:75px; }   /* Jahr */
-    .col-oh     { width:15%;  }   /* Original/Homebrew */
-    .col-mat    { width:12%;  }   /* Material */
-    .col-zust   { width:10%;  }   /* Zustand */
-    .col-vp     { width:12%;  }   /* Verpackung */
-    .col-loc    { width:10%;  }   /* Standort */
-    .col-box    { width:5%;  }    /* Box */
-    .col-date   { width:100px; white-space:nowrap; } /* Einkaufsdatum */
-    .col-wert   { width:80px; white-space:nowrap; }  /* Wert */
-
-    td img { max-width: 80px; height: auto; display:block; }
-
-    .pagination{text-align:center;margin:10px 0}
-    .pagination a{
-      display:inline-block;background:#ddd;padding:4px 10px;margin:3px;
-      text-decoration:none;border:1px solid #aaa;border-radius:4px;
-    }
-	.toolbar-form select {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font: inherit;
-  background: #fff;
-}
-@media (max-width: 1100px) { .toolbar-form { grid-template-columns: repeat(3, 1fr) !important; } }
-@media (max-width: 800px)  { .toolbar-form { grid-template-columns: repeat(2, 1fr) !important; } }
-/* iPad-Breiten: Einkaufsdatum-Spalte ausblenden */
-@media (min-width:768px) and (max-width:1366px) {
-  .index-page table.list th.col-einkaufsdatum,
-  .index-page table.list td.col-einkaufsdatum {
-    display: none;
-  }
-  /* optional: Col ebenfalls ausblenden (Kosmetik) */
-  .index-page table.list col.col-einkaufsdatum { display: none; }
-}
-.back-to-top{
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 20;
-  display: none;                /* wird per JS eingeblendet */
-  padding: 10px 12px;
-  background: #3498db;
-  color:#fff; text-decoration:none;
-  border:1px solid #2980b9; border-radius:8px;
-  font-weight:600;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-.back-to-top:hover{ filter:brightness(.95); }
-.back-to-top.show{ display:inline-block; }
-
-/* größerer Tap-Zielbereich mobil */
-@media (max-width: 900px){
-  .back-to-top{ padding: 14px 16px; right: 12px; bottom: 12px; }
-}
-html { scroll-behavior: smooth; } /* iPadOS 15+ kann das */
-.back-to-top { cursor: pointer; }
-/* Button nur auf Desktop zeigen – iPad/Tablet & Phone ausblenden */
-.desktop-only { display:inline-block; }
-@media (max-width: 1366px){ .desktop-only { display:none !important; } }
-
-/* =========================================================
-   DARK MODE (echte Farben statt Invertierungs-Trick - zuverlässiger)
-   ========================================================= */
-html[data-theme="dark"]{
-  background: #121212 !important;
-}
-html[data-theme="dark"] body{
-  background: #121212 !important;
-  color: #e8e8e8 !important;
-}
-.msg-box{ padding:8px; margin:10px 0; border-radius:6px; }
-.msg-box.success{ background:#eaf9ea; border:1px solid #9cd49c; }
-html[data-theme="dark"] .msg-box.success{
-  background:#0f2a17 !important; border-color:#2d6b3f !important; color:#e8e8e8 !important;
-}
-html[data-theme="dark"] h1{
-  color: #a9b8ff !important;
-}
-html[data-theme="dark"] .logout a,
-html[data-theme="dark"] .logout{
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] .toolbar{
-  background: #1e1e1e !important;
-  border-color: #333 !important;
-}
-html[data-theme="dark"] .toolbar-label{
-  color: #ccc !important;
-}
-html[data-theme="dark"] .searchbox input[type="text"]{
-  background: #2a2a2a !important;
-  color: #e8e8e8 !important;
-  border-color: #444 !important;
-}
-html[data-theme="dark"] .stat{
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] .stat .chip{
-  background: #2a2a2a !important;
-  border-color: #444 !important;
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] .filter-summary{
-  background: #1a1a2e !important;
-  border-color: #33335a !important;
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] .filter-summary .badge{
-  background: #2a2a45 !important;
-  border-color: #44447a !important;
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] table,
-html[data-theme="dark"] th,
-html[data-theme="dark"] td{
-  background: #1a1a1a !important;
-  color: #e8e8e8 !important;
-  border-color: #444 !important;
-}
-html[data-theme="dark"] th{
-  background: #2a2a2a !important;
-}
-html[data-theme="dark"] th a.th-sort{
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] table.list td.click-open a.img-link:hover{
-  background: #2a2a3a !important;
-}
-html[data-theme="dark"] .pagination a{
-  background: #2a2a2a !important;
-  border-color: #555 !important;
-  color: #e8e8e8 !important;
-}
-html[data-theme="dark"] .pagination strong{
-  background: #3a3a3a !important;
-  border-color: #666 !important;
-  color: #fff !important;
-}
-html[data-theme="dark"] .toolbar-form select{
-  background: #2a2a2a !important;
-  color: #e8e8e8 !important;
-  border-color: #444 !important;
-}
-.toolbar-form input[type="date"]{
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font: inherit;
-  background: #fff;
-  box-sizing: border-box;
-  height: 38px;
-}
-html[data-theme="dark"] .toolbar-form input[type="date"]{
-  background: #2a2a2a !important;
-  color: #e8e8e8 !important;
-  border-color: #444 !important;
-}
-.toolbar-form .date-with-clear{ display:flex; gap:6px; align-items:center; }
-.toolbar-form .date-with-clear input[type="date"]{ flex:1 1 auto; min-width:0; }
-.toolbar-form .date-filter-wrap{ display:flex; gap:6px; align-items:center; }
-.toolbar-form .date-filter-wrap > .date-with-clear{ flex:1 1 auto; min-width:0; }
-.toolbar-form .date-filter-wrap > button{ flex:0 0 auto; }
-.toolbar-form .date-clear-btn{
-  flex:0 0 auto; padding:8px 10px; border-radius:6px; min-width:38px;
-  border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-size:0.9em; line-height:1;
-}
-.toolbar-form .date-clear-btn:hover{ background:#eee; }
-html[data-theme="dark"] .toolbar-form .date-clear-btn{
-  background:#2a2a2a !important; border-color:#444 !important; color:#e8e8e8 !important;
-}
-.toolbar-form button{
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f5f5f5;
-  font: inherit;
-  cursor: pointer;
-}
-.toolbar-form button:hover{ background:#eee; }
-html[data-theme="dark"] .toolbar-form button{
-  background:#2a2a2a !important; border-color:#444 !important; color:#e8e8e8 !important;
-}
-.theme-toggle{
-  background: #555 !important;
-  border-color: #333 !important;
-  color: #fff !important;
-}
-.theme-toggle-floating{
-position: fixed;
-bottom: 76px;
-right: 16px;
-z-index: 9999;
-border-radius: 50%;
-width: 44px;
-height: 44px;
-padding: 0;
-font-size: 20px;
-line-height: 42px;
-text-align: center;
-box-shadow: 0 2px 8px rgba(0,0,0,.25);
-border: 1px solid #333;
-cursor: pointer;
-}
-
-  </style>
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=1">
+  <script src="/sammlung/assets/liste.js?v=1" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
 <main id="inhalt">
-
-<div id="offlineBanner" style="display:none; padding:10px; text-align:center;">
-  Offline – es wird ggf. die zuletzt gespeicherte Ansicht angezeigt.
-</div>
 
 <div id="top-marker" aria-hidden="true"></div>
 
@@ -730,7 +389,7 @@ cursor: pointer;
   </div>
 
   <?php if (is_admin()): ?>
-    <a href="einstellungen.php" style="margin-left:20px;font-size:0.8em;text-decoration:none;"><?= icon('settings') ?> Einstellungen</a>
+    <a class="settings-link" href="einstellungen.php"><?= icon('settings') ?> Einstellungen</a>
   <?php endif; ?>
 <?php endif; ?>
 
@@ -742,238 +401,201 @@ cursor: pointer;
 
 <?php $flash = flash_pull(); ?>
 <?php if ($flash): ?>
-  <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" style="text-align:center;" role="status">
+  <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" role="status">
     <?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
- <!-- ===== Toolbar ===== -->
-<div class="toolbar <?= $isMuseum ? 'toolbar-museum' : '' ?>">
 
-  <!-- Zeile 1: Suche | Chips | Reset | (optional Statistik/Export nur außerhalb Museum) -->
-  <div class="toolbar-row1">
-    <form class="searchbox" action="index.php" method="get">
+<?php
+// ----- Hilfen für den Filterbereich -----
+$activeCount  = count($activeBadges);
+$resetKeys    = ['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'];
+$resetHref    = url_remove_only($resetKeys) . ($isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '');
+/** Eine Filteroption (Link); aktiv = hervorgehoben, ein Klick auf die aktive Option hebt sie auf, wenn $abwahl gesetzt ist */
+$opt = function (string $label, bool $aktiv, string $href) {
+    return '<a class="fopt' . ($aktiv ? ' active' : '') . '" href="' . $href . '"' . ($aktiv ? ' aria-current="true"' : '') . '>' . htmlspecialchars($label) . '</a>';
+};
+$mu = $isMuseum ? ['museum' => '1'] : [];
+$gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) ? ' open' : '';
+?>
+
+<!-- ===== Kopfleiste: Suche, Kennzahlen, Export ===== -->
+<div class="topbar <?= $isMuseum ? 'toolbar-museum' : '' ?>">
+  <div class="topbar-row">
+    <form class="searchbox" action="index.php" method="get" role="search">
       <?php
         // aktive Parameter erhalten
-        foreach (['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','sort','dir','einkaufsdatum'] as $keep) {
+        foreach (['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','verkauf','sort','dir','einkaufsdatum'] as $keep) {
           if (!empty($_GET[$keep])) {
             echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
           }
         }
-        // Museum-Flag erhalten
-        if ($isMuseum) {
-          echo '<input type="hidden" name="museum" value="1">';
-        }
+        if ($isMuseum) { echo '<input type="hidden" name="museum" value="1">'; }
       ?>
-      <input type="text" name="q" value="<?= htmlspecialchars((string)($search)) ?>" placeholder="Suchen…">
-      <button type="submit">Suchen</button>
+      <label class="sr-only" for="suchfeld">Suchen</label>
+      <input type="text" id="suchfeld" name="q" value="<?= htmlspecialchars((string)($search)) ?>" placeholder="Suchen…" enterkeyhint="search">
+      <button type="submit"><?= icon('search') ?> Suchen</button>
     </form>
 
     <div class="stat">
       <span class="chip">Einträge: <strong><?= number_format($totalCount,0,',','.') ?></strong></span>
       <span class="chip">mit Jahr: <strong><?= number_format($yearCount,0,',','.') ?></strong></span>
-
       <?php if (!$is_guest && isset($sumValue) && !$isMuseum): ?>
         <span class="chip">Σ&nbsp;Wert: <strong><?= number_format($sumValue,2,',','.') ?> €</strong></span>
       <?php endif; ?>
+    </div>
 
+    <div class="topbar-links">
       <?php if (!$isMuseum && (!$is_guest || guest_export_allowed())): ?>
-        <a class="btn-stat desktop-only" href="export.php?<?= htmlspecialchars(http_build_query($params)) ?>">
-          <?= icon('export') ?> Excel (aktuelle Liste)
+        <a class="btn-stat desktop-only" href="export.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('export') ?> Excel (aktuelle Liste)</a>
+      <?php endif; ?>
+      <?php if (!$isMuseum): ?>
+        <a class="btn-stat" href="statistik.php"><?= icon('stats') ?> Statistik</a>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<div class="liste-layout<?= $filterPanelOpen ? '' : ' filter-collapsed' ?>" id="listeLayout">
+
+  <!-- ===== Filterleiste über der Liste: Knopf, aktive Filter als Chips, Neuer Eintrag ===== -->
+  <div class="liste-kopf">
+    <button type="button" id="filterToggle" class="filter-toggle-btn" aria-controls="filterPanel" aria-expanded="<?= $filterPanelOpen ? 'true' : 'false' ?>">
+      <?= icon('filter') ?> Filter<?php if ($activeCount): ?> <span class="count-badge"><?= (int)$activeCount ?></span><?php endif; ?>
+    </button>
+
+    <div class="chips" aria-label="Aktive Filter">
+      <?php foreach ($activeBadges as $badge):
+        $removeLink = url_remove_only(array_keys($badge['remove'])); ?>
+        <a class="chip-filter" href="<?= $removeLink ?>" title="Diesen Filter entfernen">
+          <?= htmlspecialchars($badge['label']) ?><?= icon('close', 'Filter entfernen') ?>
         </a>
+      <?php endforeach; ?>
+      <?php if ($activeCount > 1): ?>
+        <a class="chip-filter chip-alle" href="<?= $resetHref ?>">Alle Filter löschen</a>
       <?php endif; ?>
     </div>
 
-    <?php if (!$isMuseum): ?>
-      <a class="btn-stat" href="statistik.php"><?= icon('stats') ?> Statistik</a>
+    <span class="treffer" role="status">
+      <?= $activeCount ? 'Treffer: ' . (int)$total : 'Gesamt: ' . (int)$total . ' Einträge' ?>
+    </span>
+    <span class="spacer"></span>
+    <?php if (!$is_guest): ?>
+      <a class="btn-new" href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a>
     <?php endif; ?>
   </div>
 
-  <div id="filterPanel" class="filter-panel"<?= $filterPanelOpen ? '' : ' style="display:none;"' ?>>
+  <div class="filter-backdrop" id="filterBackdrop" hidden></div>
+  <!-- ===== Filter: Seitenleiste (ab 900 px) bzw. Bottom-Sheet ===== -->
+  <aside class="filter-panel" id="filterPanel" aria-label="Filter">
+    <div class="filter-panel-kopf">
+      <span>Filter<?= $activeCount ? ' (' . (int)$activeCount . ')' : '' ?></span>
+      <button type="button" class="btn" data-filter-close>Fertig</button>
+    </div>
 
-  <!-- Zeile 2: Schnellfilter (im Museum lassen wir das drin, aber kompakter) -->
-  <div class="toolbar-block">
-    <div class="toolbar-label">Schnellfilter</div>
-
-    <a class="btn-filter <?= ($filter==='spiel'?'active ':'') ?>btn-blue"   href="<?= $build(['filter'=>'spiel'] + ($isMuseum?['museum'=>'1']:[])) ?>">Spiel</a>
-    <a class="btn-filter <?= ($filter==='spiel_original'?'active ':'') ?>btn-green"  href="<?= $build(['filter'=>'spiel_original'] + ($isMuseum?['museum'=>'1']:[])) ?>">Spiel + Original</a>
-    <a class="btn-filter <?= ($filter==='spiel_homebrew'?'active ':'') ?>btn-purple" href="<?= $build(['filter'=>'spiel_homebrew'] + ($isMuseum?['museum'=>'1']:[])) ?>">Spiel + Homebrew</a>
-    <a class="btn-filter <?= ($filter===''?'active ':'') ?>btn-gray" href="<?= $build(['filter'=>null] + ($isMuseum?['museum'=>'1']:[])) ?>">Kein Spielefilter</a>
-
-    <a class="btn-filter <?= ($oh==='Original'?'active ':'') ?>btn-teal"   href="<?= $build(['oh'=>'Original'] + ($isMuseum?['museum'=>'1']:[])) ?>">Nur Original</a>
-    <a class="btn-filter <?= ($oh==='Homebrew'?'active ':'') ?>btn-orange" href="<?= $build(['oh'=>'Homebrew'] + ($isMuseum?['museum'=>'1']:[])) ?>">Nur Homebrew</a>
-
-    <a class="btn-filter <?= ($verkaufFilter?'active ':'') ?>btn-red" href="<?= $build(['verkauf'=> $verkaufFilter ? null : '1'] + ($isMuseum?['museum'=>'1']:[])) ?>">🏷️ Zum Verkauf</a>
-  </div>
-
-  <!-- Zeile 3: Material-Buttons (im Museum ok) -->
-  <div class="toolbar-block">
-    <div class="toolbar-label">Material</div>
-    <?php
-      $matButtons = [
-        'Hardware - FPGA-Gaming-Handheld','Hardware - Heimcomputer','Hardware - Handheld',
-        'Hardware - IBM kompatibel','Hardware - Konsole','Hardware - Retro-Gaming-Computer',
-        'Hardware - Retro-Gaming-Handheld','Hardware - Retro-Gaming-Konsolen','Hardware - Tragbare Computer',
-        'Literatur'
-      ];
-      $palette = ['btn-blue','btn-green','btn-purple','btn-teal','btn-orange','btn-pink','btn-gray','btn-blue','btn-green','btn-purple'];
-      foreach ($matButtons as $i => $m) {
-        $isActive = ($material_filter === $m);
-        $btnClass = $palette[$i % count($palette)];
-        $label    = preg_replace('/^Hardware\s*-\s*/u','',$m);
-        echo '<a class="btn-filter '.($isActive?'active ':'').$btnClass.'" href="'.$build(['material'=>$m] + ($isMuseum?['museum'=>'1']:[])).'">'
-            .htmlspecialchars($label).'</a>';
-      }
-    ?>
-    <a class="btn-filter btn-gray <?= ($material_filter===''?'active':'') ?>" href="<?= $build(['material'=>null] + ($isMuseum?['museum'=>'1']:[])) ?>">Alle Materialien</a>
-  </div>
-
-  </div><!-- Ende #filterPanel -->
-
-  <!-- Zeile 4: Dropdown-Filter nur außerhalb Museum -->
-  <?php if (!$isMuseum): ?>
-    <div class="toolbar-block">
-      <div class="toolbar-label">Weitere Filter (Dropdown)</div>
-
-      <form class="toolbar-form" method="get" style="grid-column: 1 / -1; display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px; align-items:center;">
-        <?php
-          foreach (['q','sort','dir','filter','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum'] as $keep) {
-            if (isset($_GET[$keep]) && $_GET[$keep] !== '') {
-              echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
-            }
-          }
-        ?>
-
-        <!-- Kategorie -->
-        <div style="display:flex; gap:6px; align-items:center; min-width:0;">
-        <select name="kat" onchange="this.form.submit()" style="flex:1; min-width:0;">
-          <option value="">— alle Kategorien —</option>
-          <?php foreach ($katBaum as $kn): ?><option value="<?= $kn['id'] ?>"<?= $kat === $kn['id'] ? ' selected' : '' ?>><?= str_repeat('&nbsp;&nbsp;', $kn['depth']) . ($kn['depth'] ? '↳ ' : '') . htmlspecialchars($kn['name']) ?></option><?php endforeach; ?>
-        </select>
-        <label style="white-space:nowrap;" title="Auch Einträge aus allen Unterkategorien zeigen">
-          <input type="checkbox" name="inkl" value="1" <?= $inkl ? 'checked' : '' ?> onchange="this.form.submit()"> inkl. Unterkategorien
-        </label>
-        </div>
-
-        <!-- Original/Homebrew -->
-        <select name="oh" onchange="this.form.submit()">
-          <option value="">— Original/Homebrew —</option>
-          <option value="Original" <?= $oh==='Original'?'selected':'' ?>>Original</option>
-          <option value="Homebrew" <?= $oh==='Homebrew'?'selected':'' ?>>Homebrew</option>
-        </select>
-
-        <!-- Material -->
-        <select name="material" onchange="this.form.submit()">
-          <option value="">— Material —</option>
-          <?php foreach($material as $idM=>$nameM): ?>
-            <option value="<?= htmlspecialchars($nameM) ?>" <?= ($material_filter===$nameM?'selected':'') ?>>
-              <?= htmlspecialchars($nameM) ?>
-            </option>
+    <?php if (!$isMuseum): ?>
+    <!-- Kategorie: Marke → Plattform → Typ (Parameter kat und inkl) -->
+    <details class="fgroup"<?= $gruppeOffen($kat > 0, true) ?>>
+      <summary>Kategorie</summary>
+      <?php foreach (['s1' => 'Marke / Plattform', 's2' => 'Plattform', 's3' => 'Typ'] as $stufe => $stufeLabel):
+        $st = $kaskade[$stufe]; if (!$st) continue; ?>
+        <label class="flabel" for="kat-<?= $stufe ?>"><?= $stufeLabel ?></label>
+        <select id="kat-<?= $stufe ?>" data-kat>
+          <?php if ($stufe === 's1'): ?>
+            <option value="">— alle Kategorien —</option>
+          <?php elseif ($stufe === 's2'): ?>
+            <option value="<?= htmlspecialchars($st['leer']) ?>">— alle Plattformen —</option>
+          <?php elseif ($stufe === 's3' && $st['wahl'] === ''): ?>
+            <option value="" selected>— Typ wählen —</option>
+          <?php endif; ?>
+          <?php foreach ($st['optionen'] as [$wert, $name]): ?>
+            <option value="<?= htmlspecialchars($wert) ?>"<?= $wert === $st['wahl'] ? ' selected' : '' ?>><?= htmlspecialchars($name) ?></option>
           <?php endforeach; ?>
         </select>
-
-        <!-- Hersteller, Publisher, Verkäufer: Suchfeld mit Vorschlägen (api_lookup.php) statt Listen mit tausend Einträgen -->
-        <?php foreach ([
-            ['hersteller', 'Hersteller', $herstellerId, $herstellerName],
-            ['publisher',  'Publisher',  $publisherId,  $publisherName],
-            ['verkaeufer', 'Verkäufer',  $verkaeuferId, $verkaeuferName],
-        ] as [$taKey, $taLabel, $taId, $taName]): ?>
-          <?php if ($taKey === 'verkaeufer' && $is_guest && in_array('Verkäufer', guest_hidden_fields(), true)) continue; ?>
-          <?php if ($taId): ?>
-            <button type="button" onclick="location.href='<?= url_remove_only([$taKey]) ?>'" title="Filter entfernen">✖ <?= htmlspecialchars($taLabel) ?>: <?= htmlspecialchars($taName !== '' ? $taName : '#' . $taId) ?></button>
-          <?php else: ?>
-            <input type="text" data-ta="<?= $taKey ?>" data-ta-nav="<?= $taKey ?>" placeholder="<?= htmlspecialchars($taLabel) ?> suchen…" style="width:100%; box-sizing:border-box;" aria-label="<?= htmlspecialchars($taLabel) ?> filtern">
-          <?php endif; ?>
-        <?php endforeach; ?>
-
-        <?php if (!$is_guest): ?>
-          <!-- Standort -->
-          <?php if ($standortId): ?>
-            <button type="button" onclick="location.href='<?= url_remove_only(['standort']) ?>'">✖ Standort entfernen</button>
-          <?php else: ?>
-            <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&standort='+this.value+'&page=1'">
-              <option value="">Standort filtern</option>
-              <?php foreach($standortList as $idS=>$nameS): ?>
-                <option value="<?= $idS ?>"><?= htmlspecialchars($nameS) ?></option>
-              <?php endforeach; ?>
-            </select>
-          <?php endif; ?>
-
-          <!-- Box -->
-          <?php if ($boxId !== ''): ?>
-            <button type="button" onclick="location.href='<?= url_remove_only(['box']) ?>'">✖ Box entfernen</button>
-          <?php else: ?>
-            <select onchange="if(this.value) location.href='?<?= http_build_query($params) ?>&box='+encodeURIComponent(this.value)+'&page=1'">
-              <option value="">Box filtern</option>
-              <?php foreach($boxList as $bId => $bName): ?>
-                <option value="<?= (int)$bId ?>"><?= htmlspecialchars($bName) ?></option>
-              <?php endforeach; ?>
-            </select>
-          <?php endif; ?>
-
-          <!-- Einkaufsdatum -->
-          <?php if ($einkaufsdatumFilter !== ''): ?>
-            <button type="button" onclick="location.href='<?= url_remove_only(['einkaufsdatum']) ?>'">✖ Datum entfernen</button>
-          <?php else: ?>
-            <span class="date-filter-wrap">
-              <input type="date" name="einkaufsdatum" title="Nach Einkaufsdatum suchen">
-              <button type="submit" title="Nach Datum suchen"><?= icon('search','Suchen') ?></button>
-            </span>
-          <?php endif; ?>
-        <?php endif; ?>
-
-        <a class="btn-reset" href="<?= url_remove_only(['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','einkaufsdatum']) ?>" style="text-align:center;">
-          Reset Dropdowns
-        </a>
-      </form>
-    </div>
-  <?php endif; ?>
-
-  <div class="toolbar-block" style="margin-bottom:0;grid-template-columns:auto auto;justify-content:start;">
-    <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
-      <?= icon($filterPanelOpen ? 'chevron-up' : 'chevron-down') ?><span id="filterToggleLabel"><?= $filterPanelOpen ? 'Schnellfilter ausblenden' : 'Schnellfilter anzeigen' ?></span>
-    </button>
-
-    <a class="btn-reset" href="<?= url_remove_only(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
-      Reset alle Filter
-    </a>
-  </div>
-
-</div>
-<!-- ===== Ende Toolbar ===== -->
-
-<?php
-// ----- Filterzusammenfassung + Zählung (bereinigt, benutzt $activeBadges) -----
-$visibleCount = $result ? $result->num_rows : 0;
-$activeCount  = count($activeBadges);
-?>
-<div class="filter-summary">
-  <div class="badges">
-    <?php if ($activeCount): ?>
-      <strong>Aktive Filter (<?= (int)$activeCount ?>):</strong>
-      <?php foreach ($activeBadges as $badge):
-        $removeKeys = array_keys($badge['remove']); // z. B. ['oh'] oder ['filter']
-        $removeLink = url_remove_only($removeKeys);
-      ?>
-        <a class="badge" href="<?= $removeLink ?>" title="Diesen Filter entfernen">
-          <span class="x">×</span> <?= htmlspecialchars($badge['label']) ?>
-        </a>
       <?php endforeach; ?>
-      <span class="count">
-        Treffer gesamt: <?= (int)$total ?> • Diese Seite: <?= (int)$visibleCount ?>
-      </span>
-      <a class="badge" href="<?= url_remove_only(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?>" title="Alle Filter löschen">Alle Filter löschen</a>
-    <?php else: ?>
-      <strong>Keine aktiven Filter.</strong>
-      <span class="count">Gesamt: <?= (int)$total ?> Einträge</span>
+    </details>
     <?php endif; ?>
-  </div>
 
-  <?php if (!$is_guest): ?>
-    <div class="actions">
-      <a class="btn-new" href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a>
+    <!-- Spiele und Herkunft -->
+    <details class="fgroup" open>
+      <summary>Spiele und Herkunft</summary>
+      <div class="fopts">
+        <?= $opt('Spiel', $filter === 'spiel', $build(['filter' => 'spiel'] + $mu)) ?>
+        <?= $opt('Spiel + Original', $filter === 'spiel_original', $build(['filter' => 'spiel_original'] + $mu)) ?>
+        <?= $opt('Spiel + Homebrew', $filter === 'spiel_homebrew', $build(['filter' => 'spiel_homebrew'] + $mu)) ?>
+        <?= $opt('Kein Spielefilter', $filter === '', $build(['filter' => null] + $mu)) ?>
+      </div>
+      <div class="fopts">
+        <?= $opt('Nur Original', $oh === 'Original', $build(['oh' => $oh === 'Original' ? null : 'Original'] + $mu)) ?>
+        <?= $opt('Nur Homebrew', $oh === 'Homebrew', $build(['oh' => $oh === 'Homebrew' ? null : 'Homebrew'] + $mu)) ?>
+        <a class="fopt<?= $verkaufFilter ? ' active' : '' ?>" href="<?= $build(['verkauf' => $verkaufFilter ? null : '1'] + $mu) ?>"<?= $verkaufFilter ? ' aria-current="true"' : '' ?>><?= icon('tag') ?> Zum Verkauf</a>
+      </div>
+    </details>
+
+    <!-- Material -->
+    <details class="fgroup"<?= $gruppeOffen($material_filter !== '', true) ?>>
+      <summary>Material</summary>
+      <div class="fopts">
+        <?= $opt('Alle Materialien', $material_filter === '', $build(['material' => null] + $mu)) ?>
+        <?php foreach ($material as $nameM):
+          $labelM = preg_replace('/^Hardware\s*-\s*/u', '', (string)$nameM); ?>
+          <?= $opt($labelM, $material_filter === $nameM, $build(['material' => $nameM] + $mu)) ?>
+        <?php endforeach; ?>
+      </div>
+    </details>
+
+    <?php if (!$isMuseum): ?>
+    <!-- Hersteller, Publisher, Verkäufer: Suchfeld mit Vorschlägen (api_lookup.php) -->
+    <details class="fgroup"<?= $gruppeOffen($herstellerId || $publisherId || $verkaeuferId) ?>>
+      <summary>Hersteller und Publisher</summary>
+      <?php foreach ([
+          ['hersteller', 'Hersteller', $herstellerId, $herstellerName],
+          ['publisher',  'Publisher',  $publisherId,  $publisherName],
+          ['verkaeufer', 'Verkäufer',  $verkaeuferId, $verkaeuferName],
+      ] as [$taKey, $taLabel, $taId, $taName]): ?>
+        <?php if ($taKey === 'verkaeufer' && $is_guest && in_array('Verkäufer', guest_hidden_fields(), true)) continue; ?>
+        <label class="flabel" for="ta-<?= $taKey ?>"><?= htmlspecialchars($taLabel) ?></label>
+        <?php if ($taId): ?>
+          <a class="fopt active" href="<?= url_remove_only([$taKey]) ?>" title="Filter entfernen"><?= htmlspecialchars($taName !== '' ? $taName : '#' . $taId) ?> <?= icon('close', 'Filter entfernen') ?></a>
+        <?php else: ?>
+          <input type="text" id="ta-<?= $taKey ?>" data-ta="<?= $taKey ?>" data-ta-nav="<?= $taKey ?>" placeholder="<?= htmlspecialchars($taLabel) ?> suchen…">
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </details>
+
+    <?php if (!$is_guest): ?>
+    <!-- Besitz: Standort, Box, Einkaufsdatum -->
+    <details class="fgroup"<?= $gruppeOffen($standortId > 0 || $boxId !== '' || $einkaufsdatumFilter !== '') ?>>
+      <summary>Standort und Einkauf</summary>
+      <label class="flabel" for="f-standort">Standort</label>
+      <select id="f-standort" data-nav="standort">
+        <option value="">— alle —</option>
+        <?php foreach ($standortList as $idS => $nameS): ?>
+          <option value="<?= (int)$idS ?>"<?= $standortId === (int)$idS ? ' selected' : '' ?>><?= htmlspecialchars($nameS) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <label class="flabel" for="f-box">Box</label>
+      <select id="f-box" data-nav="box">
+        <option value="">— alle —</option>
+        <?php foreach ($boxList as $bId => $bName): ?>
+          <option value="<?= (int)$bId ?>"<?= ($boxId !== '' && (int)$boxId === (int)$bId) ? ' selected' : '' ?>><?= htmlspecialchars($bName) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <label class="flabel" for="f-datum">Einkaufsdatum</label>
+      <input type="date" id="f-datum" data-nav="einkaufsdatum" value="<?= htmlspecialchars($einkaufsdatumFilter) ?>">
+    </details>
+    <?php endif; ?>
+    <?php endif; ?>
+
+    <a class="filter-reset btn-reset" href="<?= $resetHref ?>">Alle Filter zurücksetzen</a>
+
+    <div class="filter-panel-fuss">
+      <a class="btn-reset btn" href="<?= $resetHref ?>">Zurücksetzen</a>
+      <button type="button" class="btn save" data-filter-close>Ergebnisse anzeigen (<?= (int)$total ?>)</button>
     </div>
-  <?php endif; ?>
-</div>
+  </aside>
+
+  <div class="liste-ergebnis">
 
   <!-- Pagination OBERHALB der Tabelle -->
   <?php render_pagination($page, $pages, $params); ?>
@@ -986,7 +608,7 @@ $activeCount  = count($activeBadges);
       if (!empty($_GET[$p])) $ctx[$p] = $_GET[$p];
   }
 ?>
-<table class="list" data-ctx="<?= htmlspecialchars(json_encode($ctx), ENT_QUOTES, 'UTF-8') ?>">
+<table class="list" data-ctx="<?= htmlspecialchars(json_encode($ctx), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
     <colgroup>
   <col class="col-icon"><!-- 🔍 -->
   <?php if (!$is_guest): ?>
@@ -1078,7 +700,7 @@ if (!empty($_SESSION['museum_mode'])) {
     <?= image_img($row['SammlungBild1'] ?? '', (string)($row['Bezeichnung'] ?? ''), ['height' => 60, 'widths' => [80, 160]]) ?>
   </a>
 </td>
-        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">🏷️</span>' : '' ?></td>
+        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">' . icon('tag', 'Zum Verkauf') . '</span>' : '' ?></td>
         <td><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
         <td><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
         <td><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
@@ -1116,91 +738,8 @@ if (!empty($_SESSION['museum_mode'])) {
 
 <a href="#top-marker" class="back-to-top" aria-label="Nach oben"><?= icon('up') ?> Nach oben</a>
 
-<script>
-(function(){
-  var btn   = document.getElementById('filterToggleBtn');
-  var panel = document.getElementById('filterPanel');
-  if (!btn || !panel) return;
-
-  btn.addEventListener('click', function(){
-    var isOpen = panel.style.display !== 'none';
-    var next   = !isOpen;
-    panel.style.display = next ? '' : 'none';
-    var lbl = document.getElementById('filterToggleLabel'), use = btn.querySelector('use');
-    if (lbl) lbl.textContent = next ? 'Schnellfilter ausblenden' : 'Schnellfilter anzeigen';
-    if (use) use.setAttribute('href', next ? '#i-chevron-up' : '#i-chevron-down');
-    document.cookie = 'filterPanelOpen=' + (next ? '1' : '0') + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
-  });
-})();
-</script>
-
-<script>
-(function(){
-  const btn = document.querySelector('.back-to-top');
-  if(!btn) return;
-
-  const rootEl = document.documentElement; // <html>
-
-  function toggle(){
-    if ((window.scrollY || rootEl.scrollTop || document.body.scrollTop) > 400) {
-      btn.classList.add('show');
-    } else {
-      btn.classList.remove('show');
-    }
-  }
-  window.addEventListener('scroll', toggle, {passive:true});
-  toggle();
-
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-
-    // 1) iOS/Allgemein: direkt das Fenster scrollen
-    if (typeof window.scrollTo === 'function') {
-      try {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch(_) {
-        window.scrollTo(0, 0);
-      }
-    }
-
-    // 2) Zusätzliche Absicherung für Safari
-    rootEl.scrollTop = 0;
-    document.body.scrollTop = 0;
-
-    // 3) Ultimativer Fallback: Anker setzen
-    // (hilft, falls JS unterdrückt/fehlschlägt)
-    if (location.hash !== '#top-marker') {
-      setTimeout(() => { location.hash = '#top-marker'; }, 60);
-    }
-  });
-})();
-</script>
-<script>
-// Zeilenaktionen (Duplizieren/Löschen) per POST mit CSRF-Token statt per GET-Link
-(function () {
-  var CSRF = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
-  document.addEventListener('click', function (e) {
-    var a = e.target.closest ? e.target.closest('a.row-action') : null;
-    if (!a) return;
-    e.preventDefault();
-    if (a.dataset.confirm && !confirm(a.dataset.confirm)) return;
-    var tbl = a.closest('table');
-    var p = JSON.parse((tbl && tbl.dataset.ctx) || '{}');   // Filter, Seite, Sortierung (einmal an der Tabelle)
-    p.id = a.dataset.id;
-    p.csrf = CSRF;
-    var f = document.createElement('form');
-    f.method = 'post';
-    f.action = a.dataset.action;
-    Object.keys(p).forEach(function (k) {
-      var i = document.createElement('input');
-      i.type = 'hidden'; i.name = k; i.value = p[k];
-      f.appendChild(i);
-    });
-    document.body.appendChild(f);
-    f.submit();
-  });
-})();
-</script>
+  </div><!-- Ende .liste-ergebnis -->
+</div><!-- Ende .liste-layout -->
 <?php include __DIR__ . '/inc_pwa_footer.php'; ?>
 </main>
 </body>
