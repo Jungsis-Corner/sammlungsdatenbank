@@ -313,7 +313,7 @@ function render_pagination(int $page, int $pages, array $params, bool $mitOption
           echo '<input type="hidden" name="' . htmlspecialchars((string)$k) . '" value="' . htmlspecialchars((string)$v) . '">';
       }
       echo '<label>Seite <input type="number" name="page" min="1" max="' . $pages . '" value="' . $page . '"> von ' . $pages . '</label>';
-      echo '<button type="submit">Los</button>';
+      echo '<button type="submit" class="btn">Los</button>';
       echo '<span>pro Seite: ';
       $aktuell = page_size();
       foreach (PAGE_SIZES as $n) {
@@ -365,7 +365,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=4">
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=5">
   <script src="/sammlung/assets/liste.js?v=5" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
@@ -658,7 +658,7 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
         $aria = ($sort === $ck) ? ($dir === 'asc' ? ' aria-sort="ascending"' : ' aria-sort="descending"') : ''; ?>
         <th scope="col" class="<?= $cClass ?>"<?= $aria ?>><?= sort_link($ck, $cLabel, $sort, $dir, $params) ?></th>
       <?php endforeach; ?>
-      <th scope="col" class="c-akt"><span class="sr-only">Aktionen</span></th>
+      <?php if (!$is_guest): ?><th scope="col" class="c-akt"><span class="sr-only">Aktionen</span></th><?php endif; ?>
     </tr>
   </thead>
   <tbody>
@@ -691,14 +691,14 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
             if (!empty($row['Einkaufsdatum']) && $row['Einkaufsdatum'] !== '0000-00-00') { echo date('d.m.Y', strtotime($row['Einkaufsdatum'])); }
           ?></td>
         <?php endif; ?>
+        <?php if (!$is_guest): ?>
         <td role="cell" class="c-akt">
-          <a class="akt akt-ansehen" href="<?= $viewHref ?>" title="Ansehen"><?= icon('eye', 'Ansehen') ?></a>
           <?php if (!$is_guest): ?>
             <a class="akt" href="edit.php?<?= htmlspecialchars(http_build_query($rowP)) ?>" title="Bearbeiten"><?= icon('edit', 'Bearbeiten') ?></a>
-            <a class="akt row-action" href="#" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren"><?= icon('copy', 'Duplizieren') ?></a>
             <a class="akt row-action" href="#" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>" title="Löschen"><?= icon('trash', 'Löschen') ?></a>
           <?php endif; ?>
         </td>
+        <?php endif; ?>
       </tr>
     <?php endwhile; echo preg_replace('~>\s+<~', '><', preg_replace('~\s{2,}~', ' ', ob_get_clean())); /* Leerraum der Zeilen entfernen */ ?>
   </tbody>
