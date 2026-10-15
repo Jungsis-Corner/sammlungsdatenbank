@@ -164,3 +164,5 @@ html[data-theme="dark"] .pagination strong{ background:#3a3a3a !important; borde
   position:fixed; bottom:76px; right:16px; z-index:9999; border-radius:50%; width:44px; height:44px; padding:0;
   box-shadow:0 2px 8px rgba(0,0,0,.25); cursor:pointer;
 }
+
+.filter-panel.ohne-animation{ transition:none !important; }

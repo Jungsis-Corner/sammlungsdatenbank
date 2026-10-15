@@ -79,6 +79,24 @@
       if (e.key === 'Escape' && sheetOffen()) { sheetSchliessen(); if (toggle.focus) toggle.focus(); }
     });
     if (breit.addEventListener) breit.addEventListener('change', function () { if (breit.matches) sheetSchliessen(); });
+
+    // Sheet bleibt über das Neuladen offen (Wahl treffen lädt die Seite neu; sonst müsste man für Marke → Plattform → Typ dreimal öffnen).
+    // Gemerkt wird beim Verlassen der Seite, ob das Sheet offen war; schließen (Fertig, Esc, Hintergrund) vergisst es.
+    var MERKER = 'listeFilterSheet';
+    window.addEventListener('pagehide', function () {
+      try { if (sheetOffen()) sessionStorage.setItem(MERKER, '1'); else sessionStorage.removeItem(MERKER); } catch (_) {}
+    });
+    try {
+      if (!breit.matches && sessionStorage.getItem(MERKER) === '1') {
+        sessionStorage.removeItem(MERKER);
+        panel.classList.add('is-open', 'ohne-animation');
+        if (backdrop) backdrop.hidden = false;
+        document.body.classList.add('sheet-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        // Animation erst danach wieder erlauben
+        setTimeout(function () { panel.classList.remove('ohne-animation'); }, 50);
+      }
+    } catch (_) {}
   }
 
   /* ---------- Nach oben ---------- */

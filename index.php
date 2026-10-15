@@ -365,8 +365,8 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=2">
-  <script src="/sammlung/assets/liste.js?v=3" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=3">
+  <script src="/sammlung/assets/liste.js?v=4" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
