@@ -93,7 +93,7 @@ body.museum .searchbox input{ font-size:18px; padding:12px; }
 .filter-backdrop{ display:none; }
 
 /* Unter 900 px: Filter als Bottom-Sheet */
-@media (max-width:899px){
+@media (max-width:1279px){
   .liste-layout,.liste-layout.filter-collapsed{ grid-template-columns:minmax(0,1fr); }
   .liste-layout.filter-collapsed .filter-panel{ display:block; }
   .filter-panel{

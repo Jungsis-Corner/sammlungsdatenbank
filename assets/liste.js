@@ -3,7 +3,7 @@
  *
  *  - select[data-nav="<Parameter>"], input[data-nav="<Parameter>"]: Wert ändern → Seite mit diesem Parameter neu laden (leer = Parameter entfernen), Seite 1
  *  - select[data-kat]: Kategorie-Kaskade; Wert "<ID>:<inkl>" setzt kat und inkl (leer = beide entfernen)
- *  - #filterToggle: ab 900 px Seitenleiste ein-/ausklappen (Cookie filterPanelOpen), darunter Bottom-Sheet öffnen
+ *  - #filterToggle: ab 1280 px Seitenleiste ein-/ausklappen (Cookie filterPanelOpen), darunter Bottom-Sheet öffnen
  *  - a.back-to-top: Knopf "Nach oben"
  *  - a.row-action: Duplizieren/Löschen per POST mit CSRF-Token (aus data-csrf an der Tabelle)
  */
@@ -39,7 +39,7 @@
   var panel = document.getElementById('filterPanel');
   var toggle = document.getElementById('filterToggle');
   var backdrop = document.getElementById('filterBackdrop');
-  var breit = window.matchMedia ? window.matchMedia('(min-width: 900px)') : { matches: true };
+  var breit = window.matchMedia ? window.matchMedia('(min-width: 1280px)') : { matches: true };
 
   function sheetOffen() { return panel && panel.classList.contains('is-open'); }
   function sheetSchliessen() {
@@ -58,6 +58,8 @@
     if (f && f.focus) f.focus();
   }
   if (panel && toggle && layout) {
+    // Startzustand: breit = Seitenleiste sichtbar (außer eingeklappt), schmal = Sheet geschlossen
+    toggle.setAttribute('aria-expanded', breit.matches ? (layout.classList.contains('filter-collapsed') ? 'false' : 'true') : 'false');
     toggle.addEventListener('click', function () {
       if (breit.matches) {
         var zu = layout.classList.toggle('filter-collapsed');
