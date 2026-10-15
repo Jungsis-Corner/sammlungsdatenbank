@@ -324,7 +324,7 @@ nav.pagination a:hover{ background:var(--neutral-hover); }
 
 /* ---------- iPhone (unter 600 px): mitlaufende obere Leiste, untere Navigation, Seitenwechsel am unteren Rand ---------- */
 @media (max-width:599px){
-  body{ padding:12px 12px calc(150px + env(safe-area-inset-bottom)); }
+  body{ padding:12px 12px calc(200px + env(safe-area-inset-bottom)); }
   .appbar{
     position:sticky; top:0; z-index:1500; background:var(--bg); margin:0 -12px var(--s2); padding:var(--s2) 12px;
     padding-top:calc(var(--s2) + env(safe-area-inset-top)); border-bottom:1px solid var(--border);
@@ -351,6 +351,14 @@ nav.pagination a:hover{ background:var(--neutral-hover); }
   }
   .pagination-unten .pg-nummern, .pagination-unten .pg-erste, .pagination-unten .pg-letzte{ display:none; }
   .pagination-unten .pg-info{ flex:1; text-align:center; }
-  .back-to-top{ bottom:calc(130px + env(safe-area-inset-bottom)); right:12px; padding:14px 16px; }
+  .back-to-top{
+    bottom:calc(136px + env(safe-area-inset-bottom)); right:12px; width:44px; height:44px; padding:0; border-radius:50%;
+    font-size:0; line-height:0; align-items:center; justify-content:center;
+  }
+  .back-to-top.show{ display:inline-flex; }
+  html body .back-to-top{ border-radius:50%; }
+  .back-to-top .ico{ width:22px; height:22px; margin:0; }
+  /* „Hinzufügen“ steckt in der unteren Leiste */
+  .liste-kopf .btn-new, .neu-unten{ display:none; }
 }
 @media (prefers-reduced-motion:reduce){ .appbar{ transition:none; } }

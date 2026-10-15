@@ -376,7 +376,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=8">
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=9">
   <script src="/sammlung/assets/liste.js?v=6" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
@@ -700,7 +700,7 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
 <?php endif; /* Ende: Treffer vorhanden */ ?>
 
   <?php if (!$is_guest): ?>
-    <p><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a></p>
+    <p class="neu-unten"><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a></p>
   <?php endif; ?>
 
 <a href="#top-marker" class="back-to-top" aria-label="Nach oben"><?= icon('up') ?> Nach oben</a>
