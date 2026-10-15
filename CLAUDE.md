@@ -41,6 +41,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Der Service Worker cached Assets cache-first. Eine unversionierte URL wird nie neu geladen.
 - `sw.js` wird mit `updateViaCache: "none"` registriert (`inc_pwa_footer.php`), weil Strato es sonst mit 30 Tagen HTTP-Cache ausliefert. `assets/.htaccess` ergänzt die Kompression für `text/javascript` (die Liste in der `.htaccess` im App-Ordner kennt nur `application/javascript`). Nach Header-Änderungen immer per `curl -sI -H "Accept-Encoding: gzip" <URL>` prüfen (`content-encoding`, `cache-control`).
 - Bei Änderungen an `base.css`: `?v=N` in **allen** Seiten hochzählen, die sie einbinden (alle Seiten außer reinen Skripten, `inc_head_admin.php` eingeschlossen). `theme-toggle.js` steht auf `?v=5`.
+- **Massenersetzungen** (`sed -i`, Skripte) nie auf `*.php` oder andere Platzhalter anwenden, sondern nur auf Dateien, die das Suchmuster wirklich enthalten (`grep -l <Muster> | xargs sed -i ...`) oder die einzeln benannt sind. `sed -i` schreibt jede Datei neu und setzt den Zeitstempel, auch ohne Treffer; das berührt `config.php`, `wp-config.php` und andere lokale Dateien und lässt den FileZilla-Vergleich fast alles als geändert markieren. Vorher mit `grep -l` prüfen, welche Dateien betroffen sind.
 - Vor Abschluss einer solchen Änderung per Suche prüfen, dass keine Einbindung ohne `?v=` übrig ist.
 
 ## Regeln: Frontend
