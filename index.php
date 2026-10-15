@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
@@ -342,7 +343,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 
 <?php
@@ -703,8 +704,11 @@ cursor: pointer;
 }
 
   </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
 
 <div id="offlineBanner" style="display:none; padding:10px; text-align:center;">
   Offline – es wird ggf. die zuletzt gespeicherte Ansicht angezeigt.
@@ -714,19 +718,19 @@ cursor: pointer;
 
 <?php if (!empty($_SESSION['museum_mode'])): ?>
   <div class="logout">
-    <a href="/sammlung/museum/exit.php">⏹ Museum beenden</a>
+    <a href="/sammlung/museum/exit.php"><?= icon('close') ?> Museum beenden</a>
   </div>
 <?php else: ?>
   <div class="logout">
     <?php if ($is_guest): ?>
-      <a href="logout.php">🚪 Zur Anmeldung</a>
+      <a href="logout.php"><?= icon('logout') ?> Zur Anmeldung</a>
     <?php else: ?>
-      <a href="logout.php">🚪 Logout</a>
+      <a href="logout.php"><?= icon('logout') ?> Logout</a>
     <?php endif; ?>
   </div>
 
   <?php if (is_admin()): ?>
-    <a href="einstellungen.php" style="margin-left:20px;font-size:0.8em;text-decoration:none;">⚙️ Einstellungen</a>
+    <a href="einstellungen.php" style="margin-left:20px;font-size:0.8em;text-decoration:none;"><?= icon('settings') ?> Einstellungen</a>
   <?php endif; ?>
 <?php endif; ?>
 
@@ -774,13 +778,13 @@ cursor: pointer;
 
       <?php if (!$isMuseum && (!$is_guest || guest_export_allowed())): ?>
         <a class="btn-stat desktop-only" href="export.php?<?= htmlspecialchars(http_build_query($params)) ?>">
-          ⬇️ Excel (aktuelle Liste)
+          <?= icon('export') ?> Excel (aktuelle Liste)
         </a>
       <?php endif; ?>
     </div>
 
     <?php if (!$isMuseum): ?>
-      <a class="btn-stat" href="statistik.php">📊 Statistik</a>
+      <a class="btn-stat" href="statistik.php"><?= icon('stats') ?> Statistik</a>
     <?php endif; ?>
   </div>
 
@@ -912,7 +916,7 @@ cursor: pointer;
           <?php else: ?>
             <span class="date-filter-wrap">
               <input type="date" name="einkaufsdatum" title="Nach Einkaufsdatum suchen">
-              <button type="submit" title="Nach Datum suchen">🔍</button>
+              <button type="submit" title="Nach Datum suchen"><?= icon('search','Suchen') ?></button>
             </span>
           <?php endif; ?>
         <?php endif; ?>
@@ -926,7 +930,7 @@ cursor: pointer;
 
   <div class="toolbar-block" style="margin-bottom:0;grid-template-columns:auto auto;justify-content:start;">
     <button type="button" id="filterToggleBtn" class="filter-toggle-btn">
-      <?= $filterPanelOpen ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen' ?>
+      <?= icon($filterPanelOpen ? 'chevron-up' : 'chevron-down') ?><span id="filterToggleLabel"><?= $filterPanelOpen ? 'Schnellfilter ausblenden' : 'Schnellfilter anzeigen' ?></span>
     </button>
 
     <a class="btn-reset" href="<?= url_remove_only(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum']) ?><?= $isMuseum ? (strpos($_SERVER['REQUEST_URI'],'?')===false ? '?museum=1' : '') : '' ?>" style="text-align:center;">
@@ -966,7 +970,7 @@ $activeCount  = count($activeBadges);
 
   <?php if (!$is_guest): ?>
     <div class="actions">
-      <a class="btn-new" href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>">➕ Neuer Eintrag</a>
+      <a class="btn-new" href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a>
     </div>
   <?php endif; ?>
 </div>
@@ -1009,10 +1013,10 @@ $activeCount  = count($activeBadges);
 </colgroup>
 
     <tr>
-      <th>🔍</th>
+      <th><?= icon('eye','Ansehen') ?></th>
       <?php if (!$is_guest): ?>
-        <th>📝</th>
-        <th>📄</th>
+        <th><?= icon('edit','Bearbeiten') ?></th>
+        <th><?= icon('copy','Duplizieren') ?></th>
       <?php endif; ?>
       <th>Bild</th>
       <?php
@@ -1042,7 +1046,7 @@ $activeCount  = count($activeBadges);
     echo '<th'.$thClass.'>'.sort_link($key, $label, $sort, $dir, $params).'</th>';
   }
   if (!$is_guest) {
-    echo '<th>🗑️</th>';
+    echo '<th>' . icon('trash', 'Löschen') . '</th>';
   }
 ?>
 
@@ -1063,11 +1067,11 @@ if (!empty($_SESSION['museum_mode'])) {
 ?>
 
 <td>
-  <a href="view.php?<?= http_build_query($paramsView) ?>">🔍</a>
+  <a href="view.php?<?= http_build_query($paramsView) ?>" title="Ansehen"><?= icon('eye','Ansehen') ?></a>
 </td>
         <?php if (!$is_guest): ?>
-          <td><a href="edit.php?<?= http_build_query($rowP) ?>">📝</a></td>
-          <td><a href="#" class="row-action" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren">📄</a></td>
+          <td><a href="edit.php?<?= http_build_query($rowP) ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a></td>
+          <td><a href="#" class="row-action" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren"><?= icon('copy','Duplizieren') ?></a></td>
         <?php endif; ?>
         <td class="click-open">
   <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
@@ -1096,7 +1100,7 @@ if (!empty($_SESSION['museum_mode'])) {
 
 <?php if (!$is_guest): ?>
   <td><?= htmlspecialchars(fmt_dec($row['Wert'] ?? null)) ?></td>
-  <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>">🗑️</a></td>
+  <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>" title="Löschen"><?= icon('trash','Löschen') ?></a></td>
 <?php endif; ?>
 
       </tr>
@@ -1107,10 +1111,10 @@ if (!empty($_SESSION['museum_mode'])) {
   <?php render_pagination($page, $pages, $params, true); ?>
 
   <?php if (!$is_guest): ?>
-    <p><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>">➕ Neuer Eintrag</a></p>
+    <p><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a></p>
   <?php endif; ?>
 
-<a href="#top-marker" class="back-to-top" aria-label="Nach oben">↑ Nach oben</a>
+<a href="#top-marker" class="back-to-top" aria-label="Nach oben"><?= icon('up') ?> Nach oben</a>
 
 <script>
 (function(){
@@ -1122,7 +1126,9 @@ if (!empty($_SESSION['museum_mode'])) {
     var isOpen = panel.style.display !== 'none';
     var next   = !isOpen;
     panel.style.display = next ? '' : 'none';
-    btn.textContent = next ? '🔼 Schnellfilter ausblenden' : '🔽 Schnellfilter anzeigen';
+    var lbl = document.getElementById('filterToggleLabel'), use = btn.querySelector('use');
+    if (lbl) lbl.textContent = next ? 'Schnellfilter ausblenden' : 'Schnellfilter anzeigen';
+    if (use) use.setAttribute('href', next ? '#i-chevron-up' : '#i-chevron-down');
     document.cookie = 'filterPanelOpen=' + (next ? '1' : '0') + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
   });
 })();
@@ -1196,5 +1202,6 @@ if (!empty($_SESSION['museum_mode'])) {
 })();
 </script>
 <?php include __DIR__ . '/inc_pwa_footer.php'; ?>
+</main>
 </body>
 </html>

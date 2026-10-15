@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 
 
 date_default_timezone_set('Europe/Berlin');
@@ -261,17 +262,20 @@ function tr_meta_close(): void {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-<script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body class="view-page">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
   <h1><?= htmlspecialchars($data['Bezeichnung'] ?? '') ?></h1>
 
   <!-- Toolbar oben -->
   <div class="toolbar">
-    <a class="btn-back" href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>">← Zurück zur Liste</a>
+    <a class="btn-back" href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>"><?= icon('back') ?> Zurück zur Liste</a>
     <?php if (!$is_guest): ?>
-    <a class="btn-edit" href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params,['id'=>$id]))) ?>">📝 Bearbeiten</a>
+    <a class="btn-edit" href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params,['id'=>$id]))) ?>"><?= icon('edit') ?> Bearbeiten</a>
     <?php endif; ?>
 
     <?php
@@ -285,31 +289,31 @@ function tr_meta_close(): void {
     <a class="btn-nav<?= $first_id && $id!=$first_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($firstHref) ?>"
        <?= ($first_id && $id!=$first_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= ($first_id && $id!=$first_id) ? 'Erster Datensatz' : 'Kein erster Datensatz' ?>">« Erste</a>
+       title="<?= ($first_id && $id!=$first_id) ? 'Erster Datensatz' : 'Kein erster Datensatz' ?>"><?= icon('back') ?> Erste</a>
 
     <a class="btn-nav<?= $prev_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($prevHref) ?>"
        <?= $prev_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= $prev_id ? 'Vorheriger Datensatz' : 'Kein vorheriger Datensatz' ?>">◀️ Vorheriger</a>
+       title="<?= $prev_id ? 'Vorheriger Datensatz' : 'Kein vorheriger Datensatz' ?>"><?= icon('back') ?> Vorheriger</a>
 
     <a class="btn-nav<?= $next_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($nextHref) ?>"
        <?= $next_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= $next_id ? 'Nächster Datensatz' : 'Kein nächster Datensatz' ?>">Nächster ▶️</a>
+       title="<?= $next_id ? 'Nächster Datensatz' : 'Kein nächster Datensatz' ?>">Nächster <?= icon('forward') ?></a>
 
     <a class="btn-nav<?= $last_id && $id!=$last_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($lastHref) ?>"
        <?= ($last_id && $id!=$last_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="<?= ($last_id && $id!=$last_id) ? 'Letzter Datensatz' : 'Kein letzter Datensatz' ?>">Letzte »</a>
+       title="<?= ($last_id && $id!=$last_id) ? 'Letzter Datensatz' : 'Kein letzter Datensatz' ?>">Letzte <?= icon('forward') ?></a>
 
     <?php if (!empty($data['Hersteller']) && !empty($data['HerstellerName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['hersteller'=>(int)$data['Hersteller']])) ?>">🔎 Alle von Hersteller: <?= htmlspecialchars($data['HerstellerName']) ?></a>
+      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['hersteller'=>(int)$data['Hersteller']])) ?>"><?= icon('search') ?> Alle von Hersteller: <?= htmlspecialchars($data['HerstellerName']) ?></a>
     <?php endif; ?>
     <?php if (!empty($data['Publisher']) && !empty($data['PublisherName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['publisher'=>(int)$data['Publisher']])) ?>">🔎 Alle vom Publisher: <?= htmlspecialchars($data['PublisherName']) ?></a>
+      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['publisher'=>(int)$data['Publisher']])) ?>"><?= icon('search') ?> Alle vom Publisher: <?= htmlspecialchars($data['PublisherName']) ?></a>
     <?php endif; ?>
     <?php if (!empty($data['Verkäufer']) && !empty($data['VerkaeuferName'])): ?>
-      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['verkaeufer'=>(int)$data['Verkäufer']])) ?>">🔎 Alle vom Verkäufer: <?= htmlspecialchars($data['VerkaeuferName']) ?></a>
+      <a class="btn-search" href="<?= htmlspecialchars(link_to_index_with($params, ['verkaeufer'=>(int)$data['Verkäufer']])) ?>"><?= icon('search') ?> Alle vom Verkäufer: <?= htmlspecialchars($data['VerkaeuferName']) ?></a>
     <?php endif; ?>
   </div>
 
@@ -432,5 +436,6 @@ tr_meta('Link zu YouTube', $ytHtml, true);
     <button class="lb-close" aria-label="Schließen">×</button>
     <img id="lbImg" alt="">
   </div>
+</main>
 </body>
 </html>

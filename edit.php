@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 
 // ---- (Optional) PHP-Zeitzone setzen ----
 date_default_timezone_set('Europe/Berlin');
@@ -971,7 +972,8 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+<title><?= $id === 0 ? 'Neuer Eintrag' : 'Bearbeiten: „' . htmlspecialchars(trim((string)($data['Bezeichnung'] ?? '')), ENT_QUOTES, 'UTF-8') . '“' ?> – Sammlung</title>
+<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
 
@@ -1038,11 +1040,14 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 }
 </style>
 
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 
 
 
 <body class="edit-page">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
   <h1><?= $id===0 ? 'Neuer Eintrag' : 'Eintrag bearbeiten' ?></h1>
 
   <?php if ($flashMsg !== ''): ?>
@@ -1060,61 +1065,61 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
     <!-- KEIN data-nocheck -> warnen, wenn Änderungen ungespeichert -->
     <a class="btn back"
        href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>"
-       title="Zurück zur Liste">← Zurück</a>
+       title="Zurück zur Liste"><?= icon('back') ?> Zurück</a>
 
     <button type="submit" class="btn save"
             form="f" name="post_action" value="stay"
-            title="Speichern">💾 Speichern</button>
+            title="Speichern"><?= icon('save') ?> Speichern</button>
 
     <button type="submit" class="btn save"
             form="f" name="post_action" value="next"
             <?= $next_id ? '' : 'disabled' ?>
-            title="Speichern und zum nächsten Datensatz springen">💾 Speichern & Nächster ▶️</button>
+            title="Speichern und zum nächsten Datensatz springen"><?= icon('save') ?> Speichern &amp; Nächster <?= icon('forward') ?></button>
 
     <?php if ($id > 0): ?>
       <!-- Anzeigen darf ohne Warnung sein -->
       <a class="btn view" data-nocheck
          href="<?= htmlspecialchars($viewUrl) ?>"
-         title="Eintrag ansehen">👁️ Anzeigen</a>
+         title="Eintrag ansehen"><?= icon('eye') ?> Anzeigen</a>
     <?php endif; ?>
 
     <!-- Navigation: KEIN data-nocheck -> warnen, wenn Änderungen ungespeichert -->
     <a class="btn nav<?= ($id !== $first_id) ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($firstHref) ?>"
        <?= ($id !== $first_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Erster Datensatz">⏮️ Erster</a>
+       title="Erster Datensatz"><?= icon('back') ?> Erster</a>
 
     <a class="btn nav<?= $prev_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($prevHref) ?>"
        <?= $prev_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Vorheriger Datensatz">◀️ Vorheriger</a>
+       title="Vorheriger Datensatz"><?= icon('back') ?> Vorheriger</a>
 
     <a class="btn nav<?= $next_id ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($nextHref) ?>"
        <?= $next_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Nächster Datensatz">Nächster ▶️</a>
+       title="Nächster Datensatz">Nächster <?= icon('forward') ?></a>
 
     <a class="btn nav<?= ($id !== $last_id) ? '' : ' disabled' ?>"
        href="<?= htmlspecialchars($lastHref) ?>"
        <?= ($id !== $last_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Letzter Datensatz">Letzter ⏭️</a>
+       title="Letzter Datensatz">Letzter <?= icon('forward') ?></a>
   </div>
 
   <!-- Zeile 2 -->
   <div class="row row-secondary">
     <button type="submit" form="f" name="action" value="dup"
             class="btn dup"
-            title="als neuen Eintrag speichern">📄 Als NEU speichern</button>
+            title="als neuen Eintrag speichern"><?= icon('copy') ?> Als NEU speichern</button>
 
     <button type="submit" form="f" name="action" value="dup_keepcost"
             class="btn dupplus"
-            title="als neuen Eintrag speichern (mit Datum/Preis/Wert)">📄+ NEU (mit Datum/Preis/Wert)</button>
+            title="als neuen Eintrag speichern (mit Datum/Preis/Wert)"><?= icon('copy') ?> NEU (mit Datum/Preis/Wert)</button>
 
     <!-- Neuer Eintrag: meist ohne Warnung ok; wenn du warnen willst -> data-nocheck entfernen -->
     <a class="btn new" data-nocheck
        title="Neuer Eintrag ohne Übernahme"
        href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params, ['id'=>0,'from'=>'new']))) ?>">
-       ➕ Neuer Eintrag (leer)
+       <?= icon('plus') ?> Neuer Eintrag (leer)
     </a>
 
     <?php $igdbQuery = $_GET; unset($igdbQuery['msg']); ?>
@@ -1123,7 +1128,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="igdb">
         <button type="submit" class="btn igdb" data-nocheck
-                title="Beschreibung aus IGDB importieren (summary)">🔎 IGDB holen</button>
+                title="Beschreibung aus IGDB importieren (summary)"><?= icon('search') ?> IGDB holen</button>
       </form>
 
       <?php
@@ -1141,7 +1146,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
           <input type="hidden" name="<?= htmlspecialchars((string)$dk) ?>" value="<?= htmlspecialchars((string)$dv) ?>">
         <?php endforeach; ?>
         <button type="submit" class="btn delete" data-nocheck
-                title="Diesen Datensatz löschen">🗑️ Löschen</button>
+                title="Diesen Datensatz löschen"><?= icon('trash') ?> Löschen</button>
       </form>
     <?php endif; ?>
   </div>
@@ -1295,15 +1300,15 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       >
 
       <div class="barcode-actions">
-        <button type="button" class="btn secondary" id="startScanBtn">📷 Scannen</button>
-        <button type="button" class="btn secondary" id="stopScanBtn" hidden>✖ Scan beenden</button>
-        <button type="button" class="btn secondary" id="torchBtn" hidden>🔦 Licht an</button>
+        <button type="button" class="btn secondary" id="startScanBtn"><?= icon('camera') ?> Scannen</button>
+        <button type="button" class="btn secondary" id="stopScanBtn" hidden><?= icon('close') ?> Scan beenden</button>
+        <button type="button" class="btn secondary" id="torchBtn" hidden><?= icon('flash') ?><span id="torchLabel">Licht an</span></button>
       </div>
 
       <div id="barcodeScanWrap" class="barcode-scan-wrap" hidden>
         <video id="barcodeVideo" autoplay playsinline muted></video>
         <div class="barcode-hint">Barcode mittig vor die Kamera halten.</div>
-        <button type="button" class="btn secondary" id="captureBtn">📸 Foto aufnehmen &amp; auswerten</button>
+        <button type="button" class="btn secondary" id="captureBtn"><?= icon('camera') ?> Foto aufnehmen &amp; auswerten</button>
       </div>
       <canvas id="barcodeCanvas" hidden></canvas>
 
@@ -1382,6 +1387,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
   const video     = document.getElementById('barcodeVideo');
   const statusBox = document.getElementById('barcodeStatus');
   const torchBtn  = document.getElementById('torchBtn');
+  const torchLabel = document.getElementById('torchLabel');
   const captureBtn = document.getElementById('captureBtn');
   const canvas     = document.getElementById('barcodeCanvas');
 
@@ -1426,7 +1432,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       torchTrack = track;
       torchBtn.hidden = false;
       torchOn = false;
-      torchBtn.textContent = '🔦 Licht an';
+      torchLabel.textContent = 'Licht an';
     } else {
       torchBtn.hidden = true;
     }
@@ -1437,7 +1443,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
     try {
       torchOn = !torchOn;
       await torchTrack.applyConstraints({ advanced: [{ torch: torchOn }] });
-      torchBtn.textContent = torchOn ? '🔦 Licht aus' : '🔦 Licht an';
+      torchLabel.textContent = torchOn ? 'Licht aus' : 'Licht an';
     } catch (e) {
       setStatus('Blitzlicht konnte nicht umgeschaltet werden.', 'err');
     }
@@ -1472,7 +1478,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 
     torchTrack = null;
     torchOn = false;
-    if (torchBtn) { torchBtn.hidden = true; torchBtn.textContent = '🔦 Licht an'; }
+    if (torchBtn) { torchBtn.hidden = true; torchLabel.textContent = 'Licht an'; }
     if (captureBtn) captureBtn.hidden = true;
 
     wrap.hidden     = true;
@@ -1734,5 +1740,6 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
   }, true);
 })();
 </script>
+</main>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
 require_once __DIR__ . '/config.php';
@@ -8,8 +9,8 @@ require_once __DIR__ . '/config.php';
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Einstellungen</title>
-    <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+    <title>Einstellungen – Sammlung</title>
+    <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
     <style>
         body { font-family: Arial; font-size: 10pt; padding: 20px; }
         h1 { text-align: center; color: #333; margin-bottom: 20px; }
@@ -72,11 +73,14 @@ require_once __DIR__ . '/config.php';
           cursor: pointer;
         }
     </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body>
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
     <h1>Einstellungen</h1>
     <div class="button-center">
-        <a href="index.php">← Zurück zur Sammlung</a>
+        <a href="index.php"><?= icon('back') ?> Zurück zur Sammlung</a>
     </div>
     <div class="nav">
         <a href="manage_hersteller.php">Hersteller verwalten</a>
@@ -92,5 +96,6 @@ require_once __DIR__ . '/config.php';
         <a href="einkauf.php">Einkäufe verwalten</a>
         <a href="bildpruefung.php">Bildprüfung</a>
     </div>
+</main>
 </body>
 </html>

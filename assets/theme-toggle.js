@@ -8,11 +8,20 @@
     return m ? decodeURIComponent(m[1]) : null;
   }
 
+  // Icons (Inline-SVG, feste Strings; kein Icon-Font)
+  var SVG_MOON = '<svg class="ico ico-solo" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>';
+  var SVG_SUN  = '<svg class="ico ico-solo" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var SVG_X    = '<svg class="ico ico-solo" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  function paintToggle(btn, theme){
+    btn.innerHTML = theme === 'dark' ? SVG_SUN : SVG_MOON;
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln');
+  }
+
   function setTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
     document.cookie = 'theme=' + theme + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
     var btn = document.getElementById('themeToggle');
-    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (btn) paintToggle(btn, theme);
   }
 
   // Sofort ausfuehren (Script blockiert das Parsen, laeuft also vor dem CSS-Link,
@@ -44,7 +53,7 @@
       document.documentElement.appendChild(btn);
     }
     var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    btn.textContent = current === 'dark' ? '☀️' : '🌙';
+    paintToggle(btn, current);
     btn.addEventListener('click', function(){
       var now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
       setTheme(now === 'dark' ? 'light' : 'dark');
@@ -64,7 +73,8 @@
       clearBtn.type = 'button';
       clearBtn.className = 'date-clear-btn';
       clearBtn.title = 'Datum leeren';
-      clearBtn.textContent = '✖';
+      clearBtn.innerHTML = SVG_X;
+      clearBtn.setAttribute('aria-label', 'Datum leeren');
       clearBtn.addEventListener('click', function(){
         inp.value = '';
         inp.dispatchEvent(new Event('input',  { bubbles: true }));

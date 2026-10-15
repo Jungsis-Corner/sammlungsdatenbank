@@ -7,6 +7,7 @@
  * stehen in Links (go.php, Blog).
  */
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_filter.php';
@@ -198,22 +199,23 @@ $flash = flash_pull();
 </head>
 <body class="admin-page">
 
-  <main class="page">
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+  <main class="page" id="inhalt">
 
     <header class="admin-header">
       <h1>Kategorien verwalten</h1>
       <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray">← Zur Sammlung</a>
+        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
       </div>
     </header>
 
     <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue">← Zurück zu Einstellungen</a>
+      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
       <form method="get" class="top-bar-search">
         <input type="text" name="q" placeholder="Kategorien suchen…" value="<?= htmlspecialchars($search) ?>">
-        <button type="submit" class="btn is-small">🔍</button>
+        <button type="submit" class="btn is-small" title="Suchen"><?= icon('search','Suchen') ?></button>
         <?php if ($search !== ''): ?>
-          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'">✖</button>
+          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'" title="Suche zurücksetzen"><?= icon('close','Zurücksetzen') ?></button>
         <?php endif; ?>
       </form>
     </div>
@@ -266,12 +268,12 @@ $flash = flash_pull();
               <td><?= htmlspecialchars(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></td>
               <td class="is-numeric"><?= (int)($eigene[$n['id']] ?? 0) ?></td>
               <td class="actions">
-                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= $n['id'] ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" title="Bearbeiten">✏️</a>
+                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= $n['id'] ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
                 <form method="post" action="<?= htmlspecialchars($self) ?><?= $search !== '' ? '?q=' . urlencode($search) : '' ?>" style="display:inline; margin:0;"
                       onsubmit="return confirm('Wirklich löschen?')">
                   <?= csrf_field() ?>
                   <input type="hidden" name="delete" value="<?= $n['id'] ?>">
-                  <button type="submit" class="btn is-small btn-red" title="Löschen">🗑️</button>
+                  <button type="submit" class="btn is-small btn-red" title="Löschen"><?= icon('trash','Löschen') ?></button>
                 </form>
               </td>
             </tr>

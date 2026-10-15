@@ -1,4 +1,4 @@
-const CACHE_NAME = "sammlung-pwa-v7";
+const CACHE_NAME = "sammlung-pwa-v8";
 // Miniaturen (thumb.php) und lokale Bilder (medien/): eigener Cache mit Obergrenze, bleibt bei Updates bestehen
 const IMG_CACHE = "sammlung-img-v1";
 const IMG_CACHE_MAX = 200;

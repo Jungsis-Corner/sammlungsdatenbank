@@ -2,6 +2,7 @@
 // einkauf_edit.php — Neu/Bearbeiten für Tabelle `Einkauf` + Blättern (vor/zurück) im Kontext von einkauf.php
 
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
@@ -373,7 +374,7 @@ if ($selV > 0) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
   <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
 
@@ -402,8 +403,11 @@ if ($selV > 0) {
       color:#777 !important;
     }
   </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body class="edit-page">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
 
 <h1><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h1>
 
@@ -422,7 +426,7 @@ if ($selV > 0) {
 
 <div class="buttons">
   <div class="row row-main">
-    <a class="btn back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>">← Zurück</a>
+    <a class="btn back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>"><?= icon('back') ?> Zurück</a>
 
     <?php if ($id > 0): ?>
       <?php if ($prevId > 0): ?>
@@ -438,7 +442,7 @@ if ($selV > 0) {
       <?php endif; ?>
     <?php endif; ?>
 
-    <button type="submit" class="btn save" form="f">💾 Speichern</button>
+    <button type="submit" class="btn save" form="f"><?= icon('save') ?> Speichern</button>
   </div>
 </div>
 
@@ -565,5 +569,6 @@ if ($selV > 0) {
   </div>
 </form>
 
+</main>
 </body>
 </html>

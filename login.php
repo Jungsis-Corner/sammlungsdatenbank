@@ -118,9 +118,9 @@ $to = safe_target($_GET['to'] ?? null);
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>Login</title>
+  <title>Anmeldung – Sammlung</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
   <style>
     html[data-theme="dark"]{
       background: #121212 !important;
@@ -157,8 +157,11 @@ $to = safe_target($_GET['to'] ?? null);
       cursor: pointer;
     }
   </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body style="font-family:system-ui,Arial,sans-serif; max-width:520px; margin:5vh auto; padding:0 16px;">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
   <h1>Login</h1>
 
   <?php if ($error): ?>
@@ -175,5 +178,6 @@ $to = safe_target($_GET['to'] ?? null);
   <p style="margin-top:1rem">
     Oder <a href="login.php?autologin=gast&to=<?=rawurlencode($to)?>">als Gast fortfahren</a>
   </p>
+</main>
 </body>
 </html>

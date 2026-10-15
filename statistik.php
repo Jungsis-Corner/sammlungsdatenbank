@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_filter.php';   // kategorie_baum()
 $is_guest = is_guest();
@@ -155,8 +156,8 @@ if (!$is_guest) {
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Statistik</title>
-  <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+  <title>Statistik – Sammlung</title>
+  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
   <style>
     body { font-family: Arial; font-size: 10pt; padding: 20px; }
     h1 { text-align: center; margin-bottom: 30px; }
@@ -212,8 +213,11 @@ if (!$is_guest) {
       cursor: pointer;
     }
   </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body>
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
   <h1>📈 Statistik</h1>
 
   <!-- Übersicht -->
@@ -310,6 +314,7 @@ if (!$is_guest) {
     <p class="center"><strong><?= number_format((float)$wert, 2, ',', '.') ?> €</strong></p>
   <?php endif; ?>
 
-  <p class="center"><a href="index.php">🔙 Zurück</a></p>
+  <p class="center"><a href="index.php"><?= icon('back') ?> Zurück</a></p>
+</main>
 </body>
 </html>

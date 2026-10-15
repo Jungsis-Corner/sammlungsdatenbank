@@ -8,6 +8,7 @@
  * Es wird nichts geändert oder gelöscht.
  */
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
@@ -87,7 +88,7 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
     foreach (array_slice($zeilen, 0, BILD_MAX_ZEILEN) as $z) {
         echo '<tr><td class="col-id is-numeric">' . (int)$z['ID'] . '</td><td>' . $e($z['Bezeichnung'] ?? '') . '</td><td>' . $e($z['SammlungBild1']) . '</td>'
            . ($mitGroesse ? '<td class="is-numeric">' . number_format($z['groesse'] / 1048576, 1, ',', '.') . ' MB</td>' : '')
-           . '<td><a class="btn is-small" href="edit.php?id=' . (int)$z['ID'] . '" title="Bearbeiten">✏️</a></td></tr>';
+           . '<td><a class="btn is-small" href="edit.php?id=' . (int)$z['ID'] . '" title="Bearbeiten">' . icon('edit','Bearbeiten') . '</a></td></tr>';
     }
     echo '</tbody></table></div>';
     if ($gesamt > BILD_MAX_ZEILEN) echo '<p class="center">Angezeigt: ' . BILD_MAX_ZEILEN . ' von ' . $gesamt . '.</p>';
@@ -99,16 +100,17 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
   <?php $page_title = 'Bildprüfung'; include __DIR__ . '/inc_head_admin.php'; ?>
 </head>
 <body class="admin-page">
-  <main class="page">
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+  <main class="page" id="inhalt">
 
     <header class="admin-header">
       <h1>Bildprüfung</h1>
       <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray">← Zur Sammlung</a>
+        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
       </div>
     </header>
     <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue">← Zurück zu Einstellungen</a>
+      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
     </div>
     <?php if ($flash): ?>
       <div class="msg-box <?= $e($flash['type']) ?>" role="status"><?= $e($flash['text']) ?></div>

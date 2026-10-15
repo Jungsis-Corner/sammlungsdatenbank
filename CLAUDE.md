@@ -28,6 +28,9 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - `.gitattributes`: Zeilenenden auf LF vereinheitlicht (`* text=auto eol=lf`)
 - `schema.sql`: Datenbankstruktur (ohne Daten und ohne `bak_*`-Sicherungstabellen), bildet den Stand nach allen Migrationen ab und trägt sie am Ende als eingespielt in `schema_migrations` ein
 - `migrations/`: nummerierte Migrationen und `migrations/README.md` (Ablauf, Sicherungstabellen, Wartungsmodus)
+- `assets/base.css`: Design-Fundament (Phase 5a), **auf jeder Seite als Letztes** eingebunden (nach `app.css`/`admin.css` und nach dem Inline-`<style>`). Enthält die Design-Tokens (`--bg`, `--text`, `--primary`, `--danger`, `--neutral`, `--s1`…`--s6`, `--r-sm`, `--tap` …, hell und unter `html[data-theme="dark"]`), vereinheitlicht alle Knopfklassen (eine Hauptfarbe `--primary` für die Hauptaktion, neutrale Zweitknöpfe, Rot nur für Löschen; die alten Klassen wie `btn-blue`, `save`, `nav` bleiben gültig und werden hier umgefärbt), `:focus-visible`, Touch-Flächen (44 px bei `pointer:coarse`), `.skip-link`, `.sr-only`, `.ico`. Neue Farben immer als Token, keine festen Hex-Werte in neuen Regeln.
+- `inc_icons.php`: `icon('name')` gibt ein Inline-SVG aus dem Sprite aus (`icon('trash','Löschen')` für Icon ohne Text, mit unsichtbarem Text für Screenreader); das Sprite wird beim ersten Aufruf einmal geschrieben. Neue Icons in `ICON_PATHS` ergänzen. Kein Emoji in Knöpfen und Menüs, kein Icon-Font.
+- Seitengerüst: jede Seite hat `<a class="skip-link" href="#inhalt">` und `<main id="inhalt">` und einen sprechenden `<title>` („… – Sammlung“).
 - `manifest.php`: dynamisches PWA-Manifest
 - `assets/`: CSS und JS (`app.css`, `theme-toggle.js`)
 
@@ -37,6 +40,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Bei Änderungen an `theme-toggle.js`: `?v=N` an **allen** Seiten hochzählen, die das Skript einbinden (u. a. `edit.php`, `view.php`, `index.php`, `einkauf.php`, `einkauf_edit.php`, `statistik.php`, `einstellungen.php`, `inc_head_admin.php`). **Zusätzlich** `CACHE_NAME` in `sw.js` erhöhen. Beides immer zusammen.
 - Der Service Worker cached Assets cache-first. Eine unversionierte URL wird nie neu geladen.
 - `sw.js` wird mit `updateViaCache: "none"` registriert (`inc_pwa_footer.php`), weil Strato es sonst mit 30 Tagen HTTP-Cache ausliefert. `assets/.htaccess` ergänzt die Kompression für `text/javascript` (die Liste in der `.htaccess` im App-Ordner kennt nur `application/javascript`). Nach Header-Änderungen immer per `curl -sI -H "Accept-Encoding: gzip" <URL>` prüfen (`content-encoding`, `cache-control`).
+- Bei Änderungen an `base.css`: `?v=N` in **allen** Seiten hochzählen, die sie einbinden (alle Seiten außer reinen Skripten, `inc_head_admin.php` eingeschlossen). `theme-toggle.js` steht auf `?v=5`.
 - Vor Abschluss einer solchen Änderung per Suche prüfen, dass keine Einbindung ohne `?v=` übrig ist.
 
 ## Regeln: Frontend

@@ -23,6 +23,7 @@
 if (!isset($cfg) || !is_array($cfg)) { http_response_code(500); exit('Konfiguration fehlt.'); }
 
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
@@ -229,22 +230,23 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
 </head>
 <body class="admin-page">
 
-  <main class="page"><!-- zentriert & breite begrenzt -->
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+  <main class="page" id="inhalt"><!-- zentriert & breite begrenzt -->
 
     <header class="admin-header">
       <h1><?= htmlspecialchars($cfg['title']) ?></h1>
       <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray">← Zur Sammlung</a>
+        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
       </div>
     </header>
 
     <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue">← Zurück zu Einstellungen</a>
+      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
       <form method="get" class="top-bar-search">
         <input type="text" name="q" placeholder="<?= htmlspecialchars($cfg['search_ph']) ?>" value="<?= htmlspecialchars($search) ?>">
-        <button type="submit" class="btn is-small">🔍</button>
+        <button type="submit" class="btn is-small" title="Suchen"><?= icon('search','Suchen') ?></button>
         <?php if ($search !== ''): ?>
-          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'">✖</button>
+          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'" title="Suche zurücksetzen"><?= icon('close','Zurücksetzen') ?></button>
         <?php endif; ?>
       </form>
     </div>
@@ -293,12 +295,12 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
               <td><?= htmlspecialchars($row[$cfg['column']] ?? '') ?></td>
               <td class="is-numeric"><?= (int)$row['Verwendet'] ?></td>
               <td class="actions">
-                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten">✏️</a>
+                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
                 <form method="post" action="<?= htmlspecialchars($self) ?>?q=<?= urlencode($search) ?><?= $pageParam ?>" style="display:inline; margin:0;"
                       onsubmit="return confirm('Wirklich löschen?')">
                   <?= csrf_field() ?>
                   <input type="hidden" name="delete" value="<?= (int)$row['ID'] ?>">
-                  <button type="submit" class="btn is-small btn-red" title="Löschen">🗑️</button>
+                  <button type="submit" class="btn is-small btn-red" title="Löschen"><?= icon('trash','Löschen') ?></button>
                 </form>
               </td>
             </tr>

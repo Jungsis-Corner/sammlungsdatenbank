@@ -2,6 +2,7 @@
 // einkauf.php — Liste / Inbox für Tabelle `Einkauf`
 
 require_once __DIR__ . '/inc_errors.php';
+require_once __DIR__ . '/inc_icons.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
@@ -290,7 +291,7 @@ function build_href_with(array $set): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js?v=4"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
   <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
   <title>Einkäufe – Sammlung</title>
 
@@ -419,15 +420,18 @@ function build_href_with(array $set): string {
       color: #8ab4ff !important;
     }
   </style>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=1">
 </head>
 <body>
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<main id="inhalt">
 
 <h1>Einkäufe</h1>
 
 <div class="buttons">
   <div class="row row-main">
-    <a class="btn back" href="einstellungen.php" title="Zurück zu Einstellungen">← Zurück</a>
-    <a class="btn new" href="einkauf_edit.php?id=0&back=<?= urlencode('einkauf.php') ?>" title="Neuen Einkauf anlegen">➕ Neuer Einkauf</a>
+    <a class="btn back" href="einstellungen.php" title="Zurück zu Einstellungen"><?= icon('back') ?> Zurück</a>
+    <a class="btn new" href="einkauf_edit.php?id=0&back=<?= urlencode('einkauf.php') ?>" title="Neuen Einkauf anlegen"><?= icon('plus') ?> Neuer Einkauf</a>
   </div>
 </div>
 
@@ -591,17 +595,17 @@ function build_href_with(array $set): string {
           <td class="col-mini"><?= $mkToggle('Kickstarter', (int)($r['Kickstarter'] ?? 0)) ?></td>
 
           <td class="col-action">
-            <a class="btn" href="einkauf_edit.php?id=<?= $id ?>&back=<?= urlencode($self) ?>">✏️</a>
+            <a class="btn" href="einkauf_edit.php?id=<?= $id ?>&back=<?= urlencode($self) ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
             <form method="post" action="einkauf_delete.php" style="margin:0; display:inline;"
                   onsubmit="return confirm('Einkauf wirklich löschen?');">
               <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= $id ?>">
               <input type="hidden" name="back" value="<?= htmlspecialchars($self, ENT_QUOTES, 'UTF-8') ?>">
-              <button type="submit" class="btn" title="Einkauf löschen">🗑️</button>
+              <button type="submit" class="btn" title="Einkauf löschen"><?= icon('trash','Löschen') ?></button>
             </form>
             <a class="btn" href="<?= htmlspecialchars($transferHref, ENT_QUOTES, 'UTF-8') ?>"
                target="_blank" rel="noopener"
-               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Einkaufspreis und Wert) – öffnet in neuem Tab">➡️ Sammlung</a>
+               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Einkaufspreis und Wert) – öffnet in neuem Tab"><?= icon('forward') ?> Sammlung</a>
           </td>
         </tr>
       <?php endforeach; ?>
@@ -610,5 +614,6 @@ function build_href_with(array $set): string {
   </div>
 </div>
 
+</main>
 </body>
 </html>

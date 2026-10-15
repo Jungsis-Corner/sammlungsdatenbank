@@ -1,0 +1,191 @@
+/* =========================================================
+   base.css – Design-Fundament (Phase 5a, U1–U4, U21)
+   Wird auf jeder Seite NACH app.css/admin.css und nach dem Inline-<style>
+   eingebunden und vereinheitlicht dort Knöpfe, Fokus und Touch-Flächen.
+   Hell/Dunkel über html[data-theme="dark"] (gesetzt von theme-toggle.js).
+   ========================================================= */
+
+/* ---------- U1: Design-Tokens ---------- */
+:root{
+  /* Farben (hell) */
+  --bg:#ffffff;
+  --surface:#ffffff;
+  --surface-2:#f5f6f8;
+  --text:#1d2330;
+  --muted:#5b6475;
+  --border:#8791a2;
+  --primary:#1a5fb4;
+  --primary-hover:#154c92;
+  --on-primary:#ffffff;
+  --danger:#b3261e;
+  --danger-hover:#8f1d17;
+  --on-danger:#ffffff;
+  --neutral:#e9ecf1;
+  --neutral-hover:#dde1e8;
+  --on-neutral:#1d2330;
+  --focus:#1a5fb4;
+
+  /* Abstände */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  /* Radien, Schatten */
+  --r-sm:6px; --r-md:10px;
+  --shadow-1:0 1px 3px rgba(0,0,0,.12);
+  --shadow-2:0 2px 8px rgba(0,0,0,.16);
+  /* Schrift */
+  --fs-sm:14px; --fs-base:16px; --fs-lg:20px; --fs-xl:28px;
+  /* Touch-Zielhöhe */
+  --tap:44px;
+}
+html[data-theme="dark"]{
+  --bg:#121418;
+  --surface:#1c1f26;
+  --surface-2:#242830;
+  --text:#e6e8ec;
+  --muted:#a3abba;
+  --border:#6b7482;
+  --primary:#2f6fdc;
+  --primary-hover:#4a84e8;
+  --on-primary:#ffffff;
+  --danger:#c93c34;
+  --danger-hover:#e0524a;
+  --on-danger:#ffffff;
+  --neutral:#2d333d;
+  --neutral-hover:#3a414d;
+  --on-neutral:#e6e8ec;
+  --focus:#7aa7ff;
+  --shadow-1:0 1px 3px rgba(0,0,0,.5);
+  --shadow-2:0 2px 8px rgba(0,0,0,.6);
+}
+/* Seitenhintergrund und Text aus den Tokens (ersetzt die festen #121212/#e8e8e8 in app.css/admin.css) */
+html[data-theme="dark"], html[data-theme="dark"] body{
+  background:var(--bg) !important;
+  color:var(--text) !important;
+}
+
+/* ---------- U2: Knöpfe – eine Hauptfarbe, neutrale Zweitknöpfe, Rot nur zum Löschen ---------- */
+/* Gemeinsame Form aller Knopfklassen (alte Klassen bleiben gültig, damit keine Seite umgebaut werden muss) */
+html body :is(.btn,.btn-back,.btn-edit,.btn-nav,.btn-wrap,.btn-search,.btn-new,.btn-reset,.btn-stat,.filter-toggle-btn,
+              .btn-blue,.btn-green,.btn-purple,.btn-teal,.btn-orange,.btn-pink,.btn-gray,.btn-red,.btn-indigo,
+              .back,.save,.nav,.new,.dup,.dupplus,.igdb,.view,.delete,.back-to-top,
+              .searchbox button){
+  background:var(--neutral);
+  color:var(--on-neutral);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  text-decoration:none;
+  font-weight:600;
+  filter:none;
+}
+/* Hauptaktion */
+html body :is(.save,.btn-edit,.btn-search,.btn-green,.searchbox button,
+              .form-container input[type="submit"],.form-container button[type="submit"],
+              .admin-inline-form input[type="submit"],.admin-inline-form button[type="submit"],
+              .btn-filter.active){
+  background:var(--primary);
+  color:var(--on-primary);
+  border-color:var(--primary);
+}
+/* Löschen */
+html body :is(.delete,.btn-red,.btn-reset){
+  background:var(--danger);
+  color:var(--on-danger);
+  border-color:var(--danger);
+}
+/* „Zurücksetzen“ ist keine Löschaktion */
+html body .btn-reset{ background:var(--neutral); color:var(--on-neutral); border-color:var(--border); }
+html body .filter-summary .btn-new{ background:var(--neutral); color:var(--on-neutral); border-color:var(--border); }
+/* Filterknöpfe der Liste: neutral, aktiv = Hauptfarbe (statt acht Regenbogenfarben) */
+html body .btn-filter{
+  background:var(--neutral);
+  color:var(--on-neutral);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+}
+html body .btn-filter.active{
+  background:var(--primary);
+  color:var(--on-primary);
+  border-color:var(--primary);
+  outline:0;
+}
+/* Umschalter für Hell/Dunkel */
+html body .theme-toggle{
+  background:var(--neutral) !important;
+  color:var(--on-neutral) !important;
+  border-color:var(--border) !important;
+}
+
+/* Hover/Aktiv nur mit Maus, Deaktiviert immer gedämpft */
+@media (hover:hover){
+  html body :is(.btn,.btn-back,.btn-edit,.btn-nav,.btn-wrap,.btn-search,.btn-new,.btn-reset,.btn-stat,.filter-toggle-btn,
+                .btn-blue,.btn-gray,.btn-indigo,.btn-purple,.btn-teal,.btn-orange,.btn-pink,
+                .back,.nav,.new,.dup,.dupplus,.igdb,.view,.btn-filter,.back-to-top):hover{
+    background:var(--neutral-hover);
+    filter:none;
+  }
+  html body :is(.save,.btn-edit,.btn-search,.btn-green,.searchbox button,.btn-filter.active,
+                .form-container input[type="submit"],.admin-inline-form input[type="submit"],
+                .form-container button[type="submit"],.admin-inline-form button[type="submit"]):hover{
+    background:var(--primary-hover);
+    filter:none;
+  }
+  html body :is(.delete,.btn-red):hover{ background:var(--danger-hover); filter:none; }
+}
+
+/* ---------- Fokus: gut sichtbar für Tastatur (nicht für Mausklicks) ---------- */
+:focus-visible{
+  outline:3px solid var(--focus);
+  outline-offset:2px;
+}
+.btn:focus,.btn-filter:focus{ outline:0; }
+.btn:focus-visible,.btn-filter:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; }
+
+/* ---------- U21: Touch ---------- */
+a, button, input, select, textarea, summary, label{ touch-action:manipulation; }
+html{ -webkit-tap-highlight-color:rgba(26,95,180,.15); }
+@media (pointer:coarse){
+  html body :is(.btn,.btn-back,.btn-edit,.btn-search,.btn-new,.btn-reset,.btn-stat,.filter-toggle-btn,.btn-filter,
+                .back,.save,.nav,.new,.dup,.dupplus,.igdb,.view,.delete,.searchbox button,
+                .pagination a,.date-clear-btn,.toolbar-form button){
+    min-height:var(--tap);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:var(--s2);
+  }
+  html body .btn-filter{ display:flex; }
+  /* Eingabefelder: mindestens 16 px (kein Zoom auf dem iPhone) und 44 px hoch */
+  input[type="text"],input[type="search"],input[type="number"],input[type="date"],input[type="password"],
+  input[type="email"],input[type="url"],select,textarea{
+    font-size:16px;
+  }
+  input[type="text"],input[type="search"],input[type="number"],input[type="date"],input[type="password"],select{
+    min-height:var(--tap);
+  }
+}
+
+/* ---------- U4: Icons (Inline-SVG-Sprite, siehe inc_icons.php) ---------- */
+.ico{
+  width:1.15em; height:1.15em;
+  flex:0 0 auto;
+  vertical-align:-0.2em;
+  fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+}
+.ico-sprite{ position:absolute; width:0; height:0; overflow:hidden; }
+.ico{ margin-right:.35em; }
+.ico.ico-solo{ margin-right:0; }
+
+/* ---------- U5: Sprunglink zum Inhalt ---------- */
+.skip-link{
+  position:absolute; left:var(--s2); top:-100px; z-index:10000;
+  background:var(--primary); color:var(--on-primary);
+  padding:var(--s2) var(--s4); border-radius:var(--r-sm); text-decoration:none; font-weight:600;
+}
+.skip-link:focus{ top:var(--s2); }
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* Schwebender Hell/Dunkel-Knopf: Icon zentrieren */
+.theme-toggle-floating{ display:inline-flex; align-items:center; justify-content:center; }
+.theme-toggle-floating .ico{ width:22px; height:22px; margin:0; }
