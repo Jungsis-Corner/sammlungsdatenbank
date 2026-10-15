@@ -365,8 +365,8 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=3">
-  <script src="/sammlung/assets/liste.js?v=4" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=4">
+  <script src="/sammlung/assets/liste.js?v=5" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
@@ -597,140 +597,117 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
 
   <div class="liste-ergebnis">
 
-  <!-- Pagination OBERHALB der Tabelle -->
-  <?php render_pagination($page, $pages, $params); ?>
-
-  <!-- Tabelle -->
 <?php
   // Kontext für Duplizieren/Löschen (Filter, Seite, Sortierung) einmal an der Tabelle statt in jeder Zeile
   $ctx = ['page' => $page, 'sort' => $sort, 'dir' => $dir];
   foreach (['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p) {
       if (!empty($_GET[$p])) $ctx[$p] = $_GET[$p];
   }
-?>
-<table class="list" data-ctx="<?= htmlspecialchars(json_encode($ctx), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-    <colgroup>
-  <col class="col-icon"><!-- 🔍 -->
-  <?php if (!$is_guest): ?>
-    <col class="col-icon"><!-- 📝 -->
-    <col class="col-icon"><!-- 📄 -->
-  <?php endif; ?>
-  <col class="col-img"><!-- Bild -->
-  <col class="col-title"><!-- Bezeichnung -->
-  <col class="col-cat"><!-- Kategorie -->
-  <col class="col-year"><!-- Jahr -->
-  <col class="col-oh"><!-- Original/Homebrew -->
-  <col class="col-mat"><!-- Material -->
-  <col class="col-zust"><!-- Zustand -->
-  <col class="col-vp"><!-- Verpackung -->
-  <?php if (!$is_guest): ?>
-    <col class="col-loc"><!-- Standort -->
-    <col class="col-box"><!-- Box -->
-    <col class="col-date col-einkaufsdatum"><!-- Einkaufsdatum -->
-  <?php endif; ?>
-  <?php if (!$is_guest): ?>
-    <col class="col-wert"><!-- Wert -->
-    <col class="col-icon"><!-- 🗑️ -->
-  <?php endif; ?>
-</colgroup>
+  // gewählte Darstellung (Cookie "la"): tabelle | raster | auto (Standard je nach Bildschirmbreite, siehe liste.css)
+  $ansicht = in_array($_COOKIE['la'] ?? '', ['tabelle', 'raster'], true) ? $_COOKIE['la'] : 'auto';
 
-    <tr>
-      <th><?= icon('eye','Ansehen') ?></th>
-      <?php if (!$is_guest): ?>
-        <th><?= icon('edit','Bearbeiten') ?></th>
-        <th><?= icon('copy','Duplizieren') ?></th>
-      <?php endif; ?>
-      <th>Bild</th>
-      <?php
-  // Basis-Spalten (für alle)
-  $cols_base = [
-    'Bezeichnung' => 'Bezeichnung',
-    'Kategorie'   => 'Kategorie',
-    'Jahr'        => 'Jahr',
-    '`Original/Homebrew`' => 'Original/Homebrew',
-    'Material'    => 'Material',
-    'Zustand'     => 'Zustand',
-    'Verpackung'  => 'Verpackung',
+  // Spalten: key => [Beschriftung, CSS-Klasse]; Reihenfolge = Reihenfolge in der Tabelle
+  $cols = [
+    'Bezeichnung'         => ['Bezeichnung',        'c-titel'],
+    'Kategorie'           => ['Kategorie',          'c-kat'],
+    'Zustand'             => ['Zustand',            'c-zust'],
+    'Jahr'                => ['Jahr',               'c-jahr'],
   ];
-
-  // Zusatzspalten nur für Admin
-  $cols_admin_extra = [
-    'Standort'      => 'Standort',
-    'Box'           => 'Box',
-    'Einkaufsdatum' => 'Einkaufsdatum',
-    'Wert'          => 'Wert', // ← jetzt in der Sort-Loop
+  if (!$is_guest) { $cols['Wert'] = ['Wert', 'c-wert']; }
+  $cols += [
+    'Material'            => ['Material',           'c-mat'],
+    '`Original/Homebrew`' => ['Original/Homebrew',  'c-oh'],
+    'Verpackung'          => ['Verpackung',         'c-vp'],
   ];
-
-  $cols = $is_guest ? $cols_base : ($cols_base + $cols_admin_extra);
-
-  foreach ($cols as $key => $label) {
-    $thClass = ($key === 'Einkaufsdatum') ? ' class="col-einkaufsdatum"' : '';
-    echo '<th'.$thClass.'>'.sort_link($key, $label, $sort, $dir, $params).'</th>';
-  }
   if (!$is_guest) {
-    echo '<th>' . icon('trash', 'Löschen') . '</th>';
+    $cols += ['Standort' => ['Standort', 'c-loc'], 'Box' => ['Box', 'c-box'], 'Einkaufsdatum' => ['Einkaufsdatum', 'c-datum']];
   }
 ?>
+  <div class="liste-werkzeug">
+    <div class="ansicht-umschalter" role="group" aria-label="Darstellung">
+      <button type="button" data-ansicht-wahl="tabelle" aria-pressed="<?= $ansicht === 'tabelle' ? 'true' : 'false' ?>"><?= icon('menu') ?> Tabelle</button>
+      <button type="button" data-ansicht-wahl="raster" aria-pressed="<?= $ansicht === 'raster' ? 'true' : 'false' ?>"><?= icon('filter') ?> Raster</button>
+    </div>
+    <label class="sort-wahl">Sortieren
+      <select data-sort aria-label="Sortierung">
+        <?php foreach ($cols as $ck => [$cLabel]): foreach (['asc' => '↑', 'desc' => '↓'] as $cd => $pfeil): ?>
+          <option value="<?= htmlspecialchars($ck . ':' . $cd) ?>"<?= ($sort === $ck && $dir === $cd) ? ' selected' : '' ?>><?= htmlspecialchars($cLabel) ?> <?= $pfeil ?></option>
+        <?php endforeach; endforeach; ?>
+      </select>
+    </label>
+  </div>
 
+<?php if ($total === 0): ?>
+  <div class="leer-zustand" role="status">
+    <p class="leer-titel">Keine Treffer</p>
+    <p><?= $activeCount ? 'Zu diesen Filtern gibt es keine Einträge. Entferne einen Filter oder setze alle zurück.' : 'In der Sammlung gibt es noch keine Einträge.' ?></p>
+    <?php if ($activeCount): ?><p><a class="btn save" href="<?= $resetHref ?>">Filter zurücksetzen</a></p><?php endif; ?>
+  </div>
+<?php else: ?>
+
+  <!-- Pagination OBERHALB der Tabelle -->
+  <?php render_pagination($page, $pages, $params); ?>
+
+<div class="liste-ergebnis-inhalt" data-ansicht="<?= $ansicht ?>">
+<table class="list" role="table" data-ctx="<?= htmlspecialchars(json_encode($ctx), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+  <caption class="sr-only">Sammlung, Seite <?= (int)$page ?> von <?= (int)$pages ?>, <?= (int)$total ?> Einträge</caption>
+  <thead>
+    <tr role="row">
+      <th scope="col" class="c-bild"><span class="sr-only">Bild</span></th>
+      <?php foreach ($cols as $ck => [$cLabel, $cClass]):
+        $aria = ($sort === $ck) ? ($dir === 'asc' ? ' aria-sort="ascending"' : ' aria-sort="descending"') : ''; ?>
+        <th scope="col" class="<?= $cClass ?>"<?= $aria ?>><?= sort_link($ck, $cLabel, $sort, $dir, $params) ?></th>
+      <?php endforeach; ?>
+      <th scope="col" class="c-akt"><span class="sr-only">Aktionen</span></th>
     </tr>
+  </thead>
+  <tbody>
     <?php ob_start(); while($row = $result->fetch_assoc()):
       $rowP = ['id'=>$row['ID'],'page'=>$page,'sort'=>$sort,'dir'=>$dir];
       foreach(['filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $p){
         if (!empty($_GET[$p])) $rowP[$p]=$_GET[$p];
       }
+      $paramsView = $rowP;
+      if (!empty($_SESSION['museum_mode'])) { $paramsView['museum'] = '1'; }
+      $viewHref = 'view.php?' . htmlspecialchars(http_build_query($paramsView));
+      $bez = (string)($row['Bezeichnung'] ?? '');
     ?>
-      <tr>
-        <?php
-$paramsView = $rowP;
-
-if (!empty($_SESSION['museum_mode'])) {
-    $paramsView['museum'] = '1';
-}
-?>
-
-<td>
-  <a href="view.php?<?= http_build_query($paramsView) ?>" title="Ansehen"><?= icon('eye','Ansehen') ?></a>
-</td>
+      <tr role="row" class="liste-zeile" data-href="<?= $viewHref ?>">
+        <td role="cell" class="c-bild"><a class="img-link" href="<?= $viewHref ?>" tabindex="-1" aria-hidden="true"><?= image_img($row['SammlungBild1'] ?? '', $bez, ['widths' => [80, 160, 320], 'sizes' => '(max-width: 599px) 72px, (max-width: 899px) 25vw, 90px']) ?></a></td>
+        <td role="cell" class="c-titel"><a class="titel-link" href="<?= $viewHref ?>"><?= htmlspecialchars($bez) ?></a><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span class="verkauf-tag" title="Zum Verkauf">' . icon('tag', 'Zum Verkauf') . '</span>' : '' ?></td>
+        <td role="cell" class="c-kat"><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
+        <td role="cell" class="c-zust"><?= htmlspecialchars($zustand[$row['Zustand'] ?? ''] ?? '') ?></td>
+        <td role="cell" class="c-jahr"><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
         <?php if (!$is_guest): ?>
-          <td><a href="edit.php?<?= http_build_query($rowP) ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a></td>
-          <td><a href="#" class="row-action" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren"><?= icon('copy','Duplizieren') ?></a></td>
+          <td role="cell" class="c-wert"><?= htmlspecialchars(fmt_dec($row['Wert'] ?? null)) ?></td>
         <?php endif; ?>
-        <td class="click-open">
-  <a class="img-link" href="view.php?<?= http_build_query($rowP) ?>" title="Öffnen">
-    <?= image_img($row['SammlungBild1'] ?? '', (string)($row['Bezeichnung'] ?? ''), ['height' => 60, 'widths' => [80, 160]]) ?>
-  </a>
-</td>
-        <td><?= htmlspecialchars($row['Bezeichnung'] ?? '') ?><?= ((int)($row['Zum Verkauf'] ?? 0) === 1) ? ' <span title="Zum Verkauf">' . icon('tag', 'Zum Verkauf') . '</span>' : '' ?></td>
-        <td><?= htmlspecialchars($row['KategorieName'] ?? '') ?></td>
-        <td><?= htmlspecialchars((string)($row['Jahr'] ?? '')) ?></td>
-        <td><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['MaterialName'] ?? '') ?></td>
-<td><?= htmlspecialchars($zustand[$row['Zustand'] ?? ''] ?? '') ?></td>
-<td><?= htmlspecialchars($verpackung[$row['Verpackung'] ?? ''] ?? '') ?></td>
-
-<?php if (!$is_guest): ?>
-  <td><?= htmlspecialchars($row['StandortName'] ?? '') ?></td>
-  <td><?= htmlspecialchars($row['BoxName'] ?? '') ?></td>
-<td class="col-einkaufsdatum">
-    <?php
-      if (!empty($row['Einkaufsdatum']) && $row['Einkaufsdatum']!=='0000-00-00') {
-        echo date('d.m.Y', strtotime($row['Einkaufsdatum']));
-      }
-    ?>
-	</td>
-<?php endif; ?>
-
-<?php if (!$is_guest): ?>
-  <td><?= htmlspecialchars(fmt_dec($row['Wert'] ?? null)) ?></td>
-  <td><a href="#" class="row-action" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>" title="Löschen"><?= icon('trash','Löschen') ?></a></td>
-<?php endif; ?>
-
+        <td role="cell" class="c-mat"><?= htmlspecialchars($row['MaterialName'] ?? '') ?></td>
+        <td role="cell" class="c-oh"><?= htmlspecialchars($row['Original/Homebrew'] ?? '') ?></td>
+        <td role="cell" class="c-vp"><?= htmlspecialchars($verpackung[$row['Verpackung'] ?? ''] ?? '') ?></td>
+        <?php if (!$is_guest): ?>
+          <td role="cell" class="c-loc"><?= htmlspecialchars($row['StandortName'] ?? '') ?></td>
+          <td role="cell" class="c-box"><?= htmlspecialchars($row['BoxName'] ?? '') ?></td>
+          <td role="cell" class="c-datum"><?php
+            if (!empty($row['Einkaufsdatum']) && $row['Einkaufsdatum'] !== '0000-00-00') { echo date('d.m.Y', strtotime($row['Einkaufsdatum'])); }
+          ?></td>
+        <?php endif; ?>
+        <td role="cell" class="c-akt">
+          <a class="akt akt-ansehen" href="<?= $viewHref ?>" title="Ansehen"><?= icon('eye', 'Ansehen') ?></a>
+          <?php if (!$is_guest): ?>
+            <a class="akt" href="edit.php?<?= htmlspecialchars(http_build_query($rowP)) ?>" title="Bearbeiten"><?= icon('edit', 'Bearbeiten') ?></a>
+            <a class="akt row-action" href="#" data-action="duplicate.php" data-id="<?= (int)$row['ID'] ?>" title="Datensatz duplizieren"><?= icon('copy', 'Duplizieren') ?></a>
+            <a class="akt row-action" href="#" data-action="delete.php" data-confirm="Wirklich löschen?" data-id="<?= (int)$row['ID'] ?>" title="Löschen"><?= icon('trash', 'Löschen') ?></a>
+          <?php endif; ?>
+        </td>
       </tr>
     <?php endwhile; echo preg_replace('~>\s+<~', '><', preg_replace('~\s{2,}~', ' ', ob_get_clean())); /* Leerraum der Zeilen entfernen */ ?>
-  </table>
+  </tbody>
+</table>
+</div>
 
   <!-- Pagination UNTERHALB der Tabelle -->
   <?php render_pagination($page, $pages, $params, true); ?>
+<?php endif; /* Ende: Treffer vorhanden */ ?>
 
   <?php if (!$is_guest): ?>
     <p><a href="edit.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('plus') ?> Neuer Eintrag</a></p>

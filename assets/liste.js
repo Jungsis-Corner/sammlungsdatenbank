@@ -28,6 +28,9 @@
         p.set('kat', teile[0]);
         if (teile[1] === '1') p.set('inkl', '1'); else p.delete('inkl');
       });
+    } else if (t.matches('select[data-sort]')) {
+      var sd = String(t.value).split(':');
+      navigiere(function (p) { p.set('sort', sd[0]); p.set('dir', sd[1] === 'desc' ? 'desc' : 'asc'); });
     } else if (t.matches('select[data-nav], input[data-nav]')) {
       var name = t.getAttribute('data-nav');
       navigiere(function (p) { if (t.value) p.set(name, t.value); else p.delete(name); });
@@ -98,6 +101,30 @@
       }
     } catch (_) {}
   }
+
+  /* ---------- Darstellung Tabelle/Raster (Cookie "la", ohne Neuladen) ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ansicht-wahl]'), function (b) {
+    b.addEventListener('click', function () {
+      var wahl = b.getAttribute('data-ansicht-wahl');
+      var inhalt = document.querySelector('.liste-ergebnis-inhalt');
+      if (inhalt) inhalt.setAttribute('data-ansicht', wahl);
+      Array.prototype.forEach.call(document.querySelectorAll('[data-ansicht-wahl]'), function (x) {
+        x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+      });
+      document.cookie = 'la=' + wahl + ';path=/sammlung/;max-age=' + (60 * 60 * 24 * 365) + ';SameSite=Lax';
+    });
+  });
+
+  /* ---------- Tabelle: Klick auf die Zeile öffnet den Eintrag (der Titel bleibt der echte Link) ---------- */
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var zeile = e.target.closest ? e.target.closest('tr.liste-zeile') : null;
+    if (!zeile || e.target.closest('a, button, input, select, textarea, summary, label')) return;
+    var sel = window.getSelection ? String(window.getSelection()) : '';
+    if (sel) return;                                   // Text markieren soll nicht navigieren
+    var href = zeile.getAttribute('data-href');
+    if (href) window.location.href = href;
+  });
 
   /* ---------- Nach oben ---------- */
   var oben = document.querySelector('.back-to-top');

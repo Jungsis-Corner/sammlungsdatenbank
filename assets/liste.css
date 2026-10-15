@@ -122,28 +122,156 @@ body.museum .searchbox input{ font-size:18px; padding:12px; }
 }
 @media (prefers-reduced-motion:reduce){ .filter-panel{ transition:none !important; } }
 
-/* ---------- Tabelle (unverändert aus dem bisherigen Inline-CSS; wird in Welle 5b-2 umgebaut) ---------- */
-table{ width:100%; table-layout:fixed; border-collapse:collapse; margin-top:10px; }
-th,td{ border:1px solid #888; padding:4px; overflow:hidden; text-overflow:ellipsis; word-break:break-word; }
-th{ background:#eee; white-space:nowrap; }
-th a.th-sort{ text-decoration:none; color:inherit; }
-th a.th-sort:hover{ text-decoration:underline; }
-table.list td.click-open{ padding:0; }
-table.list td.click-open a.img-link{ display:block; padding:4px; height:100%; text-decoration:none; }
-table.list td.click-open a.img-link:hover{ background:#f5faff; }
-table.list td.click-open a.img-link:focus{ outline:2px solid #a6c8ff; outline-offset:-2px; }
-.col-icon{ width:36px; } .col-img{ width:90px; } .col-title{ width:24%; } .col-cat{ width:17%; }
-.col-year{ width:75px; } .col-oh{ width:15%; } .col-mat{ width:12%; } .col-zust{ width:10%; }
-.col-vp{ width:12%; } .col-loc{ width:10%; } .col-box{ width:5%; }
-.col-date{ width:100px; white-space:nowrap; } .col-wert{ width:80px; white-space:nowrap; }
-td img{ max-width:80px; height:auto; display:block; }
-@media (min-width:768px) and (max-width:1366px){
-  .index-page table.list th.col-einkaufsdatum,.index-page table.list td.col-einkaufsdatum,.index-page table.list col.col-einkaufsdatum{ display:none; }
+/* ---------- Darstellung der Einträge (Phase 5b, Rollout 2) ----------
+   Ein HTML-Aufbau (<table> mit festen ARIA-Rollen), drei Darstellungen:
+     Karten   unter 600 px
+     Raster   600–899 px (Standard), Umschalter "Raster/Tabelle" ab 600 px
+     Tabelle  ab 900 px (Standard)
+   Die Wahl steht im Cookie "la" und kommt als data-ansicht (tabelle | raster | auto) am Container an.
+   Reihenfolge der Regeln: erst Karten/Raster (mobile first), dann die Tabelle als Überschreibung. */
+.liste-werkzeug{ display:flex; flex-wrap:wrap; gap:var(--s3); align-items:center; margin:0 0 var(--s2); }
+.ansicht-umschalter{ display:none; gap:0; }
+.ansicht-umschalter button{
+  display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font:inherit; cursor:pointer;
+  border:1px solid var(--border); background:var(--neutral); color:var(--on-neutral);
 }
-html[data-theme="dark"] table, html[data-theme="dark"] th, html[data-theme="dark"] td{ background:#1a1a1a !important; color:#e8e8e8 !important; border-color:#444 !important; }
-html[data-theme="dark"] th{ background:#2a2a2a !important; }
-html[data-theme="dark"] th a.th-sort{ color:#e8e8e8 !important; }
-html[data-theme="dark"] table.list td.click-open a.img-link:hover{ background:#2a2a3a !important; }
+.ansicht-umschalter button:first-child{ border-radius:var(--r-sm) 0 0 var(--r-sm); }
+.ansicht-umschalter button:last-child{ border-radius:0 var(--r-sm) var(--r-sm) 0; border-left:0; }
+.ansicht-umschalter button[aria-pressed="true"]{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+.sort-wahl{ display:inline-flex; align-items:center; gap:var(--s2); }
+.sort-wahl select{ padding:6px 8px; border:1px solid var(--border); border-radius:var(--r-sm); background:var(--surface); color:var(--text); font:inherit; }
+@media (min-width:600px){ .ansicht-umschalter{ display:inline-flex; } }
+@media (min-width:900px){ .sort-wahl{ display:none; } }
+
+.leer-zustand{ text-align:center; padding:var(--s6) var(--s4); border:1px dashed var(--border); border-radius:var(--r-md); margin:var(--s4) 0; }
+.leer-titel{ font-size:var(--fs-lg); font-weight:700; margin:0 0 var(--s2); }
+
+/* gemeinsam: Tabellenelemente als Blöcke */
+table.list, table.list tbody, table.list tr.liste-zeile, table.list td{ display:block; }
+table.list{ width:100%; margin-top:var(--s2); border:0; }
+table.list caption{ position:absolute; }
+table.list thead{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }   /* für Screenreader da, sichtbar nur in der Tabelle */
+table.list td{ border:0; padding:0; overflow:visible; text-overflow:clip; background:transparent; color:var(--text); }
+table.list tr.liste-zeile{
+  position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  padding:var(--s2); margin-bottom:var(--s2); min-height:64px;
+}
+.c-bild a.img-link{ display:block; text-decoration:none; }
+.c-bild img, .c-bild svg{ display:block; width:100%; height:auto; max-width:none; border-radius:var(--r-sm); object-fit:cover; background:var(--surface-2); }
+.titel-link{ color:var(--text); text-decoration:none; font-weight:600; }
+.titel-link:hover{ text-decoration:underline; }
+.verkauf-tag{ margin-left:6px; color:var(--primary); }
+.verkauf-tag .ico{ margin:0; }
+.c-akt{ display:flex; gap:var(--s1); }
+.akt{ display:inline-flex; align-items:center; justify-content:center; width:var(--tap); height:var(--tap); border-radius:var(--r-sm); color:var(--text); text-decoration:none; position:relative; z-index:1; }
+.akt:hover{ background:var(--surface-2); }
+.akt .ico{ margin:0; width:1.25em; height:1.25em; }
+/* in Karten/Raster ist die ganze Karte der Link (Titel-Link wird über die Karte gezogen) */
+.titel-link::after{ content:""; position:absolute; inset:0; border-radius:var(--r-md); }
+.akt-ansehen{ display:none; }
+
+/* Karten (Standard unter 600 px) */
+table.list tr.liste-zeile{
+  display:grid; grid-template-columns:72px minmax(0,1fr) auto auto auto; column-gap:var(--s2); row-gap:2px; align-items:start;
+}
+.c-bild{ grid-column:1; grid-row:1 / span 3; }
+.c-bild img, .c-bild svg{ width:72px; height:72px; }
+.c-titel,table.list td.c-titel{ grid-column:2 / -1; grid-row:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3; font-size:1.05em; }
+.c-kat{ grid-column:2; grid-row:2; color:var(--muted); font-size:var(--fs-sm); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.c-zust{ grid-column:3; grid-row:2; font-size:var(--fs-sm); padding:0 8px; border-radius:999px; background:var(--surface-2); }
+table.list td.c-zust:empty{ display:none; }
+.c-jahr{ grid-column:4; grid-row:2; font-size:var(--fs-sm); color:var(--muted); }
+.c-wert{ grid-column:5; grid-row:2; font-size:var(--fs-sm); font-weight:600; text-align:right; }
+table.list td.c-akt{ display:flex; grid-column:2 / -1; grid-row:3; justify-content:flex-end; }
+.c-mat,.c-oh,.c-vp,.c-loc,.c-box,.c-datum{ display:none !important; }
+@media (max-width:359px){ .c-zust{ display:none; } }
+
+/* Raster (600–899 px: Standard; ab 900 px nur, wenn gewählt) */
+@media (min-width:600px) and (max-width:899px){
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) table.list tbody,
+  .liste-ergebnis-inhalt[data-ansicht="raster"] table.list tbody{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:var(--s3); }
+}
+@media (min-width:900px){
+  .liste-ergebnis-inhalt[data-ansicht="raster"] table.list tbody{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:var(--s3); }
+}
+/* Zellen im Raster: Bild oben (4:3), Titel, Kategorie, Zustand/Jahr/Wert, Aktionen. Nur wenn das Raster wirklich aktiv ist. */
+@media (min-width:600px) and (max-width:899px){
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) table.list tr.liste-zeile{ grid-template-columns:minmax(0,1fr) auto auto; margin:0; }
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-bild, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-titel, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-kat{ grid-column:1 / -1; grid-row:auto; }
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-zust, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-jahr, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-wert{ grid-column:auto; grid-row:auto; }
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) table.list td.c-akt{ grid-column:1 / -1; grid-row:auto; }
+  .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-bild img, .liste-ergebnis-inhalt:not([data-ansicht="tabelle"]) .c-bild svg{ width:100%; height:auto; aspect-ratio:4 / 3; }
+}
+@media (min-width:900px){
+  .liste-ergebnis-inhalt[data-ansicht="raster"] table.list tr.liste-zeile{ grid-template-columns:minmax(0,1fr) auto auto; margin:0; }
+  .liste-ergebnis-inhalt[data-ansicht="raster"] .c-bild, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-titel, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-kat{ grid-column:1 / -1; grid-row:auto; }
+  .liste-ergebnis-inhalt[data-ansicht="raster"] .c-zust, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-jahr, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-wert{ grid-column:auto; grid-row:auto; }
+  .liste-ergebnis-inhalt[data-ansicht="raster"] table.list td.c-akt{ grid-column:1 / -1; grid-row:auto; }
+  .liste-ergebnis-inhalt[data-ansicht="raster"] .c-bild img, .liste-ergebnis-inhalt[data-ansicht="raster"] .c-bild svg{ width:100%; height:auto; aspect-ratio:4 / 3; }
+}
+
+/* Tabelle: ab 900 px (Standard) oder ab 600 px, wenn gewählt. Gleicher Block zweimal, weil @media-Bedingungen sich nicht mischen lassen. */
+@media (min-width:900px){
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list{ display:table; border-collapse:collapse; table-layout:auto; margin-top:var(--s2); }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list caption{ position:absolute; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list thead{ position:static; width:auto; height:auto; overflow:visible; clip:auto; display:table-header-group; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list tbody{ display:table-row-group; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list tr{ display:table-row; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list th, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list td{ display:table-cell; vertical-align:middle; border:1px solid var(--border); padding:6px 8px; text-align:left; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list tr.liste-zeile{ position:static; border:0; border-radius:0; padding:0; margin:0; min-height:56px; background:transparent; cursor:pointer; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list tr.liste-zeile:hover td{ background:var(--surface-2); }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list th{ position:sticky; top:0; z-index:2; background:var(--surface-2); color:var(--text); white-space:nowrap; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list th a.th-sort{ color:inherit; text-decoration:none; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) table.list th a.th-sort:hover{ text-decoration:underline; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-bild{ width:96px; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-bild img, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-bild svg{ width:auto; height:auto; max-width:80px; max-height:60px; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-titel{ display:table-cell; -webkit-line-clamp:unset; min-width:12em; font-size:inherit; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-kat{ white-space:normal; color:var(--text); font-size:inherit; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-zust{ padding:6px 8px; background:transparent; border-radius:0; font-size:inherit; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-zust:empty{ display:table-cell; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-jahr{ color:var(--text); font-size:inherit; white-space:nowrap; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-wert{ font-size:inherit; font-weight:400; text-align:right; white-space:nowrap; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt{ display:table-cell; white-space:nowrap; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt .akt{ display:inline-flex; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .titel-link::after{ display:none; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .akt-ansehen{ display:inline-flex; }
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-bild, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-titel, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-kat, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-zust, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-jahr, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-wert, .liste-ergebnis-inhalt:not([data-ansicht="raster"]) .c-akt{ grid-column:auto; grid-row:auto; }
+}
+@media (min-width:600px) and (max-width:899px){
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list{ display:table; border-collapse:collapse; table-layout:auto; margin-top:var(--s2); }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list caption{ position:absolute; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list thead{ position:static; width:auto; height:auto; overflow:visible; clip:auto; display:table-header-group; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list tbody{ display:table-row-group; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list tr{ display:table-row; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list th, .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list td{ display:table-cell; vertical-align:middle; border:1px solid var(--border); padding:6px 8px; text-align:left; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list tr.liste-zeile{ position:static; border:0; border-radius:0; padding:0; margin:0; min-height:56px; background:transparent; cursor:pointer; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list tr.liste-zeile:hover td{ background:var(--surface-2); }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list th{ position:sticky; top:0; z-index:2; background:var(--surface-2); color:var(--text); white-space:nowrap; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list th a.th-sort{ color:inherit; text-decoration:none; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] table.list th a.th-sort:hover{ text-decoration:underline; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-bild{ width:96px; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-bild img, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-bild svg{ width:auto; height:auto; max-width:80px; max-height:60px; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-titel{ display:table-cell; -webkit-line-clamp:unset; min-width:12em; font-size:inherit; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-kat{ white-space:normal; color:var(--text); font-size:inherit; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-zust{ padding:6px 8px; background:transparent; border-radius:0; font-size:inherit; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-zust:empty{ display:table-cell; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-jahr{ color:var(--text); font-size:inherit; white-space:nowrap; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-wert{ font-size:inherit; font-weight:400; text-align:right; white-space:nowrap; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt{ display:table-cell; white-space:nowrap; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt .akt{ display:inline-flex; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .titel-link::after{ display:none; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .akt-ansehen{ display:inline-flex; }
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-bild, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-titel, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-kat, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-zust, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-jahr, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-wert, .liste-ergebnis-inhalt[data-ansicht="tabelle"] .c-akt{ grid-column:auto; grid-row:auto; }
+}
+@media (min-width:1280px){
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) :is(.c-mat,.c-oh){ display:table-cell !important; }
+}
+@media (min-width:1600px){
+  .liste-ergebnis-inhalt:not([data-ansicht="raster"]) :is(.c-vp,.c-loc,.c-box,.c-datum){ display:table-cell !important; }
+}
+@media (min-width:600px) and (max-width:1279px){
+  .liste-ergebnis-inhalt[data-ansicht="tabelle"] :is(.c-mat,.c-oh){ display:none !important; }
+}
 
 /* ---------- Seitenwechsel ---------- */
 .pagination{ text-align:center; margin:10px 0; }
