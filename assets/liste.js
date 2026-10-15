@@ -126,6 +126,42 @@
     if (href) window.location.href = href;
   });
 
+  /* ---------- iPhone: obere Leiste läuft beim Runterscrollen weg und kommt beim Hochscrollen wieder ---------- */
+  var leiste = document.getElementById('appbar');
+  var mobil = window.matchMedia ? window.matchMedia('(max-width: 599px)') : { matches: false };
+  if (leiste) {
+    var letzteY = window.pageYOffset || 0;
+    window.addEventListener('scroll', function () {
+      var y = window.pageYOffset || 0;
+      if (!mobil.matches || leiste.contains(document.activeElement)) { leiste.classList.remove('versteckt'); letzteY = y; return; }
+      if (y > letzteY + 8 && y > 80) leiste.classList.add('versteckt');
+      else if (y < letzteY - 8 || y <= 0) leiste.classList.remove('versteckt');
+      letzteY = y;
+    }, { passive: true });
+  }
+
+  /* ---------- Untere Navigation: Suche und Mehr ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-nav-suche]'), function (b) {
+    b.addEventListener('click', function () {
+      var feld = document.getElementById('suchfeld');
+      window.scrollTo(0, 0);
+      if (leiste) leiste.classList.remove('versteckt');
+      if (feld && feld.focus) feld.focus();   // direkt im Tipp-Ereignis, damit iOS die Tastatur öffnet
+    });
+  });
+  var mehr = document.getElementById('mehrDialog');
+  if (mehr) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-mehr]'), function (b) {
+      b.addEventListener('click', function () {
+        if (typeof mehr.showModal === 'function') mehr.showModal(); else mehr.setAttribute('open', '');
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-mehr-zu]'), function (b) {
+      b.addEventListener('click', function () { if (typeof mehr.close === 'function') mehr.close(); else mehr.removeAttribute('open'); });
+    });
+    mehr.addEventListener('click', function (e) { if (e.target === mehr && typeof mehr.close === 'function') mehr.close(); });   // Tipp auf den abgedunkelten Rand
+  }
+
   /* ---------- Nach oben ---------- */
   var oben = document.querySelector('.back-to-top');
   if (oben) {

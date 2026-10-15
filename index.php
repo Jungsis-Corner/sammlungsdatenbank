@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
+require_once __DIR__ . '/inc_nav.php';
 
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
@@ -279,32 +280,42 @@ function url_remove_only(array $keysToRemove, array $additions = []): string {
     return '?' . htmlspecialchars(http_build_query($p));
 }
 
-/** Einheitliche, ellipsierte Pagination (oben & unten) */
+/** Einheitliche, ellipsierte Seitenwechsel-Leiste (oben & unten). Unten ($mitOptionen) auf dem iPhone fest am Rand über der unteren Navigation. */
 function render_pagination(int $page, int $pages, array $params, bool $mitOptionen = false): void {
   $window = 2;
-  echo '<div class="pagination">';
+  $href = fn(int $n) => '?' . htmlspecialchars(http_build_query(array_merge($params, ['page' => $n])));
+  if ($pages > 1) {
+  echo '<nav class="pagination' . ($mitOptionen ? ' pagination-unten' : '') . '" aria-label="Seitenwechsel' . ($mitOptionen ? ' unten' : '') . '">';
   if ($page > 1) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>1])).'">« Erste</a> ';
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$page-1])).'">‹ Zurück</a> ';
+      echo '<a class="pg-btn pg-erste" href="' . $href(1) . '">« Erste</a> ';
+      echo '<a class="pg-btn pg-zurueck" rel="prev" href="' . $href($page - 1) . '">‹ Zurück</a> ';
+  } else {
+      echo '<span class="pg-btn pg-aus pg-zurueck" aria-disabled="true">‹ Zurück</span> ';
   }
+  echo '<span class="pg-nummern">';
   if ($page - $window > 2) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>1])).'">1</a> … ';
+      echo '<a href="' . $href(1) . '">1</a> … ';
   }
   for ($i = max(1, $page-$window); $i <= min($pages, $page+$window); $i++) {
       if ($i === $page) {
-          echo "<strong>$i</strong> ";
+          echo '<strong aria-current="page">' . $i . '</strong> ';
       } else {
-          echo '<a href="?'.http_build_query(array_merge($params,['page'=>$i])).'">'.$i.'</a> ';
+          echo '<a href="' . $href($i) . '">' . $i . '</a> ';
       }
   }
   if ($page + $window < $pages-1) {
-      echo '… <a href="?'.http_build_query(array_merge($params,['page'=>$pages])).'">'.$pages.'</a> ';
+      echo '… <a href="' . $href($pages) . '">' . $pages . '</a> ';
   }
+  echo '</span>';
+  echo '<span class="pg-info">Seite ' . $page . ' von ' . $pages . '</span> ';
   if ($page < $pages) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$page+1])).'">Weiter ›</a> ';
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$pages])).'">Letzte »</a>';
+      echo '<a class="pg-btn pg-weiter" rel="next" href="' . $href($page + 1) . '">Weiter ›</a> ';
+      echo '<a class="pg-btn pg-letzte" href="' . $href($pages) . '">Letzte »</a>';
+  } else {
+      echo '<span class="pg-btn pg-aus pg-weiter" aria-disabled="true">Weiter ›</span>';
   }
-  echo '</div>';
+  echo '</nav>';
+  }
   if ($mitOptionen) {
       // Seitensprung (GET mit allen aktiven Filtern) und Seitengröße (Cookie pp, gesetzt über ?pp=…)
       echo '<form method="get" class="pg-optionen">';
@@ -365,8 +376,8 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=7">
-  <script src="/sammlung/assets/liste.js?v=5" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=8">
+  <script src="/sammlung/assets/liste.js?v=6" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
@@ -375,29 +386,34 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 
 <div id="top-marker" aria-hidden="true"></div>
 
-<?php if (!empty($_SESSION['museum_mode'])): ?>
-  <div class="logout">
-    <a href="/sammlung/museum/exit.php"><?= icon('close') ?> Museum beenden</a>
-  </div>
-<?php else: ?>
-  <div class="logout">
-    <?php if ($is_guest): ?>
-      <a href="logout.php"><?= icon('logout') ?> Zur Anmeldung</a>
-    <?php else: ?>
-      <a href="logout.php"><?= icon('logout') ?> Logout</a>
-    <?php endif; ?>
-  </div>
-
-  <?php if (is_admin()): ?>
-    <a class="settings-link" href="einstellungen.php"><?= icon('settings') ?> Einstellungen</a>
-  <?php endif; ?>
-<?php endif; ?>
-
-<h1>
-  <?= !empty($_SESSION['museum_mode'])
-      ? htmlspecialchars(APP_TITLE_MUSEUM)
-      : htmlspecialchars(APP_TITLE); ?>
-</h1>
+<?php
+$navOpt = [
+    'is_guest' => $is_guest, 'is_admin' => is_admin(), 'museum' => $isMuseum,
+    'export' => (!$isMuseum && (!$is_guest || guest_export_allowed())), 'params' => $params,
+    'neu_href' => $is_guest ? '' : 'edit.php?' . http_build_query($params),
+    'home_href' => 'index.php' . ($isMuseum ? '?museum=1' : ''), 'active' => 'sammlung',
+];
+?>
+<!-- ===== Obere Leiste: Titel, Suche, Navigation, Theme-Umschalter ===== -->
+<header class="appbar" id="appbar">
+  <h1 class="appbar-titel"><a href="<?= htmlspecialchars($navOpt['home_href']) ?>"><?= $isMuseum ? htmlspecialchars(APP_TITLE_MUSEUM) : htmlspecialchars(APP_TITLE) ?></a></h1>
+      <form class="searchbox" action="index.php" method="get" role="search">
+    <?php
+      // aktive Parameter erhalten
+      foreach (['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','verkauf','sort','dir','einkaufsdatum'] as $keep) {
+        if (!empty($_GET[$keep])) {
+          echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
+        }
+      }
+      if ($isMuseum) { echo '<input type="hidden" name="museum" value="1">'; }
+    ?>
+    <label class="sr-only" for="suchfeld">Suchen</label>
+    <input type="text" id="suchfeld" name="q" value="<?= htmlspecialchars((string)($search)) ?>" placeholder="Suchen…" enterkeyhint="search">
+    <button type="submit"><?= icon('search') ?> Suchen</button>
+  </form>
+  <?= nav_appnav($navOpt) ?>
+  <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
+</header>
 
 <?php $flash = flash_pull(); ?>
 <?php if ($flash): ?>
@@ -419,40 +435,14 @@ $mu = $isMuseum ? ['museum' => '1'] : [];
 $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) ? ' open' : '';
 ?>
 
-<!-- ===== Kopfleiste: Suche, Kennzahlen, Export ===== -->
-<div class="topbar <?= $isMuseum ? 'toolbar-museum' : '' ?>">
-  <div class="topbar-row">
-    <form class="searchbox" action="index.php" method="get" role="search">
-      <?php
-        // aktive Parameter erhalten
-        foreach (['filter','kat','inkl','oh','material','hersteller','publisher','verkaeufer','standort','box','verkauf','sort','dir','einkaufsdatum'] as $keep) {
-          if (!empty($_GET[$keep])) {
-            echo '<input type="hidden" name="'.htmlspecialchars($keep).'" value="'.htmlspecialchars((string)$_GET[$keep]).'">';
-          }
-        }
-        if ($isMuseum) { echo '<input type="hidden" name="museum" value="1">'; }
-      ?>
-      <label class="sr-only" for="suchfeld">Suchen</label>
-      <input type="text" id="suchfeld" name="q" value="<?= htmlspecialchars((string)($search)) ?>" placeholder="Suchen…" enterkeyhint="search">
-      <button type="submit"><?= icon('search') ?> Suchen</button>
-    </form>
-
-    <div class="stat">
-      <span class="chip">Einträge: <strong><?= number_format($totalCount,0,',','.') ?></strong></span>
-      <span class="chip">mit Jahr: <strong><?= number_format($yearCount,0,',','.') ?></strong></span>
-      <?php if (!$is_guest && isset($sumValue) && !$isMuseum): ?>
-        <span class="chip">Σ&nbsp;Wert: <strong><?= number_format($sumValue,2,',','.') ?> €</strong></span>
-      <?php endif; ?>
-    </div>
-
-    <div class="topbar-links">
-      <?php if (!$isMuseum && (!$is_guest || guest_export_allowed())): ?>
-        <a class="btn-stat desktop-only" href="export.php?<?= htmlspecialchars(http_build_query($params)) ?>"><?= icon('export') ?> Excel (aktuelle Liste)</a>
-      <?php endif; ?>
-      <?php if (!$isMuseum): ?>
-        <a class="btn-stat" href="statistik.php"><?= icon('stats') ?> Statistik</a>
-      <?php endif; ?>
-    </div>
+<!-- ===== Kennzahlen ===== -->
+<div class="statleiste">
+  <div class="stat">
+    <span class="chip">Einträge: <strong><?= number_format($totalCount,0,',','.') ?></strong></span>
+    <span class="chip">mit Jahr: <strong><?= number_format($yearCount,0,',','.') ?></strong></span>
+    <?php if (!$is_guest && isset($sumValue) && !$isMuseum): ?>
+      <span class="chip">Σ&nbsp;Wert: <strong><?= number_format($sumValue,2,',','.') ?> €</strong></span>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -719,5 +709,6 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
 </div><!-- Ende .liste-layout -->
 <?php include __DIR__ . '/inc_pwa_footer.php'; ?>
 </main>
+<?= nav_bottom($navOpt) ?>
 </body>
 </html>
