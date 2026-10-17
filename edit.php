@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
+require_once __DIR__ . '/inc_nav.php';
 
 // ---- (Optional) PHP-Zeitzone setzen ----
 date_default_timezone_set('Europe/Berlin');
@@ -376,7 +377,7 @@ function get_options($table, $field, $selected='') {
 function lookup_api_key(string $table): string {
     return ['Verkäufer' => 'verkaeufer'][$table] ?? strtolower($table);
 }
-function render_lookup_search($htmlName, $table, $field, $selectedId) {
+function render_lookup_search($htmlName, $table, $field, $selectedId, $inputId = '') {
     global $conn;
     [$t, $f] = lookup_ident($table, $field);
     $selectedId = (int)$selectedId;
@@ -385,7 +386,7 @@ function render_lookup_search($htmlName, $table, $field, $selectedId) {
         $lr = db_select($conn, "SELECT $f FROM $t WHERE ID = ?", 'i', [$selectedId])->fetch_row();
         if ($lr) $curLabel = (string)$lr[0];
     }
-    echo '<input type="text" name="' . $htmlName . '_text" class="lookup-search ta-input" autocomplete="off"'
+    echo '<input type="text"' . ($inputId !== '' ? ' id="' . htmlspecialchars($inputId, ENT_QUOTES, 'UTF-8') . '"' : '') . ' name="' . $htmlName . '_text" class="lookup-search ta-input" autocomplete="off"'
        . ' placeholder="Tippen zum Suchen…"'
        . ' value="' . htmlspecialchars($curLabel, ENT_QUOTES, 'UTF-8') . '"'
        . ' data-ta="' . lookup_api_key($table) . '" data-ta-hidden="' . $htmlName . '_hidden">';
@@ -975,71 +976,9 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <title><?= $id === 0 ? 'Neuer Eintrag' : 'Bearbeiten: „' . htmlspecialchars(trim((string)($data['Bezeichnung'] ?? '')), ENT_QUOTES, 'UTF-8') . '“' ?> – Sammlung</title>
 <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
-<link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
-
-<style>
-.barcode-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.barcode-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.barcode-scan-wrap {
-  max-width: 440px;
-  border: 1px solid #cfd4da;
-  border-radius: 10px;
-  padding: 8px;
-  background: #f8f9fa;
-}
-#barcodeVideo {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 8px;
-  background: #000;
-  display: block;
-}
-.barcode-hint {
-  margin-top: 6px;
-  font-size: .92rem;
-  color: #555;
-}
-#captureBtn {
-  margin-top: 8px;
-  width: 100%;
-}
-.barcode-status {
-  font-size: .92rem;
-  color: #444;
-  min-height: 1.4em;
-}
-.barcode-status.ok {
-  color: #0f6b2f;
-  font-weight: 600;
-}
-.barcode-status.err {
-  color: #b42318;
-  font-weight: 600;
-}
-.btn.secondary {
-  background: #6c757d;
-  color: #fff !important;
-  border: 1px solid #5c636a;
-}
-.btn.secondary:hover {
-  filter: brightness(0.94);
-}
-.hint {
-  display: block;
-  font-size: 0.8em;
-  color: #777;
-  margin-top: 2px;
-}
-</style>
-
+<script src="/sammlung/assets/edit.js?v=1" defer></script>
+<link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/edit.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 
@@ -1047,111 +986,79 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 
 <body class="edit-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<header class="appbar">
+  <p class="appbar-titel"><a href="index.php"><?= htmlspecialchars(APP_TITLE, ENT_QUOTES, 'UTF-8') ?></a></p>
+  <?= nav_appnav(['is_guest' => false, 'is_admin' => true, 'museum' => false, 'export' => true, 'params' => $params]) ?>
+  <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
+</header>
+
 <main id="inhalt">
   <h1><?= $id===0 ? 'Neuer Eintrag' : 'Eintrag bearbeiten' ?></h1>
 
   <?php if ($flashMsg !== ''): ?>
-    <div class="msg-box info">
+    <div class="msg-box info" role="status">
       <?= htmlspecialchars($flashMsg, ENT_QUOTES, 'UTF-8') ?>
       <?php if ($flashDiag !== ''): ?>
-        <div style="font-size:.85em; opacity:.8; margin-top:4px;">Diagnose: <?= htmlspecialchars($flashDiag, ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="msg-diag">Diagnose: <?= htmlspecialchars($flashDiag, ENT_QUOTES, 'UTF-8') ?></div>
       <?php endif; ?>
     </div>
   <?php endif; ?>
 
-  <div class="buttons">
-  <!-- Zeile 1 -->
-  <div class="row row-main">
-    <!-- KEIN data-nocheck -> warnen, wenn Änderungen ungespeichert -->
-    <a class="btn back"
-       href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>"
-       title="Zurück zur Liste"><?= icon('back') ?> Zurück</a>
+  <?php
+    // Navigationslinks: ohne Ziel deaktiviert (kein onclick nötig, edit.js fängt aria-disabled ab)
+    $navLink = function (bool $aktiv, string $href, string $titel, string $inhalt): string {
+        return '<a class="btn nav' . ($aktiv ? '' : ' disabled') . '" href="' . htmlspecialchars($href) . '"'
+             . ($aktiv ? '' : ' aria-disabled="true" tabindex="-1"') . ' title="' . htmlspecialchars($titel) . '">' . $inhalt . '</a>';
+    };
+  ?>
 
-    <button type="submit" class="btn save"
-            form="f" name="post_action" value="stay"
-            title="Speichern"><?= icon('save') ?> Speichern</button>
-
-    <button type="submit" class="btn save"
-            form="f" name="post_action" value="next"
-            <?= $next_id ? '' : 'disabled' ?>
-            title="Speichern und zum nächsten Datensatz springen"><?= icon('save') ?> Speichern &amp; Nächster <?= icon('forward') ?></button>
-
-    <?php if ($id > 0): ?>
-      <!-- Anzeigen darf ohne Warnung sein -->
-      <a class="btn view" data-nocheck
-         href="<?= htmlspecialchars($viewUrl) ?>"
-         title="Eintrag ansehen"><?= icon('eye') ?> Anzeigen</a>
-    <?php endif; ?>
-
-    <!-- Navigation: KEIN data-nocheck -> warnen, wenn Änderungen ungespeichert -->
-    <a class="btn nav<?= ($id !== $first_id) ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($firstHref) ?>"
-       <?= ($id !== $first_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Erster Datensatz"><?= icon('back') ?> Erster</a>
-
-    <a class="btn nav<?= $prev_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($prevHref) ?>"
-       <?= $prev_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Vorheriger Datensatz"><?= icon('back') ?> Vorheriger</a>
-
-    <a class="btn nav<?= $next_id ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($nextHref) ?>"
-       <?= $next_id ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Nächster Datensatz">Nächster <?= icon('forward') ?></a>
-
-    <a class="btn nav<?= ($id !== $last_id) ? '' : ' disabled' ?>"
-       href="<?= htmlspecialchars($lastHref) ?>"
-       <?= ($id !== $last_id) ? '' : 'aria-disabled="true" tabindex="-1" onclick="return false;"' ?>
-       title="Letzter Datensatz">Letzter <?= icon('forward') ?></a>
+  <!-- Speichern / Abbrechen (auf dem iPhone fest unten). KEIN data-nocheck: warnt bei ungespeicherten Änderungen -->
+  <div class="edit-leiste edit-speichern">
+    <a class="btn back" href="<?= htmlspecialchars($backUrl ?: $listUrl) ?>" title="Zurück zur Liste"><?= icon('back') ?> <span class="nur-gross">Zurück</span><span class="nur-klein">Abbrechen</span></a>
+    <button type="submit" class="btn save" form="f" name="post_action" value="stay" title="Speichern"><?= icon('save') ?> Speichern</button>
+    <button type="submit" class="btn save" form="f" name="post_action" value="next" <?= $next_id ? '' : 'disabled' ?>
+            title="Speichern und zum nächsten Datensatz springen"><?= icon('save') ?> <span class="nur-gross">Speichern &amp; Nächster</span><span class="nur-klein">&amp; Weiter</span></button>
   </div>
 
-  <!-- Zeile 2 -->
-  <div class="row row-secondary">
-    <button type="submit" form="f" name="action" value="dup"
-            class="btn dup"
-            title="als neuen Eintrag speichern"><?= icon('copy') ?> Als NEU speichern</button>
-
-    <button type="submit" form="f" name="action" value="dup_keepcost"
-            class="btn dupplus"
-            title="als neuen Eintrag speichern (mit Datum/Preis/Wert)"><?= icon('copy') ?> NEU (mit Datum/Preis/Wert)</button>
-
-    <!-- Neuer Eintrag: meist ohne Warnung ok; wenn du warnen willst -> data-nocheck entfernen -->
-    <a class="btn new" data-nocheck
-       title="Neuer Eintrag ohne Übernahme"
-       href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params, ['id'=>0,'from'=>'new']))) ?>">
-       <?= icon('plus') ?> Neuer Eintrag (leer)
-    </a>
-
-    <?php $igdbQuery = $_GET; unset($igdbQuery['msg']); ?>
+  <!-- Navigation zwischen den Datensätzen -->
+  <div class="edit-leiste edit-nav">
     <?php if ($id > 0): ?>
-      <form method="post" action="edit.php?<?= htmlspecialchars(http_build_query($igdbQuery)) ?>" style="display:contents">
-        <?= csrf_field() ?>
-        <input type="hidden" name="action" value="igdb">
-        <button type="submit" class="btn igdb" data-nocheck
-                title="Beschreibung aus IGDB importieren (summary)"><?= icon('search') ?> IGDB holen</button>
-      </form>
+      <a class="btn view" data-nocheck href="<?= htmlspecialchars($viewUrl) ?>" title="Eintrag ansehen"><?= icon('eye') ?> Anzeigen</a>
+    <?php endif; ?>
+    <?= $navLink($id !== $first_id, $firstHref, 'Erster Datensatz', icon('back') . ' Erster') ?>
+    <?= $navLink((bool)$prev_id, $prevHref, 'Vorheriger Datensatz', icon('back') . ' Vorheriger') ?>
+    <?= $navLink((bool)$next_id, $nextHref, 'Nächster Datensatz', 'Nächster ' . icon('forward')) ?>
+    <?= $navLink($id !== $last_id, $lastHref, 'Letzter Datensatz', 'Letzter ' . icon('forward')) ?>
+  </div>
 
-      <?php
-        // Filterkontext für den Rücksprung nach index.php mitgeben (wie im Formular oben)
-        $deleteParams = $params;
-        foreach (['filter'=>$filter, 'kat'=>($kat > 0 ? (string)$kat : ''), 'inkl'=>($inkl ? '1' : ''), 'oh'=>$oh, 'material'=>$material, 'q'=>$q] as $k=>$v) {
-            if ($v !== '') $deleteParams[$k] = $v;
-        }
-        $deleteParams['id'] = $id;
-      ?>
-      <form method="post" action="delete.php" style="display:contents"
-            onsubmit="return confirm('„<?= htmlspecialchars(addslashes($data['Bezeichnung'] ?? ''), ENT_QUOTES) ?>“ wirklich unwiderruflich löschen?');">
-        <?= csrf_field() ?>
-        <?php foreach ($deleteParams as $dk => $dv): ?>
-          <input type="hidden" name="<?= htmlspecialchars((string)$dk) ?>" value="<?= htmlspecialchars((string)$dv) ?>">
-        <?php endforeach; ?>
-        <button type="submit" class="btn delete" data-nocheck
+  <!-- Weitere Aktionen (auf dem iPhone eingeklappt) -->
+  <details class="weitere-aktionen" open data-klein-zu>
+    <summary>Weitere Aktionen</summary>
+    <div>
+      <button type="submit" form="f" name="action" value="dup" class="btn dup"
+              title="als neuen Eintrag speichern"><?= icon('copy') ?> Als NEU speichern</button>
+
+      <button type="submit" form="f" name="action" value="dup_keepcost" class="btn dupplus"
+              title="als neuen Eintrag speichern (mit Datum/Preis/Wert)"><?= icon('copy') ?> NEU (mit Datum/Preis/Wert)</button>
+
+      <a class="btn new" data-nocheck title="Neuer Eintrag ohne Übernahme"
+         href="edit.php?<?= htmlspecialchars(http_build_query(array_merge($params, ['id'=>0,'from'=>'new']))) ?>"><?= icon('plus') ?> Neuer Eintrag (leer)</a>
+
+      <?php $igdbQuery = $_GET; unset($igdbQuery['msg']); ?>
+      <?php if ($id > 0): ?>
+        <form method="post" action="edit.php?<?= htmlspecialchars(http_build_query($igdbQuery)) ?>" class="inline-form">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="igdb">
+          <button type="submit" class="btn igdb" data-nocheck
+                  title="Beschreibung aus IGDB importieren (summary)"><?= icon('search') ?> IGDB holen</button>
+        </form>
+
+        <button type="button" class="btn delete" data-loeschen data-nocheck
                 title="Diesen Datensatz löschen"><?= icon('trash') ?> Löschen</button>
-      </form>
-    <?php endif; ?>
-  </div>
-</div>
-
+      <?php endif; ?>
+    </div>
+  </details>
 
   <form id="f" method="post">
     <?php
@@ -1200,51 +1107,52 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
               $value    = $data[$col] ?? '';
               $group    = $fieldGroups[$col] ?? 'Weitere Angaben';
               $isWide   = in_array($col, $wideFields, true);
+              $fid      = ($col === 'Barcode') ? 'barcodeInput' : 'f_' . $htmlName;   // id für <label for>
 
               if ($group !== $currentGroup) {
-                  if ($currentGroup !== null) echo '</div></div>'; // .form-grid + .form-group schließen
-                  echo '<div class="form-group"><h3>'.htmlspecialchars($group).'</h3><div class="form-grid">';
+                  if ($currentGroup !== null) echo '</div></details>'; // .form-grid + Gruppe schließen
+                  echo '<details class="form-group" open><summary>'.htmlspecialchars($group).'</summary><div class="form-grid">';
                   $currentGroup = $group;
               }
           ?>
             <div class="field<?= $isWide ? ' wide' : '' ?><?= $type === 'checkbox' ? ' checkbox-field' : '' ?>" data-col="<?= htmlspecialchars($htmlName) ?>">
-  <span class="label"><?= htmlspecialchars($col === 'VerbautIn' ? 'Gehört zu' : $col) ?></span>
+  <label class="label" for="<?= $fid ?>"><?= htmlspecialchars($col === 'VerbautIn' ? 'Gehört zu' : $col) ?></label>
 
   <?php if ($type === 'textarea'): ?>
 
-    <textarea name="<?= $htmlName ?>" rows="4"><?= htmlspecialchars($value) ?></textarea>
+    <textarea id="<?= $fid ?>" name="<?= $htmlName ?>" rows="4"><?= htmlspecialchars($value) ?></textarea>
 
   <?php elseif ($type === 'select'): ?>
 
     <?php if ($col === 'Datentraeger'): ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <?= get_options('Datentraeger','Datentrager',$value) ?>
       </select>
 
     <?php elseif ($col === 'Box'): ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <?= get_options('Box','Box',$value) ?>
       </select>
 
     <?php elseif (in_array($col, ['Kategorie','Hersteller','Publisher','Verkäufer'], true)): ?>
-      <?php render_lookup_search($htmlName, $col, $col, $value); ?>
+      <?php render_lookup_search($htmlName, $col, $col, $value, $fid); ?>
 
     <?php elseif ($col === 'Original/Homebrew'): ?>
       <?php $sel = $value ?: 'Original'; ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <option value="Original" <?= ($sel === 'Original' ? 'selected' : '') ?>>Original</option>
         <option value="Homebrew" <?= ($sel === 'Homebrew' ? 'selected' : '') ?>>Homebrew</option>
       </select>
 
     <?php elseif ($col === 'Getestet Status'): ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <option value=""       <?= ($value === ''       ? 'selected' : '') ?>>— ungetestet —</option>
-        <option value="OK"     <?= ($value === 'OK'      ? 'selected' : '') ?>>✅ OK</option>
-        <option value="Defekt" <?= ($value === 'Defekt'  ? 'selected' : '') ?>>❌ Defekt</option>
+        <option value="OK"     <?= ($value === 'OK'      ? 'selected' : '') ?>>OK</option>
+        <option value="Defekt" <?= ($value === 'Defekt'  ? 'selected' : '') ?>>Defekt</option>
       </select>
 
     <?php elseif (in_array($col, ['Verpackung Status','Anleitung Status','Datenträger Status'], true)): ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <option value=""          <?= ($value === ''          ? 'selected' : '') ?>>— nicht vorhanden —</option>
         <option value="Original"  <?= ($value === 'Original'   ? 'selected' : '') ?>>Original</option>
         <option value="Nachdruck" <?= ($value === 'Nachdruck'  ? 'selected' : '') ?>>Nachdruck / Repro</option>
@@ -1265,6 +1173,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
         }
       ?>
       <input type="text"
+             id="<?= $fid ?>"
              class="ta-input"
              autocomplete="off"
              placeholder="Tippen zum Suchen…"
@@ -1273,18 +1182,18 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       <input type="hidden" name="<?= $htmlName ?>" id="<?= $htmlName ?>" value="<?= $vbCurrentId ?>">
 
     <?php else: ?>
-      <select name="<?= $htmlName ?>">
+      <select id="<?= $fid ?>" name="<?= $htmlName ?>">
         <?= get_options($col, $col, $value) ?>
       </select>
     <?php endif; ?>
 
   <?php elseif ($type === 'checkbox'): ?>
 
-    <input type="checkbox" name="<?= $htmlName ?>" value="1" <?= $value ? 'checked' : '' ?>>
+    <input type="checkbox" id="<?= $fid ?>" name="<?= $htmlName ?>" value="1" <?= $value ? 'checked' : '' ?>>
 
   <?php elseif ($type === 'number'): ?>
 
-    <input type="number" name="<?= $htmlName ?>" value="<?= htmlspecialchars($value) ?>">
+    <input type="number" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars($value) ?>" inputmode="numeric">
 
   <?php elseif ($col === 'Barcode'): ?>
 
@@ -1326,420 +1235,85 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
       }
     ?>
     <input type="text"
+           id="<?= $fid ?>"
            name="<?= $htmlName ?>"
            value="<?= htmlspecialchars($ekdDisplay) ?>"
            inputmode="numeric"
            autocomplete="off"
            placeholder="TT.MM.JJJJ"
-           pattern="\d{1,2}\.\d{1,2}\.\d{4}">
+           pattern="\d{1,2}\.\d{1,2}\.\d{4}"
+           title="Datum als TT.MM.JJJJ">
 
   <?php elseif ($col === 'SammlungBild1'): ?>
 
-    <input type="text" name="<?= $htmlName ?>" value="<?= htmlspecialchars((string)$value) ?>" autocomplete="off"
+    <input type="text" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars((string)$value) ?>" autocomplete="off"
            placeholder="Dateiname oder Pfad unter wp-content/uploads, z. B. 2014/11/bild.jpg (volle URL geht auch)">
 
   <?php elseif ($col === 'Einkaufspreis' || $col === 'Wert'): ?>
 
     <?php $geldVal = parse_decimal($value); $geldVal = ($geldVal !== null) ? fmt_dec($geldVal) : (string)$value; ?>
-    <input type="text" name="<?= $htmlName ?>" value="<?= htmlspecialchars($geldVal) ?>" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,50">
+    <input type="text" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars($geldVal) ?>" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,50">
 
   <?php else: ?>
 
-    <input type="<?= $type ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars($value) ?>">
+    <input type="<?= $type ?>" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars($value) ?>">
 
   <?php endif; ?>
 </div>
 <?php endforeach; ?>
-          </div></div><!-- .form-grid + .form-group (letzte reguläre Gruppe) schließen -->
+          </div></details><!-- .form-grid + letzte reguläre Gruppe schließen -->
 
           <?php
             $erstellt  = !empty($data['Erstellt_am'])  ? date('d.m.Y H:i:s', strtotime($data['Erstellt_am']))   : '';
             $geaendert = !empty($data['Geaendert_am']) ? date('d.m.Y H:i:s', strtotime($data['Geaendert_am'])) : '';
           ?>
-          <div class="form-group">
-            <h3>Verwaltung</h3>
+          <details class="form-group" open>
+            <summary>Verwaltung</summary>
             <div class="form-grid">
               <div class="field readonly">
-                <span class="label">Erstellt am</span>
-                <input type="text" value="<?= htmlspecialchars($erstellt) ?>" readonly tabindex="-1">
+                <label class="label" for="f_erstellt">Erstellt am</label>
+                <input type="text" id="f_erstellt" value="<?= htmlspecialchars($erstellt) ?>" readonly tabindex="-1">
               </div>
               <div class="field readonly">
-                <span class="label">Geändert am</span>
-                <input type="text" value="<?= htmlspecialchars($geaendert) ?>" readonly tabindex="-1">
+                <label class="label" for="f_geaendert">Geändert am</label>
+                <input type="text" id="f_geaendert" value="<?= htmlspecialchars($geaendert) ?>" readonly tabindex="-1">
               </div>
             </div>
-          </div>
+          </details>
         </div>
       </div>
 
       <?php if (image_parse($data['SammlungBild1'] ?? '')): ?>
         <div class="image"><?= image_img($data['SammlungBild1'] ?? '', (string)($data['Bezeichnung'] ?? ''), ['widths' => [320, 640], 'sizes' => '(max-width: 767px) 100vw, 480px']) ?></div>
       <?php endif; ?>
-     </form>
+    </div><!-- .container -->
+  </form>
 
-
-  <script>
-(function(){
-  const input     = document.getElementById('barcodeInput');
-  const startBtn  = document.getElementById('startScanBtn');
-  const stopBtn   = document.getElementById('stopScanBtn');
-  const wrap      = document.getElementById('barcodeScanWrap');
-  const video     = document.getElementById('barcodeVideo');
-  const statusBox = document.getElementById('barcodeStatus');
-  const torchBtn  = document.getElementById('torchBtn');
-  const torchLabel = document.getElementById('torchLabel');
-  const captureBtn = document.getElementById('captureBtn');
-  const canvas     = document.getElementById('barcodeCanvas');
-
-  if (!input || !startBtn || !stopBtn || !wrap || !video || !statusBox) return;
-
-  // Kamera-Constraints: hohe Auflösung + kontinuierlicher Autofokus, wo unterstützt
-  const VIDEO_CONSTRAINTS = {
-    facingMode: { ideal: 'environment' },
-    width:  { ideal: 1920 },
-    height: { ideal: 1080 },
-    advanced: [{ focusMode: 'continuous' }]
-  };
-
-  let stream     = null;
-  let detector   = null;  // nativer BarcodeDetector
-  let codeReader = null;  // ZXing-Fallback
-  let scanTimer  = null;
-  let scanning   = false;
-  let lastValue  = '';
-  let torchOn    = false;
-  let torchTrack = null;
-
-  function setStatus(msg, kind) {
-    statusBox.textContent = msg || '';
-    statusBox.classList.remove('ok', 'err');
-    if (kind) statusBox.classList.add(kind);
+<?php if ($id > 0): ?>
+<?php
+  // Filterkontext für den Rücksprung nach index.php mitgeben
+  $deleteParams = $params;
+  foreach (['filter'=>$filter, 'kat'=>($kat > 0 ? (string)$kat : ''), 'inkl'=>($inkl ? '1' : ''), 'oh'=>$oh, 'material'=>$material, 'q'=>$q] as $k=>$v) {
+      if ($v !== '') $deleteParams[$k] = $v;
   }
-
-  function focusBarcode() {
-    input.focus();
-    try { const len = input.value.length; input.setSelectionRange(len, len); } catch (e) {}
-  }
-
-  // Torch (Blitzlicht) an/aus, falls vom Gerät unterstützt
-  async function setupTorch(mediaStream) {
-    torchTrack = null;
-    if (!torchBtn) return;
-    const track = mediaStream.getVideoTracks()[0];
-    if (!track) { torchBtn.hidden = true; return; }
-    const caps = track.getCapabilities ? track.getCapabilities() : {};
-    if (caps && caps.torch) {
-      torchTrack = track;
-      torchBtn.hidden = false;
-      torchOn = false;
-      torchLabel.textContent = 'Licht an';
-    } else {
-      torchBtn.hidden = true;
-    }
-  }
-
-  async function toggleTorch() {
-    if (!torchTrack) return;
-    try {
-      torchOn = !torchOn;
-      await torchTrack.applyConstraints({ advanced: [{ torch: torchOn }] });
-      torchLabel.textContent = torchOn ? 'Licht aus' : 'Licht an';
-    } catch (e) {
-      setStatus('Blitzlicht konnte nicht umgeschaltet werden.', 'err');
-    }
-  }
-
-  // Gemeinsame Ergebnis-Verarbeitung für beide Pfade
-  function onBarcodeFound(rawValue) {
-    if (!rawValue || rawValue === lastValue) return;
-    lastValue = rawValue;
-    input.value = rawValue;
-    input.dispatchEvent(new Event('input',  { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    setStatus('Barcode erkannt: ' + rawValue, 'ok');
-    stopScanner();
-    focusBarcode();
-  }
-
-  function stopScanner() {
-    scanning = false;
-
-    if (scanTimer)   { clearInterval(scanTimer); scanTimer = null; }
-    if (codeReader)  { try { codeReader.reset(); } catch (e) {} codeReader = null; }
-
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(t => t.stop());
-      video.srcObject = null;
-    }
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
-    }
-
-    torchTrack = null;
-    torchOn = false;
-    if (torchBtn) { torchBtn.hidden = true; torchLabel.textContent = 'Licht an'; }
-    if (captureBtn) captureBtn.hidden = true;
-
-    wrap.hidden     = true;
-    stopBtn.hidden  = true;
-    startBtn.hidden = false;
-  }
-
-  // ---- Pfad A: nativer BarcodeDetector (Chrome, Edge, Android Chrome) ----
-  async function startScannerNative() {
-    try {
-      const supported = await BarcodeDetector.getSupportedFormats();
-      const wanted    = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'];
-      const formats   = wanted.filter(f => supported.includes(f));
-      detector = new BarcodeDetector({ formats: formats.length ? formats : supported });
-    } catch (e) {
-      setStatus('Barcode-Scanner konnte nicht initialisiert werden.', 'err');
-      focusBarcode(); return;
-    }
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: VIDEO_CONSTRAINTS, audio: false
-      });
-      video.srcObject = stream;
-      await video.play();
-      await setupTorch(stream);
-
-      wrap.hidden = false; stopBtn.hidden = false; startBtn.hidden = true; if (captureBtn) captureBtn.hidden = false;
-      scanning = true; lastValue = '';
-      setStatus('Scanner läuft …', '');
-
-      scanTimer = setInterval(async () => {
-        if (!scanning || !detector) return;
-        try {
-          const barcodes = await detector.detect(video);
-          if (barcodes && barcodes.length)
-            onBarcodeFound((barcodes[0].rawValue || '').trim());
-        } catch (e) {}
-      }, 700);
-
-    } catch (e) {
-      setStatus('Kamera konnte nicht geöffnet werden. Bitte Berechtigung prüfen.', 'err');
-      focusBarcode(); stopScanner();
-    }
-  }
-
-  // ---- Pfad B: ZXing-Fallback (iOS Safari, Firefox) ----
-  function loadZXing() {
-    return new Promise((resolve, reject) => {
-      if (window.ZXing) { resolve(); return; }
-      const s = document.createElement('script');
-      s.src     = 'https://unpkg.com/@zxing/library@0.19.2/umd/index.min.js';
-      s.onload  = resolve;
-      s.onerror = () => reject(new Error('ZXing konnte nicht geladen werden.'));
-      document.head.appendChild(s);
-    });
-  }
-
-  async function startScannerZXing() {
-    setStatus('Scanner wird geladen …', '');
-    try {
-      await loadZXing();
-    } catch (e) {
-      setStatus('Scanner-Bibliothek konnte nicht geladen werden. Bitte Barcode manuell eingeben.', 'err');
-      focusBarcode(); return;
-    }
-
-    try {
-      codeReader = new ZXing.BrowserMultiFormatReader();
-
-      // Eigenen Stream mit unseren Constraints holen, statt ZXing raten zu lassen
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: VIDEO_CONSTRAINTS, audio: false
-      });
-      video.srcObject = stream;
-      await video.play();
-      await setupTorch(stream);
-
-      wrap.hidden = false; stopBtn.hidden = false; startBtn.hidden = true; if (captureBtn) captureBtn.hidden = false;
-      scanning = true; lastValue = '';
-      setStatus('Scanner läuft …', '');
-
-      await codeReader.decodeFromStream(stream, video, (result, err) => {
-        if (result) onBarcodeFound(result.getText());
-        // err ist während der Suche normal – nicht anzeigen
-      });
-
-    } catch (e) {
-      setStatus('Kamera konnte nicht geöffnet werden. Bitte Berechtigung prüfen.', 'err');
-      focusBarcode(); stopScanner();
-    }
-  }
-
-  // ---- Einzelbild aufnehmen und mit mehreren Zoomstufen auswerten ----
-  // Löst zwei typische Live-Scan-Probleme: Bewegungsunschärfe und zu kleine
-  // Barcodes im Vollbild. Ein scharfes Standbild wird mehrfach ausgewertet,
-  // jeweils auf die Bildmitte vergrößert (100 % / 60 % / 35 % Bildausschnitt).
-  async function captureAndDecode() {
-    if (!video.videoWidth || !video.videoHeight) return;
-    setStatus('Foto wird ausgewertet …', '');
-
-    const vw = video.videoWidth, vh = video.videoHeight;
-    canvas.width = vw; canvas.height = vh;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, vw, vh);
-
-    const zoomLevels = [1, 0.6, 0.35]; // Anteil der Bildmitte, der genutzt wird
-    let zxingReader = null;
-
-    for (const zoom of zoomLevels) {
-      const cw = Math.round(vw * zoom), ch = Math.round(vh * zoom);
-      const cx = Math.round((vw - cw) / 2), cy = Math.round((vh - ch) / 2);
-
-      const cropCanvas = document.createElement('canvas');
-      // auf min. 1000px Breite hochskalieren, damit kleine Barcodes genug Pixel haben
-      const scale = Math.max(1, 1000 / cw);
-      cropCanvas.width  = Math.round(cw * scale);
-      cropCanvas.height = Math.round(ch * scale);
-      const cropCtx = cropCanvas.getContext('2d');
-      cropCtx.drawImage(canvas, cx, cy, cw, ch, 0, 0, cropCanvas.width, cropCanvas.height);
-
-      // Pfad A: nativer BarcodeDetector, falls verfügbar
-      if ('BarcodeDetector' in window) {
-        try {
-          if (!detector) {
-            const supported = await BarcodeDetector.getSupportedFormats();
-            const wanted    = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'];
-            const formats   = wanted.filter(f => supported.includes(f));
-            detector = new BarcodeDetector({ formats: formats.length ? formats : supported });
-          }
-          const results = await detector.detect(cropCanvas);
-          if (results && results.length) {
-            onBarcodeFound((results[0].rawValue || '').trim());
-            return;
-          }
-        } catch (e) { /* weiter mit nächster Zoomstufe */ }
-      } else {
-        // Pfad B: ZXing gegen das Standbild
-        try {
-          await loadZXing();
-          if (!zxingReader) zxingReader = new ZXing.BrowserMultiFormatReader();
-          const dataUrl = cropCanvas.toDataURL('image/png');
-          const result = await zxingReader.decodeFromImageUrl(dataUrl);
-          if (result) {
-            onBarcodeFound(result.getText());
-            return;
-          }
-        } catch (e) { /* weiter mit nächster Zoomstufe */ }
-      }
-    }
-
-    if (zxingReader) { try { zxingReader.reset(); } catch (e) {} }
-    setStatus('Kein Barcode im Foto erkannt. Näher heran oder anderer Ausschnitt versuchen.', 'err');
-  }
-
-  // ---- Einheitlicher Einstieg ----
-  async function startScanner() {
-    if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
-      setStatus('Kamerazugriff wird von diesem Browser nicht unterstützt.', 'err');
-      focusBarcode(); return;
-    }
-    if ('BarcodeDetector' in window) {
-      await startScannerNative();
-    } else {
-      await startScannerZXing();
-    }
-  }
-
-  startBtn.addEventListener('click', startScanner);
-  stopBtn.addEventListener('click', function(){
-    stopScanner();
-    setStatus('Scan beendet.', '');
-    focusBarcode();
-  });
-  if (torchBtn) torchBtn.addEventListener('click', toggleTorch);
-  if (captureBtn) captureBtn.addEventListener('click', captureAndDecode);
-
-  window.addEventListener('beforeunload', stopScanner);
-})();
-</script>
-
-  <!-- Sonstiges-Beschreibung nur zeigen, wenn Sonstiges angehakt ist -->
-  <script>
-(function(){
-  var checkbox = document.querySelector('input[name="Sonstiges"]');
-  var descField = document.querySelector('.field[data-col="Sonstiges_Beschreibung"]');
-  if (!checkbox || !descField) return;
-
-  function sync(){
-    descField.style.display = checkbox.checked ? '' : 'none';
-  }
-  checkbox.addEventListener('change', sync);
-  sync(); // initialer Zustand beim Laden
-})();
-  </script>
-
-  <!-- Unsaved-changes-Warnung: direkt vor </body> einfügen -->
-  <script>
-(function(){
-  var form = document.getElementById('f');
-  if (!form) return;
-
-  var isDirty = false;
-
-  function markDirty(){ isDirty = true; }
-  form.addEventListener('input',  markDirty, {capture:true});
-  form.addEventListener('change', markDirty, {capture:true});
-
-  // Beim Absenden NICHT warnen
-  form.addEventListener('submit', function(){ isDirty = false; });
-
-  // Tab schließen / Reload / andere URL
-  window.addEventListener('beforeunload', function(e){
-    if (!isDirty) return;
-    e.preventDefault();
-    e.returnValue = '';
-  });
-
-  function isSubmitRelated(el){
-    if (!el) return false;
-
-    // <button> ohne type ist standardmäßig submit
-    var isButtonSubmit = (el.tagName === 'BUTTON' && (el.type === 'submit' || !el.hasAttribute('type')));
-    var isInputSubmit  = (el.tagName === 'INPUT'  && el.type === 'submit');
-
-    if (!(isButtonSubmit || isInputSubmit)) return false;
-
-    var insideForm = !!el.closest('form');
-    var targetsF   = (el.getAttribute('form') === 'f');
-
-    if (insideForm) {
-      var f = el.closest('form');
-      if (f && f.id === 'f') return true;
-      return targetsF;
-    }
-    return targetsF;
-  }
-
-  // Interne Navigation abfangen: NUR Links + Buttons
-  document.addEventListener('click', function(e){
-    var el = e.target.closest('a,button');   // <-- wichtig: kein input hier!
-    if (!el) return;
-
-    // Ausnahmen: data-nocheck → keine Warnung
-    if (el.hasAttribute('data-nocheck')) return;
-
-    // Submit-Aktionen dürfen immer durch
-    if (isSubmitRelated(el)) return;
-
-    if (!isDirty) return;
-
-    var ok = confirm('Es gibt ungespeicherte Änderungen. Seite wirklich verlassen?');
-    if (!ok) {
-      e.preventDefault();
-      e.stopPropagation();
-    } else {
-      isDirty = false;
-    }
-  }, true);
-})();
-</script>
+  $deleteParams['id'] = $id;
+?>
+<!-- Löschen bestätigen (POST mit CSRF an delete.php) -->
+<dialog id="loeschDialog" class="loesch-dialog" aria-labelledby="loeschTitel">
+  <form method="post" action="delete.php">
+    <?= csrf_field() ?>
+    <?php foreach ($deleteParams as $dk => $dv): ?>
+      <input type="hidden" name="<?= htmlspecialchars((string)$dk) ?>" value="<?= htmlspecialchars((string)$dv) ?>">
+    <?php endforeach; ?>
+    <h2 id="loeschTitel">Eintrag löschen?</h2>
+    <p>„<?= htmlspecialchars((string)($data['Bezeichnung'] ?? ''), ENT_QUOTES, 'UTF-8') ?>“ wird unwiderruflich gelöscht.</p>
+    <div class="loesch-knoepfe">
+      <button type="button" class="btn" data-loeschen-zu>Abbrechen</button>
+      <button type="submit" class="btn delete" data-nocheck><?= icon('trash') ?> Löschen</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
 </main>
 </body>
 </html>

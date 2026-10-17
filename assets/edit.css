@@ -1,0 +1,116 @@
+/* =========================================================
+   edit.css – Bearbeiten-Formular (edit.php), Phase 5d
+   Tokens aus base.css (wird danach geladen). Aufbau:
+     unter 600 px   eine Spalte, Bild oben, Gruppen eingeklappt, Speichern/Abbrechen fest unten
+     600–899 px     eine Spalte
+     ab 900 px      Gruppen mit zwei Spalten, Bild rechts (haftet beim Scrollen)
+   ========================================================= */
+body.edit-page{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:0; padding:20px; -webkit-text-size-adjust:100%; }
+.edit-page main{ display:block; max-width:1280px; }
+.edit-page h1{ margin:0 0 var(--s3); font-size:var(--fs-xl); text-align:left; }
+.edit-page [hidden]{ display:none !important; }
+.edit-page .appbar-titel{ color:var(--text); }
+.inline-form{ display:contents; }
+
+/* ---------- Meldungen ---------- */
+.msg-box{ padding:var(--s2) var(--s3); margin:0 0 var(--s3); border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-2); color:var(--text); }
+.msg-box .msg-diag{ font-size:.85em; opacity:.8; margin-top:var(--s1); }
+
+/* ---------- Leisten: Speichern, Navigation, weitere Aktionen ---------- */
+.edit-leiste{ display:flex; flex-wrap:wrap; gap:var(--s2); align-items:center; margin:0 0 var(--s3); }
+.edit-leiste .btn, .weitere-aktionen .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; text-decoration:none; white-space:nowrap; }
+.btn.disabled, a.disabled, .btn[disabled]{ opacity:.45; pointer-events:none; cursor:default; }
+.nur-klein{ display:none; }
+
+.weitere-aktionen{ margin:0 0 var(--s4); border:1px solid var(--border); border-radius:var(--r-sm); background:var(--surface); }
+.weitere-aktionen > summary{ cursor:pointer; padding:var(--s2) var(--s3); min-height:var(--tap); box-sizing:border-box; display:flex; align-items:center; gap:var(--s2); font-weight:600; list-style:none; }
+.weitere-aktionen > summary::-webkit-details-marker{ display:none; }
+.weitere-aktionen > summary::after, details.form-group > summary::after{
+  content:""; margin-left:auto; width:.55em; height:.55em; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); transition:transform .15s; flex:0 0 auto;
+}
+.weitere-aktionen[open] > summary::after, details.form-group[open] > summary::after{ transform:rotate(-135deg); }
+.weitere-aktionen > div{ display:flex; flex-wrap:wrap; gap:var(--s2); padding:0 var(--s3) var(--s3); }
+
+/* ---------- Aufbau: Felder und Bild ---------- */
+.edit-page .container{ display:flex; flex-direction:column; gap:var(--s4); align-items:stretch; }
+.edit-page .fields{ min-width:0; }
+.edit-page .image{ order:-1; text-align:center; }
+.edit-page .image img{ max-width:100%; max-height:36vh; width:auto; height:auto; object-fit:contain; border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-2); }
+.form-groups{ display:flex; flex-direction:column; gap:var(--s3); }
+
+/* ---------- Gruppen ---------- */
+details.form-group{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); }
+details.form-group > summary{ cursor:pointer; padding:var(--s3) var(--s4); min-height:var(--tap); box-sizing:border-box; display:flex; align-items:center; gap:var(--s2); font-size:var(--fs-lg); font-weight:700; list-style:none; }
+details.form-group > summary::-webkit-details-marker{ display:none; }
+details.form-group[open] > summary{ border-bottom:1px solid var(--border); }
+.form-grid{ display:grid; grid-template-columns:minmax(0,1fr); gap:var(--s3) var(--s4); padding:var(--s4); }
+
+/* ---------- Felder ---------- */
+.field{ display:flex; flex-direction:column; gap:var(--s1); min-width:0; position:relative; }
+.field .label{ font-weight:600; font-size:var(--fs-sm); color:var(--text); }
+.field input[type="text"], .field input[type="number"], .field input[type="date"], .field input[type="url"], .field select, .field textarea{
+  width:100%; box-sizing:border-box; padding:8px 10px; min-height:40px; font:inherit; color:var(--text);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
+}
+.field textarea{ min-height:96px; resize:vertical; }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:3px solid var(--focus); outline-offset:1px; }
+.field.readonly input[readonly]{ background:var(--surface-2); color:var(--muted); }
+.field.checkbox-field{ flex-direction:row; align-items:center; gap:var(--s3); min-height:var(--tap); }
+.field.checkbox-field input[type="checkbox"]{ width:24px; height:24px; flex:0 0 auto; margin:0; accent-color:var(--primary); }
+.field.checkbox-field .label{ cursor:pointer; flex:1 1 auto; }
+.hint{ display:block; font-size:var(--fs-sm); color:var(--muted); margin-top:2px; }
+.field :is(input,select,textarea,summary,.btn){ scroll-margin-block:96px; }
+
+/* ---------- Barcode ---------- */
+.barcode-field{ display:flex; flex-direction:column; gap:var(--s2); }
+.barcode-actions{ display:flex; gap:var(--s2); flex-wrap:wrap; }
+.barcode-scan-wrap{ max-width:440px; border:1px solid var(--border); border-radius:var(--r-md); padding:var(--s2); background:var(--surface-2); }
+#barcodeVideo{ width:100%; max-width:420px; border-radius:var(--r-sm); background:#000; display:block; }
+.barcode-hint{ margin-top:6px; font-size:var(--fs-sm); color:var(--muted); }
+#captureBtn{ margin-top:var(--s2); width:100%; }
+.barcode-status{ font-size:var(--fs-sm); color:var(--muted); min-height:1.4em; }
+.barcode-status.ok{ color:var(--text); font-weight:600; }
+.barcode-status.err{ color:var(--danger); font-weight:600; }
+html body .btn.secondary{ background:var(--neutral); color:var(--on-neutral); border:1px solid var(--border); }
+@media (hover:hover){ html body .btn.secondary:hover{ background:var(--neutral-hover); } }
+
+/* ---------- Löschen bestätigen ---------- */
+dialog.loesch-dialog{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); color:var(--text); padding:var(--s4); max-width:min(92vw,420px); }
+dialog.loesch-dialog::backdrop{ background:rgba(0,0,0,.55); }
+dialog.loesch-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
+.loesch-knoepfe{ display:flex; gap:var(--s2); justify-content:flex-end; margin-top:var(--s4); }
+.loesch-knoepfe .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; }
+
+/* ---------- ab 900 px: zwei Spalten, Bild rechts ---------- */
+@media (min-width:900px){
+  .edit-page .container{ flex-direction:row; align-items:flex-start; }
+  .edit-page .fields{ flex:1 1 auto; }
+  .edit-page .image{ order:0; flex:0 0 360px; position:sticky; top:var(--s4); }
+  .edit-page .image img{ max-height:70vh; }
+  .form-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .form-grid .field.wide{ grid-column:1 / -1; }
+}
+
+/* ---------- Touch ---------- */
+@media (pointer:coarse){
+  .field input[type="text"], .field input[type="number"], .field input[type="date"], .field input[type="url"], .field select{ min-height:var(--tap); font-size:16px; }
+  .field textarea{ font-size:16px; }
+}
+
+/* ---------- iPhone: Speichern/Abbrechen fest unten, Bild oben ---------- */
+@media (max-width:599px){
+  body.edit-page{ padding:12px 12px calc(84px + env(safe-area-inset-bottom)); }
+  .edit-page h1{ font-size:var(--fs-lg); }
+  .nur-gross{ display:none; }
+  .nur-klein{ display:inline; }
+  .edit-leiste.edit-speichern{
+    position:fixed; left:0; right:0; bottom:0; z-index:1800; margin:0; gap:var(--s2);
+    background:var(--surface); border-top:1px solid var(--border);
+    padding:var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));
+  }
+  .edit-leiste.edit-speichern .btn{ flex:1 1 0; justify-content:center; white-space:normal; text-align:center; min-height:var(--tap); }
+  .edit-leiste.edit-speichern .btn-ohne-text-klein .txt{ display:none; }
+  .edit-leiste.edit-nav .btn{ flex:1 1 auto; justify-content:center; }
+  .form-grid{ padding:var(--s3); }
+  .edit-page .image img{ max-height:30vh; }
+}
