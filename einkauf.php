@@ -349,7 +349,7 @@ $toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_
 <head>
   <?php $page_title = 'Einkäufe'; include __DIR__ . '/inc_head_admin.php'; ?>
   <script src="/sammlung/assets/typeahead.js?v=2" defer></script>
-  <script src="/sammlung/assets/einkauf.js?v=1" defer></script>
+  <script src="/sammlung/assets/einkauf.js?v=2" defer></script>
   <link rel="stylesheet" href="/sammlung/assets/einkauf.css?v=2">
 </head>
 <body class="admin-page einkauf-page">

@@ -8,8 +8,22 @@
 
   var box = document.getElementById('filterBox');
   if (box) {
+    // Standard: ab 900 px offen, darunter nur bei aktiven Filtern. Hat die Person den Bereich selbst auf- oder zugeklappt,
+    // gilt das auch nach dem Neuladen (z. B. nach dem Umlegen eines Stand-Schalters).
+    var MERKER = 'einkaufFilterOffen';
     var breit = window.matchMedia ? window.matchMedia('(min-width: 900px)').matches : true;
-    box.open = breit || box.getAttribute('data-aktiv') === '1';
+    var offen = breit || box.getAttribute('data-aktiv') === '1';
+    try {
+      var gemerkt = window.localStorage.getItem(MERKER);
+      if (gemerkt === '1') offen = true; else if (gemerkt === '0') offen = false;
+    } catch (_) {}
+    box.open = offen;
+    var kopf = box.querySelector('summary');   // nur echtes Auf-/Zuklappen merken, nicht das Setzen des Standards oben
+    if (kopf) kopf.addEventListener('click', function () {
+      setTimeout(function () {
+        try { window.localStorage.setItem(MERKER, box.open ? '1' : '0'); } catch (_) {}
+      }, 0);
+    });
   }
 
   var sel = document.querySelector('select[data-sort]');
