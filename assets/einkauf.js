@@ -1,6 +1,6 @@
 /*
  * einkauf.js – Einkaufsliste (einkauf.php), Phase 5e-3.
- *  - Filterbereich: ab 900 px offen, darunter eingeklappt (offen nur, wenn Filter aktiv sind)
+ *  - Filterbereich: standardmäßig eingeklappt; die eigene Wahl (auf/zu) bleibt über das Neuladen erhalten (localStorage)
  *  - select[data-sort]: Sortierung wählen → Seite neu laden (sort, dir, page=1)
  */
 (function () {
@@ -8,11 +8,10 @@
 
   var box = document.getElementById('filterBox');
   if (box) {
-    // Standard: ab 900 px offen, darunter nur bei aktiven Filtern. Hat die Person den Bereich selbst auf- oder zugeklappt,
+    // Standard: eingeklappt (aktive Filter stehen als Chips darunter). Hat die Person den Bereich selbst auf- oder zugeklappt,
     // gilt das auch nach dem Neuladen (z. B. nach dem Umlegen eines Stand-Schalters).
     var MERKER = 'einkaufFilterOffen';
-    var breit = window.matchMedia ? window.matchMedia('(min-width: 900px)').matches : true;
-    var offen = breit || box.getAttribute('data-aktiv') === '1';
+    var offen = false;
     try {
       var gemerkt = window.localStorage.getItem(MERKER);
       if (gemerkt === '1') offen = true; else if (gemerkt === '0') offen = false;
