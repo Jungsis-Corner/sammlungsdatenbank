@@ -1,0 +1,82 @@
+/* =========================================================
+   einkauf.css – Einkaufsliste (einkauf.php), Phase 5e-3
+   Ergänzt verwaltung.css (Tabelle, Dialoge, Pfad, Seitenwechsel). Tokens aus base.css.
+     ab 900 px   Tabelle
+     darunter    Kartenliste, Sortierung über Auswahlfeld
+   ========================================================= */
+.einkauf-page main{ max-width:1400px; }
+.ek-kopf{ margin:0 0 var(--s3); }
+
+/* ---------- Filter ---------- */
+details.filterbox{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); margin:0 0 var(--s3); }
+details.filterbox > summary{ cursor:pointer; padding:var(--s3) var(--s4); min-height:var(--tap); box-sizing:border-box; display:flex; align-items:center; font-weight:700; list-style:none; }
+details.filterbox > summary::-webkit-details-marker{ display:none; }
+details.filterbox > summary::after{ content:""; margin-left:auto; width:.55em; height:.55em; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); transition:transform .15s; }
+details.filterbox[open] > summary::after{ transform:rotate(-135deg); }
+details.filterbox[open] > summary{ border-bottom:1px solid var(--border); }
+.ek-filter{ display:grid; gap:var(--s3); padding:var(--s4); grid-template-columns:minmax(0,1fr); }
+.ek-filter .ek-breit{ grid-column:1 / -1; }
+@media (min-width:600px){ .ek-filter{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:900px){ .ek-filter{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.ta-wrap{ position:relative; display:block; }
+.ek-filter .v-feld input[type="text"]{ width:100%; }
+
+/* Chips aktiver Filter */
+.ek-chips{ list-style:none; margin:0 0 var(--s3); padding:0; display:flex; flex-wrap:wrap; gap:var(--s2); }
+a.chip{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; min-height:32px; box-sizing:border-box; border:1px solid var(--border); border-radius:999px; background:var(--neutral); color:var(--on-neutral); text-decoration:none; font-size:var(--fs-sm); }
+a.chip .ico{ width:14px; height:14px; margin:0; }
+
+/* Sortierung (klein) */
+.ek-sortwahl{ display:flex; align-items:center; gap:var(--s2); margin:0 0 var(--s3); }
+.ek-sortwahl select{ flex:1 1 auto; min-width:0; padding:8px 10px; min-height:40px; font:inherit; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); }
+@media (pointer:coarse){ .ek-sortwahl select{ min-height:var(--tap); font-size:16px; } }
+
+/* ---------- Liste: Tabelle (ab 900 px) ---------- */
+.ek-liste-form{ margin:0; }
+table.ek-tabelle{ width:100%; border-collapse:collapse; background:var(--surface); }
+.ek-tabelle th, .ek-tabelle td{ padding:var(--s2) var(--s3); text-align:left; border-bottom:1px solid var(--border); vertical-align:middle; }
+.ek-tabelle thead th{ background:var(--surface-2); font-size:var(--fs-sm); white-space:nowrap; }
+.ek-tabelle thead th a{ color:var(--text); text-decoration:none; }
+.ek-tabelle td.c-datum, .ek-tabelle td.c-liefer{ white-space:nowrap; }
+.ek-tabelle td.c-preis{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.ek-tabelle th.c-preis{ text-align:right; }
+.ek-tabelle td.c-menge, .ek-tabelle th.c-menge{ text-align:center; }
+.ek-tabelle td.c-akt{ text-align:right; white-space:nowrap; }
+.ek-tabelle td.c-akt > *{ display:inline-flex; vertical-align:middle; margin-left:var(--s1); }
+.ek-tabelle tr.zeile-klick{ cursor:pointer; }
+.ek-tabelle a.zeilenlink{ color:var(--text); font-weight:600; text-decoration:none; }
+@media (hover:hover){ .ek-tabelle tr.zeile-klick:hover{ background:var(--surface-2); } .ek-tabelle a.zeilenlink:hover{ text-decoration:underline; } }
+.ek-ks{ display:block; margin-top:2px; font-size:var(--fs-sm); color:var(--muted); }
+
+/* Stand-Schalter (Foto, DB, Web, KS) */
+.ek-toggles{ display:flex; gap:var(--s1); flex-wrap:nowrap; }
+button.tgl{ display:inline-flex; align-items:center; gap:4px; padding:4px 8px; min-height:32px; box-sizing:border-box; font:inherit; font-size:var(--fs-sm); font-weight:600; cursor:pointer; color:var(--muted); background:var(--surface); border:1px dashed var(--border); border-radius:var(--r-sm); }
+button.tgl.an{ color:var(--on-primary); background:var(--primary); border:1px solid var(--primary); }
+button.tgl .ico{ width:14px; height:14px; margin:0; }
+@media (pointer:coarse){ button.tgl{ min-height:var(--tap); padding:4px 12px; } }
+
+/* ---------- Karten (unter 900 px) ---------- */
+@media (max-width:899px){
+  .ek-tabelle thead{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  .ek-tabelle, .ek-tabelle tbody{ display:block; }
+  .ek-tabelle tr{ display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"titel preis" "kat kat" "vk vk" "datum menge" "liefer liefer" "stand stand" "akt akt"; gap:2px var(--s3); padding:var(--s3); margin:0 0 var(--s2); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); }
+  .ek-tabelle td{ display:block; padding:0; border:0; text-align:left; }
+  .ek-tabelle td.c-titel{ grid-area:titel; font-size:var(--fs-base); overflow-wrap:anywhere; }
+  .ek-tabelle td.c-preis{ grid-area:preis; font-weight:700; text-align:right; }
+  .ek-tabelle td.c-kat, .ek-tabelle td.c-vk, .ek-tabelle td.c-datum, .ek-tabelle td.c-menge{ color:var(--muted); font-size:var(--fs-sm); }
+  .ek-tabelle td.c-kat{ grid-area:kat; }
+  .ek-tabelle td.c-vk{ grid-area:vk; }
+  .ek-tabelle td.c-datum{ grid-area:datum; }
+  .ek-tabelle td.c-menge{ grid-area:menge; text-align:right; }
+  .ek-tabelle td.c-kat:empty, .ek-tabelle td.c-vk:empty{ display:none; }
+  .ek-tabelle td.c-liefer{ grid-area:liefer; font-size:var(--fs-sm); }
+  .ek-tabelle td.c-liefer::before{ content:"Lieferung: "; color:var(--muted); }
+  .ek-tabelle td.c-datum::before{ content:"Bestellt "; }
+  .ek-tabelle td.c-status{ grid-area:stand; margin-top:var(--s2); }
+  .ek-tabelle td.c-akt{ grid-area:akt; margin-top:var(--s2); text-align:left; display:flex; flex-wrap:wrap; gap:var(--s2); align-items:center; }
+  .ek-tabelle td.c-akt > *{ margin-left:0; }
+  .ek-tabelle td.c-akt .delete{ margin-left:auto; }
+  .ek-tabelle tr.leer{ display:block; }
+  .ek-toggles{ flex-wrap:wrap; }
+}
+@media (min-width:900px){ .ek-sortwahl{ display:none; } }

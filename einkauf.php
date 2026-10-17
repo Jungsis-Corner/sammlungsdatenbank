@@ -7,6 +7,7 @@ require_once __DIR__ . '/inc_icons.php';
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_format.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 require_once __DIR__ . '/config.php';
@@ -72,6 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
   $id    = (int)($_POST['id'] ?? 0);
   $field = (string)($_POST['field'] ?? '');
   $val   = (int)($_POST['val'] ?? 0);
+  if (isset($_POST['toggle']) && preg_match('/^([A-Za-z_]+):([01]):(\d+)$/', (string)$_POST['toggle'], $tm)) {   // ein Formular für die Liste, der Knopf trägt Feld, neuen Wert und ID
+    $field = $tm[1];
+    $val   = (int)$tm[2];
+    $id    = (int)$tm[3];
+  }
 
   $allowed = ['Foto_erstellt','DB_Eintrag_erstellt','Foto_Website','Kickstarter'];
   if ($id <= 0 || !in_array($field, $allowed, true)) {
@@ -246,6 +252,16 @@ $where_sql
 ORDER BY $order
 ";
 
+// Seitenwechsel (50 pro Seite)
+const EINKAUF_PRO_SEITE = 50;
+$stmt = $conn->prepare("SELECT COUNT(*) FROM Einkauf E LEFT JOIN Kategorie K ON E.Kategorie = K.ID LEFT JOIN `Verkäufer` V ON E.Verkaeufer = V.ID $where_sql");
+if ($types !== '') { $stmt->bind_param($types, ...$args); }
+$stmt->execute();
+$total = (int)(stmt_fetch_all_assoc($stmt)[0]['COUNT(*)'] ?? 0);
+$pages = max(1, (int)ceil($total / EINKAUF_PRO_SEITE));
+$page  = min(max(1, (int)($_GET['page'] ?? 1)), $pages);
+$sql  .= ' LIMIT ' . EINKAUF_PRO_SEITE . ' OFFSET ' . (($page - 1) * EINKAUF_PRO_SEITE);   // nur feste Zahlen
+
 $stmt = $conn->prepare($sql);
 if ($types !== '') {
   $stmt->bind_param($types, ...$args);
@@ -261,8 +277,10 @@ function sort_link(string $label, string $key, string $sort, string $dir): strin
   $params = $_GET;
   $params['sort'] = $key;
   $params['dir']  = $newDir;
+  unset($params['page']);
   $href = 'einkauf.php?' . http_build_query($params);
   $arrow = ($sort === $key) ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
+  $aria  = ($sort === $key) ? ($dir === 'asc' ? ' aria-sort="ascending"' : ' aria-sort="descending"') : '';
   return '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8').$arrow.'</a>';
 }
 
@@ -279,6 +297,7 @@ $thisY = (int)$now->format('Y');
 
 function build_href_with(array $set): string {
   $params = $_GET;
+  unset($params['page']);
   foreach ($set as $k => $v) {
     if ($v === null) unset($params[$k]);
     else $params[$k] = $v;
@@ -286,334 +305,242 @@ function build_href_with(array $set): string {
   return 'einkauf.php?' . http_build_query($params);
 }
 ?>
+<?php
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+
+// Namen der gewählten Filter (Kategorie/Verkäufer) für Eingabefeld und Chips
+$katName = ''; $vkName = '';
+if ($kategorie > 0) {
+  $r = $conn->query('SELECT Kategorie FROM Kategorie WHERE ID = ' . (int)$kategorie)->fetch_row();
+  $katName = $r ? (string)$r[0] : '';
+}
+if ($verkaeufer > 0) {
+  $r = $conn->query('SELECT `Verkäufer` FROM `Verkäufer` WHERE ID = ' . (int)$verkaeufer)->fetch_row();
+  $vkName = $r ? (string)$r[0] : '';
+}
+$monatsNamen = [1=>'Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+// Aktive Filter als Chips (Link entfernt den Filter)
+$chips = [];
+if ($q !== '')                 $chips[] = ['Suche: ' . $q, ['q' => null]];
+if ($status !== 'all')         $chips[] = ['Status: ' . ($status === 'offen' ? 'offen' : 'geliefert'), ['status' => null]];
+if ($kickstarter !== 'all')    $chips[] = ['Kickstarter: ' . ($kickstarter === 'ja' ? 'ja' : 'nein'), ['kickstarter' => null]];
+if ($db_status !== 'all')      $chips[] = [$db_status === 'offen' ? 'Noch nicht übernommen' : 'Bereits übernommen', ['db_status' => null]];
+if ($kategorie > 0)            $chips[] = ['Kategorie: ' . ($katName !== '' ? $katName : '#' . $kategorie), ['kategorie' => null]];
+if ($verkaeufer > 0)           $chips[] = ['Verkäufer: ' . ($vkName !== '' ? $vkName : '#' . $verkaeufer), ['verkaeufer' => null]];
+if ($jahr > 0)                 $chips[] = ['Lieferung: ' . ($monat >= 1 && $monat <= 12 ? $monatsNamen[$monat] . ' ' : '') . $jahr, ['jahr' => null, 'monat' => null]];
+
+$listParams = $_GET; unset($listParams['page']);
+$sortSpalten = ['Lieferdatum' => 'Lieferung', 'Bestelldatum' => 'Bestellt', 'Bezeichnung' => 'Bezeichnung', 'Kategorie' => 'Kategorie',
+                'Verkaeufer' => 'Verkäufer', 'Preis' => 'Preis', 'Menge' => 'Menge', 'Kickstarter_Lieferdatum' => 'Kickstarter geplant', 'ID' => 'Eingabe'];
+$flashHtml = admin_flash();
+$toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_Website' => 'Web', 'Kickstarter' => 'KS'];
+?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
-  <title>Einkäufe – Sammlung</title>
-
-  <style>
-    .panel{
-      border: 1px solid #cfcfcf;
-      border-radius: 10px;
-      padding: 12px;
-      margin: 12px 0;
-      background: #fff;
-    }
-    .filters{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:end;
-    }
-    .quickfilters{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    table.list{
-      border-collapse: collapse !important;
-      width: 100%;
-    }
-    table.list th, table.list td{
-      border: 1px solid #d6d6d6;
-      padding: 8px 10px;
-      vertical-align: top;
-    }
-    table.list thead th{
-      background: #f7f7f7;
-    }
-
-    table.list tbody tr:nth-child(even) td{
-      background: #fafafa;
-    }
-    table.list tbody tr:hover td{
-      background: #f2f7ff;
-    }
-
-    th.col-date, td.col-date{ width:100px; min-width:100px; white-space:nowrap; text-align:center; }
-    th.col-bez,  td.col-bez { width:32%; min-width:360px; white-space:normal; word-break:break-word; }
-    th.col-cat,  td.col-cat { width:180px; min-width:180px; }
-    th.col-seller, td.col-seller { width:180px; min-width:180px; }
-    th.col-price, td.col-price { width:75px; min-width:75px; white-space:nowrap; text-align:right; }
-    th.col-qty, td.col-qty { width:80px; min-width:80px; text-align:center; white-space:nowrap; }
-    th.col-mini, td.col-mini { width:70px; min-width:70px; text-align:center; white-space:nowrap; }
-    th.col-action, td.col-action { width:220px; min-width:220px; white-space:nowrap; text-align:center; }
-
-    @media (max-width: 760px){
-      th.col-bez, td.col-bez{ min-width:0; width:auto; }
-      th.col-date, td.col-date,
-      th.col-cat, td.col-cat,
-      th.col-seller, td.col-seller,
-      th.col-price, td.col-price,
-      th.col-qty, td.col-qty,
-      th.col-mini, td.col-mini,
-      th.col-action, td.col-action{ min-width:0; width:auto; }
-    }
-
-    a.btn, button.btn{
-      background: #2d6cdf;
-      color: #fff !important;
-      border: 1px solid #1f55b6;
-    }
-
-    a.btn:hover, button.btn:hover{
-      filter: brightness(0.92);
-    }
-
-    a.btn.back, a.btn.reset, a.btn.secondary{
-      background: #6c757d;
-      border-color: #5c636a;
-    }
-
-    .quickfilters .btn{
-      background: #0f766e;
-      border-color: #0b5e57;
-    }
-    .quickfilters .btn:hover{
-      filter: brightness(0.92);
-    }
-
-    .quickfilters .btn.off{
-      background: #b42318;
-      border-color: #8f1d14;
-    }
-
-    /* =========================================================
-       DARK MODE – einkauf.php-eigene Klassen (panel, table.list)
-       ========================================================= */
-    html[data-theme="dark"] .panel{
-      background: #1a1a1a !important;
-      border-color: #333 !important;
-      color: #e8e8e8 !important;
-    }
-    html[data-theme="dark"] .panel label{
-      color: #ccc !important;
-    }
-    html[data-theme="dark"] .filters input[type="text"],
-    html[data-theme="dark"] .filters select{
-      background: #2a2a2a !important;
-      color: #e8e8e8 !important;
-      border: 1px solid #444 !important;
-    }
-    html[data-theme="dark"] table.list th,
-    html[data-theme="dark"] table.list td{
-      background: #1a1a1a !important;
-      color: #e8e8e8 !important;
-      border-color: #444 !important;
-    }
-    html[data-theme="dark"] table.list thead th{
-      background: #2a2a2a !important;
-    }
-    html[data-theme="dark"] table.list tbody tr:nth-child(even) td{
-      background: #222 !important;
-    }
-    html[data-theme="dark"] table.list tbody tr:hover td{
-      background: #2a2a3a !important;
-    }
-    html[data-theme="dark"] table.list a{
-      color: #8ab4ff !important;
-    }
-  </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <?php $page_title = 'Einkäufe'; include __DIR__ . '/inc_head_admin.php'; ?>
+  <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
+  <script src="/sammlung/assets/einkauf.js?v=1" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/einkauf.css?v=1">
 </head>
-<body>
-<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<body class="admin-page einkauf-page">
+<?= admin_header([['Einkäufe', '']]) ?>
+
 <main id="inhalt">
+  <h1>Einkäufe</h1>
 
-<h1>Einkäufe</h1>
+  <?= $flashHtml ?>
 
-<div class="buttons">
-  <div class="row row-main">
-    <a class="btn back" href="einstellungen.php" title="Zurück zu Einstellungen"><?= icon('back') ?> Zurück</a>
-    <a class="btn new" href="einkauf_edit.php?id=0&back=<?= urlencode('einkauf.php') ?>" title="Neuen Einkauf anlegen"><?= icon('plus') ?> Neuer Einkauf</a>
+  <div class="v-knoepfe ek-kopf">
+    <a class="btn save" href="einkauf_edit.php?id=0&amp;back=<?= urlencode('einkauf.php') ?>"><?= icon('plus') ?> Neuer Einkauf</a>
+    <span class="v-unter" aria-live="polite"><?= $total ?> <?= $total === 1 ? 'Einkauf' : 'Einkäufe' ?><?= $chips ? ' (gefiltert)' : '' ?></span>
   </div>
-</div>
 
-<div class="panel">
-  <form method="get" class="filters">
-    <div>
-      <label>Suche</label><br>
-      <input type="text" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Bezeichnung…">
-    </div>
+  <!-- Filter -->
+  <details class="filterbox" id="filterBox"<?= $chips ? ' data-aktiv="1"' : '' ?>>
+    <summary>Filter<?= $chips ? ' (' . count($chips) . ')' : '' ?></summary>
+    <form method="get" class="ek-filter" action="einkauf.php">
+      <input type="hidden" name="sort" value="<?= $e($sort) ?>">
+      <input type="hidden" name="dir" value="<?= $e($dir) ?>">
+      <div class="v-feld ek-breit">
+        <label for="f_q">Suche</label>
+        <input type="search" id="f_q" name="q" value="<?= $e($q) ?>" placeholder="Bezeichnung…" autocomplete="off">
+      </div>
+      <div class="v-feld">
+        <label for="f_status">Status</label>
+        <select id="f_status" name="status">
+          <option value="all" <?= $status==='all'?'selected':'' ?>>alle</option>
+          <option value="offen" <?= $status==='offen'?'selected':'' ?>>offen</option>
+          <option value="geliefert" <?= $status==='geliefert'?'selected':'' ?>>geliefert</option>
+        </select>
+      </div>
+      <div class="v-feld">
+        <label for="f_ks">Kickstarter</label>
+        <select id="f_ks" name="kickstarter">
+          <option value="all" <?= $kickstarter==='all'?'selected':'' ?>>alle</option>
+          <option value="ja" <?= $kickstarter==='ja'?'selected':'' ?>>ja</option>
+          <option value="nein" <?= $kickstarter==='nein'?'selected':'' ?>>nein</option>
+        </select>
+      </div>
+      <div class="v-feld">
+        <label for="f_db">In Sammlung übernommen</label>
+        <select id="f_db" name="db_status">
+          <option value="all"     <?= $db_status==='all'?'selected':'' ?>>alle</option>
+          <option value="offen"   <?= $db_status==='offen'?'selected':'' ?>>noch nicht übernommen</option>
+          <option value="erfasst" <?= $db_status==='erfasst'?'selected':'' ?>>bereits übernommen</option>
+        </select>
+      </div>
+      <div class="v-feld">
+        <label for="f_kat">Kategorie</label>
+        <input type="text" id="f_kat" value="<?= $e($katName) ?>" placeholder="Tippen zum Suchen…" autocomplete="off" data-ta="kategorie" data-ta-hidden="f_kat_id">
+        <input type="hidden" id="f_kat_id" name="kategorie" value="<?= $kategorie > 0 ? (int)$kategorie : '' ?>">
+      </div>
+      <div class="v-feld">
+        <label for="f_vk">Verkäufer</label>
+        <input type="text" id="f_vk" value="<?= $e($vkName) ?>" placeholder="Tippen zum Suchen…" autocomplete="off" data-ta="verkaeufer" data-ta-hidden="f_vk_id">
+        <input type="hidden" id="f_vk_id" name="verkaeufer" value="<?= $verkaeufer > 0 ? (int)$verkaeufer : '' ?>">
+      </div>
+      <div class="v-feld">
+        <label for="f_jahr">Jahr (Lieferdatum)</label>
+        <select id="f_jahr" name="jahr"><?= options_years_from_lieferdatum($conn, $lieferDateSql, $jahr) ?></select>
+      </div>
+      <div class="v-feld">
+        <label for="f_monat">Monat</label>
+        <select id="f_monat" name="monat"><?= options_months($monat) ?></select>
+      </div>
+      <div class="v-knoepfe ek-breit">
+        <button class="btn save" type="submit"><?= icon('filter') ?> Filtern</button>
+        <a class="btn" href="einkauf.php">Zurücksetzen</a>
+      </div>
+      <div class="v-knoepfe ek-breit" role="group" aria-label="Schnellfilter Lieferdatum">
+        <a class="btn" href="<?= $e(build_href_with(['jahr'=>$lastY,'monat'=>$lastM])) ?>">Letzter Monat</a>
+        <a class="btn" href="<?= $e(build_href_with(['jahr'=>$thisY,'monat'=>0])) ?>">Dieses Jahr</a>
+        <a class="btn" href="<?= $e(build_href_with(['jahr'=>null,'monat'=>null])) ?>">Datum-Filter aus</a>
+      </div>
+    </form>
+  </details>
 
-    <div>
-      <label>Status</label><br>
-      <select name="status">
-        <option value="all" <?= $status==='all'?'selected':'' ?>>alle</option>
-        <option value="offen" <?= $status==='offen'?'selected':'' ?>>offen</option>
-        <option value="geliefert" <?= $status==='geliefert'?'selected':'' ?>>geliefert</option>
-      </select>
-    </div>
+  <?php if ($chips): ?>
+    <ul class="ek-chips" aria-label="Aktive Filter">
+      <?php foreach ($chips as [$text, $weg]): ?>
+        <li><a class="chip" href="<?= $e(build_href_with($weg)) ?>" title="Filter entfernen"><?= $e($text) ?> <?= icon('close', 'entfernen') ?></a></li>
+      <?php endforeach; ?>
+    </ul>
+  <?php endif; ?>
 
-    <div>
-      <label>Kickstarter</label><br>
-      <select name="kickstarter">
-        <option value="all" <?= $kickstarter==='all'?'selected':'' ?>>alle</option>
-        <option value="ja" <?= $kickstarter==='ja'?'selected':'' ?>>ja</option>
-        <option value="nein" <?= $kickstarter==='nein'?'selected':'' ?>>nein</option>
-      </select>
-    </div>
+  <!-- Sortierung (unter 900 px; darüber sind die Spaltenköpfe Links) -->
+  <div class="ek-sortwahl">
+    <label for="f_sort">Sortieren nach</label>
+    <select id="f_sort" data-sort>
+      <?php foreach ($sortSpalten as $k => $lbl): foreach (['asc' => 'aufsteigend', 'desc' => 'absteigend'] as $d => $dl): ?>
+        <option value="<?= $e($k . ':' . $d) ?>" <?= ($sort === $k && $dir === $d) ? 'selected' : '' ?>><?= $e($lbl . ' (' . $dl . ')') ?></option>
+      <?php endforeach; endforeach; ?>
+    </select>
+  </div>
 
-    <div>
-      <label>In Sammlung übernommen</label><br>
-      <select name="db_status">
-        <option value="all"     <?= $db_status==='all'?'selected':'' ?>>alle</option>
-        <option value="offen"   <?= $db_status==='offen'?'selected':'' ?>>noch nicht übernommen</option>
-        <option value="erfasst" <?= $db_status==='erfasst'?'selected':'' ?>>bereits übernommen</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Kategorie</label><br>
-      <select name="kategorie"><?= options_from_table($conn,'Kategorie','Kategorie',$kategorie) ?></select>
-    </div>
-
-    <div>
-      <label>Verkäufer</label><br>
-      <select name="verkaeufer"><?= options_from_table($conn,'Verkäufer','Verkäufer',$verkaeufer) ?></select>
-    </div>
-
-    <div>
-      <label>Jahr (Lieferdatum)</label><br>
-      <select name="jahr"><?= options_years_from_lieferdatum($conn, $lieferDateSql, $jahr) ?></select>
-    </div>
-
-    <div>
-      <label>Monat</label><br>
-      <select name="monat"><?= options_months($monat) ?></select>
-    </div>
-
-    <div>
-      <button class="btn" type="submit">Filtern</button>
-      <a class="btn" href="einkauf.php">Reset</a>
-    </div>
-
-    <div class="quickfilters">
-      <a class="btn" href="<?= htmlspecialchars(build_href_with(['jahr'=>$lastY,'monat'=>$lastM]), ENT_QUOTES, 'UTF-8') ?>">Letzter Monat</a>
-      <a class="btn" href="<?= htmlspecialchars(build_href_with(['jahr'=>$thisY,'monat'=>0]), ENT_QUOTES, 'UTF-8') ?>">Dieses Jahr</a>
-      <a class="btn off" href="<?= htmlspecialchars(build_href_with(['jahr'=>null,'monat'=>null]), ENT_QUOTES, 'UTF-8') ?>">Datum-Filter aus</a>
-    </div>
-  </form>
-</div>
-
-<div class="panel">
-  <div class="container">
-    <table class="list">
+  <!-- Liste -->
+  <form method="post" class="ek-liste-form">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="toggle">
+    <input type="hidden" name="back" value="<?= $e($self) ?>">
+    <table class="ek-tabelle">
       <thead>
         <tr>
-          <th class="col-date"><?= sort_link('Bestellt','Bestelldatum',$sort,$dir) ?></th>
-          <th class="col-bez"><?= sort_link('Bezeichnung','Bezeichnung',$sort,$dir) ?></th>
-          <th class="col-cat"><?= sort_link('Kategorie','Kategorie',$sort,$dir) ?></th>
-          <th class="col-seller"><?= sort_link('Verkäufer','Verkaeufer',$sort,$dir) ?></th>
-          <th class="col-price"><?= sort_link('Preis','Preis',$sort,$dir) ?></th>
-          <th class="col-date"><?= sort_link('Lieferung','Lieferdatum',$sort,$dir) ?></th>
-          <th class="col-date"><?= sort_link('KS geplant','Kickstarter_Lieferdatum',$sort,$dir) ?></th>
-          <th class="col-qty"><?= sort_link('Menge','Menge',$sort,$dir) ?></th>
-          <th class="col-mini">Foto</th>
-          <th class="col-mini">DB</th>
-          <th class="col-mini">Web</th>
-          <th class="col-mini"><?= sort_link('KS','Kickstarter',$sort,$dir) ?></th>
-          <th class="col-action">Aktion</th>
+          <th class="c-datum"><?= sort_link('Bestellt','Bestelldatum',$sort,$dir) ?></th>
+          <th class="c-titel"><?= sort_link('Bezeichnung','Bezeichnung',$sort,$dir) ?></th>
+          <th class="c-kat"><?= sort_link('Kategorie','Kategorie',$sort,$dir) ?></th>
+          <th class="c-vk"><?= sort_link('Verkäufer','Verkaeufer',$sort,$dir) ?></th>
+          <th class="c-preis"><?= sort_link('Preis','Preis',$sort,$dir) ?></th>
+          <th class="c-liefer"><?= sort_link('Lieferung','Lieferdatum',$sort,$dir) ?></th>
+          <th class="c-menge"><?= sort_link('Menge','Menge',$sort,$dir) ?></th>
+          <th class="c-status">Stand</th>
+          <th class="c-akt"><span class="sr-only">Aktionen</span></th>
         </tr>
       </thead>
-
       <tbody>
       <?php if (!$rows): ?>
-        <tr><td colspan="13" style="padding:10px;">Keine Einträge.</td></tr>
+        <tr class="leer"><td colspan="9" class="v-leer">Keine Einträge<?= $chips ? ' zu diesen Filtern. <a href="einkauf.php">Filter zurücksetzen</a>' : '.' ?></td></tr>
       <?php endif; ?>
 
-      <?php foreach ($rows as $r): ?>
-        <?php
+      <?php foreach ($rows as $r):
           $id = (int)($r['ID'] ?? 0);
+          $bez = (string)($r['Bezeichnung'] ?? '');
+          $editHref = 'einkauf_edit.php?id=' . $id . '&back=' . urlencode($self);
+          $bestellt = format_date_de($r['Bestelldatum'] ?? '');
+          $lieferRaw = trim((string)($r['Lieferdatum'] ?? ''));
+          $liefer = ($lieferRaw === '0000-00-00') ? '' : format_date_de($lieferRaw);
+          $ks = (int)($r['Kickstarter'] ?? 0) === 1;
+          $ksGeplant = format_date_de($r['Kickstarter_Lieferdatum'] ?? '');
+          if ($ksGeplant === '00.00.0000' || $ksGeplant === '30.11.-0001') $ksGeplant = '';
+          $preis = format_price_de($r['Preis'] ?? '');
 
-          $mkToggle = function(string $field, int $cur) use ($id, $self) {
-            $new = $cur ? 0 : 1;
-            return '
-              <form method="post" style="margin:0; display:inline;">
-                '.csrf_field().'
-                <input type="hidden" name="action" value="toggle">
-                <input type="hidden" name="id" value="'.$id.'">
-                <input type="hidden" name="field" value="'.htmlspecialchars($field, ENT_QUOTES, 'UTF-8').'">
-                <input type="hidden" name="val" value="'.$new.'">
-                <input type="hidden" name="back" value="'.htmlspecialchars($self, ENT_QUOTES, 'UTF-8').'">
-                <button type="submit" class="btn" style="padding:2px 6px;">'.($cur ? '✔' : '—').'</button>
-              </form>';
-          };
-
-          $bestellt      = format_date_de($r['Bestelldatum'] ?? '');
-          $liefer        = format_date_de($r['Lieferdatum'] ?? '');
-          $ks_geplant    = format_date_de($r['Kickstarter_Lieferdatum'] ?? '');
-
-          // ---- Übernahme nach edit.php (Sammlung) vorbereiten ----
+          // ---- Übernahme nach edit.php (Sammlung) vorbereiten (unverändert) ----
           // Bestelldatum wird bewusst NICHT übernommen.
           // Lieferdatum -> Einkaufsdatum, Preis -> Einkaufspreis und Wert (beide gleich, später im Formular anpassbar).
           $prefill = [];
-          if (trim((string)($r['Bezeichnung'] ?? '')) !== '') {
-              $prefill['pf_Bezeichnung'] = $r['Bezeichnung'];
+          if (trim($bez) !== '') { $prefill['pf_Bezeichnung'] = $r['Bezeichnung']; }
+          if ((int)($r['Kategorie'] ?? 0) > 0) { $prefill['pf_Kategorie'] = (int)$r['Kategorie']; }
+          if ((int)($r['Verkaeufer'] ?? 0) > 0) { $prefill['pf_Verkaeufer'] = (int)$r['Verkaeufer']; }
+          if ((int)($r['Menge'] ?? 0) > 0) { $prefill['pf_Anzahl'] = (int)$r['Menge']; }
+          if ($preis !== '' && $preis !== '0,00') {
+              $prefill['pf_Einkaufspreis'] = $preis;
+              $prefill['pf_Wert'] = $preis;
           }
-          if ((int)($r['Kategorie'] ?? 0) > 0) {
-              $prefill['pf_Kategorie'] = (int)$r['Kategorie'];
-          }
-          if ((int)($r['Verkaeufer'] ?? 0) > 0) {
-              $prefill['pf_Verkaeufer'] = (int)$r['Verkaeufer'];
-          }
-          if ((int)($r['Menge'] ?? 0) > 0) {
-              $prefill['pf_Anzahl'] = (int)$r['Menge'];
-          }
-          $preisFmt = format_price_de($r['Preis'] ?? '');
-          if ($preisFmt !== '' && $preisFmt !== '0,00') {
-              $prefill['pf_Einkaufspreis'] = $preisFmt;
-              $prefill['pf_Wert'] = $preisFmt;
-          }
-          $liefRaw = trim((string)($r['Lieferdatum'] ?? ''));
-          if ($liefRaw !== '' && $liefRaw !== '0000-00-00') {
-              $liefTs = strtotime($liefRaw);
+          if ($lieferRaw !== '' && $lieferRaw !== '0000-00-00') {
+              $liefTs = strtotime($lieferRaw);
               if ($liefTs) $prefill['pf_Einkaufsdatum'] = date('Y-m-d', $liefTs);
           }
           $transferHref = 'edit.php?id=0&' . http_build_query($prefill);
-        ?>
-
-        <tr>
-          <td class="col-date"><?= htmlspecialchars($bestellt, ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-bez"><?= htmlspecialchars((string)($r['Bezeichnung'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-cat"><?= htmlspecialchars((string)($r['KategorieName'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-seller"><?= htmlspecialchars((string)($r['VerkaeuferName'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-price"><?= htmlspecialchars(format_price_de($r['Preis'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-date"><?= htmlspecialchars($liefer, ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-date"><?= htmlspecialchars($ks_geplant, ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="col-qty"><?= (int)($r['Menge'] ?? 1) ?></td>
-
-          <td class="col-mini"><?= $mkToggle('Foto_erstellt', (int)($r['Foto_erstellt'] ?? 0)) ?></td>
-          <td class="col-mini"><?= $mkToggle('DB_Eintrag_erstellt', (int)($r['DB_Eintrag_erstellt'] ?? 0)) ?></td>
-          <td class="col-mini"><?= $mkToggle('Foto_Website', (int)($r['Foto_Website'] ?? 0)) ?></td>
-          <td class="col-mini"><?= $mkToggle('Kickstarter', (int)($r['Kickstarter'] ?? 0)) ?></td>
-
-          <td class="col-action">
-            <a class="btn" href="einkauf_edit.php?id=<?= $id ?>&back=<?= urlencode($self) ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
-            <form method="post" action="einkauf_delete.php" style="margin:0; display:inline;"
-                  onsubmit="return confirm('Einkauf wirklich löschen?');">
-              <?= csrf_field() ?>
-              <input type="hidden" name="id" value="<?= $id ?>">
-              <input type="hidden" name="back" value="<?= htmlspecialchars($self, ENT_QUOTES, 'UTF-8') ?>">
-              <button type="submit" class="btn" title="Einkauf löschen"><?= icon('trash','Löschen') ?></button>
-            </form>
-            <a class="btn" href="<?= htmlspecialchars($transferHref, ENT_QUOTES, 'UTF-8') ?>"
-               target="_blank" rel="noopener"
-               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Einkaufspreis und Wert) – öffnet in neuem Tab"><?= icon('forward') ?> Sammlung</a>
+      ?>
+        <tr class="zeile-klick" data-href="<?= $e($editHref) ?>">
+          <td class="c-datum" data-l="Bestellt"><?= $e($bestellt) ?></td>
+          <td class="c-titel">
+            <a class="zeilenlink" href="<?= $e($editHref) ?>"><?= $e($bez) ?></a>
+            <?php if ($ks): ?><span class="ek-ks">Kickstarter<?= $ksGeplant !== '' ? ' · geplant ' . $e($ksGeplant) : '' ?></span><?php endif; ?>
+          </td>
+          <td class="c-kat"><?= $e($r['KategorieName'] ?? '') ?></td>
+          <td class="c-vk"><?= $e($r['VerkaeuferName'] ?? '') ?></td>
+          <td class="c-preis"><?= $preis !== '' ? $e($preis) . ' €' : '' ?></td>
+          <td class="c-liefer"><?= $liefer !== '' ? $e($liefer) : '<span class="v-unter">offen</span>' ?></td>
+          <td class="c-menge"><?= (int)($r['Menge'] ?? 1) ?><span class="nur-karte">×</span></td>
+          <td class="c-status">
+            <div class="ek-toggles" role="group" aria-label="Stand von <?= $e($bez) ?>">
+              <?php foreach ($toggleNamen as $feld => $kurz):
+                  $an = (int)($r[$feld] ?? 0) === 1; ?>
+                <button type="submit" name="toggle" value="<?= $e($feld . ':' . ($an ? 0 : 1) . ':' . $id) ?>"
+                        class="tgl<?= $an ? ' an' : '' ?>" aria-pressed="<?= $an ? 'true' : 'false' ?>"
+                        title="<?= $e($kurz . ': ' . ($an ? 'ja' : 'nein') . ' – antippen zum Ändern') ?>"><?= $an ? icon('check') : '' ?><?= $e($kurz) ?></button>
+              <?php endforeach; ?>
+            </div>
+          </td>
+          <td class="c-akt">
+            <a class="btn" href="<?= $e($transferHref) ?>" target="_blank" rel="noopener"
+               title="Als neuen Sammlungs-Eintrag übernehmen (Lieferung → Einkaufsdatum, Preis → Einkaufspreis und Wert) – öffnet in neuem Tab"><?= icon('forward') ?> In Sammlung</a>
+            <button type="button" class="btn delete" data-loeschen data-id="<?= $id ?>" data-name="<?= $e($bez) ?>" data-sperre="" data-hinweis=""><?= icon('trash', 'Löschen') ?></button>
           </td>
         </tr>
       <?php endforeach; ?>
       </tbody>
     </table>
-  </div>
-</div>
+  </form>
 
+  <?= admin_pagination($page, $pages, $listParams) ?>
 </main>
+
+<!-- Löschen bestätigen (POST mit CSRF an einkauf_delete.php) -->
+<dialog id="loeschDialog" class="v-dialog" aria-labelledby="loeschTitel">
+  <form method="post" action="einkauf_delete.php">
+    <?= csrf_field() ?>
+    <input type="hidden" name="id" id="loeschId" value="">
+    <input type="hidden" name="back" value="<?= $e($self) ?>">
+    <h2 id="loeschTitel">Einkauf löschen?</h2>
+    <p id="loeschText"></p>
+    <div class="v-dialog-knoepfe">
+      <button type="button" class="btn" data-dialog-zu>Abbrechen</button>
+      <button type="submit" class="btn delete" id="loeschOk"><?= icon('trash') ?> Löschen</button>
+    </div>
+  </form>
+</dialog>
 </body>
 </html>
