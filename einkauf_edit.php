@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
+require_once __DIR__ . '/inc_nav.php';
 
 require_once __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
@@ -361,12 +362,12 @@ $selV    = (int)($data['Verkaeufer'] ?? 0);
 $selKatLabel = '';
 if ($selKat > 0) {
     $r = db_select($conn, "SELECT Kategorie FROM Kategorie WHERE ID = ?", 'i', [$selKat])->fetch_row();
-    if ($r) $selKatLabel = $r[0] . ' (#' . $selKat . ')';
+    if ($r) $selKatLabel = (string)$r[0];
 }
 $selVLabel = '';
 if ($selV > 0) {
     $r = db_select($conn, "SELECT `Verkäufer` FROM `Verkäufer` WHERE ID = ?", 'i', [$selV])->fetch_row();
-    if ($r) $selVLabel = $r[0] . ' (#' . $selV . ')';
+    if ($r) $selVLabel = (string)$r[0];
 }
 ?>
 <!DOCTYPE html>
@@ -374,39 +375,23 @@ if ($selV > 0) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-  <link rel="stylesheet" href="/sammlung/assets/app.css?v=13">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
-
-  <style>
-    .btn.nav-disabled{ opacity:.35; pointer-events:none; }
-
-    a.btn.nav{
-      background:#0f766e;
-      border:1px solid #0b5e57;
-      color:#fff !important;
-    }
-
-    a.btn.nav:hover{
-      filter:brightness(0.92);
-    }
-
-    span.btn.nav-disabled{
-      background:#e9ecef;
-      border:1px solid #cfd4da;
-      color:#6c757d;
-    }
-
-    html[data-theme="dark"] span.btn.nav-disabled{
-      background:#2a2a2a !important;
-      border-color:#444 !important;
-      color:#777 !important;
-    }
-  </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+  <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
+  <script src="/sammlung/assets/edit.js?v=1" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/edit.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="edit-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<header class="appbar">
+  <p class="appbar-titel"><a href="index.php"><?= htmlspecialchars(APP_TITLE, ENT_QUOTES, 'UTF-8') ?></a></p>
+  <?= nav_appnav(['is_guest' => false, 'is_admin' => true, 'museum' => false, 'export' => true, 'params' => []]) ?>
+  <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
+</header>
+
 <main id="inhalt">
 
 <h1><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h1>
@@ -419,150 +404,138 @@ if ($selV > 0) {
 <?php endif; ?>
 
 <?php if ($msg): ?>
-  <div class="msg-box error">
+  <div class="msg-box error" role="alert" id="formFehler">
     <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?>
   </div>
 <?php endif; ?>
 
-<div class="buttons">
-  <div class="row row-main">
-    <a class="btn back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>"><?= icon('back') ?> Zurück</a>
+<?php
+  $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+  $navLink = function (bool $aktiv, string $href, string $titel, string $inhalt) use ($e): string {
+      return '<a class="btn nav' . ($aktiv ? '' : ' disabled') . '" href="' . $e($href) . '"'
+           . ($aktiv ? '' : ' aria-disabled="true" tabindex="-1"') . ' title="' . $e($titel) . '">' . $inhalt . '</a>';
+  };
+?>
 
-    <?php if ($id > 0): ?>
-      <?php if ($prevId > 0): ?>
-        <a class="btn nav" href="einkauf_edit.php?id=<?= (int)$prevId ?>&back=<?= urlencode($backUrl) ?>">‹ Vorheriger</a>
-      <?php else: ?>
-        <span class="btn nav-disabled">‹ Vorheriger</span>
-      <?php endif; ?>
-
-      <?php if ($nextId > 0): ?>
-        <a class="btn nav" href="einkauf_edit.php?id=<?= (int)$nextId ?>&back=<?= urlencode($backUrl) ?>">Nächster ›</a>
-      <?php else: ?>
-        <span class="btn nav-disabled">Nächster ›</span>
-      <?php endif; ?>
-    <?php endif; ?>
-
-    <button type="submit" class="btn save" form="f"><?= icon('save') ?> Speichern</button>
-  </div>
+<!-- Speichern / Abbrechen (auf dem iPhone fest unten) -->
+<div class="edit-leiste edit-speichern">
+  <a class="btn back" href="<?= $e($backUrl) ?>" title="Zurück zur Liste"><?= icon('back') ?> <span class="nur-gross">Zurück</span><span class="nur-klein">Abbrechen</span></a>
+  <button type="submit" class="btn save" form="f" title="Speichern"><?= icon('save') ?> Speichern</button>
 </div>
+
+<?php if ($id > 0): ?>
+<div class="edit-leiste edit-nav">
+  <?= $navLink($prevId > 0, 'einkauf_edit.php?id=' . (int)$prevId . '&back=' . urlencode($backUrl), 'Vorheriger Eintrag', icon('back') . ' Vorheriger') ?>
+  <?= $navLink($nextId > 0, 'einkauf_edit.php?id=' . (int)$nextId . '&back=' . urlencode($backUrl), 'Nächster Eintrag', 'Nächster ' . icon('forward')) ?>
+</div>
+<?php endif; ?>
 
 <form id="f" method="post">
   <?= csrf_field() ?>
   <input type="hidden" name="id" value="<?= (int)$id ?>">
-  <input type="hidden" name="back" value="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>">
+  <input type="hidden" name="back" value="<?= $e($backUrl) ?>">
 
   <div class="container">
     <div class="fields">
-      <div class="form-table">
+      <div class="form-groups">
 
-        <div class="field">
-          <span class="label">Bestelldatum</span>
-          <input type="date" name="Bestelldatum" value="<?= htmlspecialchars((string)($data['Bestelldatum'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-        </div>
+        <details class="form-group" open>
+          <summary>Bestellung</summary>
+          <div class="form-grid">
+            <div class="field">
+              <label class="label" for="f_Bestelldatum">Bestelldatum</label>
+              <input type="date" id="f_Bestelldatum" name="Bestelldatum" value="<?= $e($data['Bestelldatum'] ?? '') ?>">
+            </div>
+            <div class="field wide">
+              <label class="label" for="f_Bezeichnung">Bezeichnung</label>
+              <input type="text" id="f_Bezeichnung" name="Bezeichnung" value="<?= $e($data['Bezeichnung'] ?? '') ?>" required aria-required="true"<?= $msg ? ' aria-describedby="formFehler"' : '' ?>>
+            </div>
+            <div class="field">
+              <label class="label" for="f_Kategorie">Kategorie</label>
+              <input type="text" id="f_Kategorie" name="Kategorie_text" class="lookup-search ta-input" autocomplete="off"
+                     placeholder="Tippen zum Suchen…" value="<?= $e($selKatLabel) ?>"
+                     data-ta="kategorie" data-ta-hidden="Kategorie_hidden">
+              <input type="hidden" name="Kategorie" id="Kategorie_hidden" value="<?= $selKat ?>">
+            </div>
+            <div class="field">
+              <label class="label" for="f_Verkaeufer">Verkäufer</label>
+              <input type="text" id="f_Verkaeufer" name="Verkaeufer_text" class="lookup-search ta-input" autocomplete="off"
+                     placeholder="Tippen zum Suchen…" value="<?= $e($selVLabel) ?>"
+                     data-ta="verkaeufer" data-ta-hidden="Verkaeufer_hidden">
+              <input type="hidden" name="Verkaeufer" id="Verkaeufer_hidden" value="<?= $selV ?>">
+            </div>
+            <div class="field">
+              <label class="label" for="f_Preis">Preis</label>
+              <input type="text" id="f_Preis" name="Preis"
+                     value="<?php $pv = parse_decimal($data['Preis'] ?? ''); echo $e($pv !== null ? fmt_dec($pv) : (string)($data['Preis'] ?? '')); ?>"
+                     inputmode="decimal" autocomplete="off" placeholder="z. B. 12,50">
+            </div>
+            <div class="field">
+              <label class="label" for="f_Menge">Menge</label>
+              <input type="number" id="f_Menge" name="Menge" min="1" inputmode="numeric" value="<?= (int)($data['Menge'] ?? 1) ?>">
+            </div>
+          </div>
+        </details>
 
-        <div class="field">
-          <span class="label">Bezeichnung</span>
-          <input type="text" name="Bezeichnung" value="<?= htmlspecialchars((string)($data['Bezeichnung'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
-        </div>
+        <details class="form-group" open>
+          <summary>Lieferung</summary>
+          <div class="form-grid">
+            <div class="field">
+              <label class="label" for="f_Lieferdatum">Lieferdatum</label>
+              <input type="date" id="f_Lieferdatum" name="Lieferdatum" value="<?= $e($data['Lieferdatum'] ?? '') ?>">
+            </div>
+            <div class="field checkbox-field">
+              <label class="label" for="f_Kickstarter">Kickstarter</label>
+              <input type="checkbox" id="f_Kickstarter" name="Kickstarter" value="1" <?= !empty($data['Kickstarter']) ? 'checked' : '' ?>>
+            </div>
+            <div class="field">
+              <label class="label" for="f_Kickstarter_Lieferdatum">Geplantes Lieferdatum Kickstarter</label>
+              <input type="date" id="f_Kickstarter_Lieferdatum" name="Kickstarter_Lieferdatum" value="<?= $e($data['Kickstarter_Lieferdatum'] ?? '') ?>">
+            </div>
+          </div>
+        </details>
 
-        <div class="field">
-          <span class="label">Kategorie</span>
-          <input type="text"
-                 name="Kategorie_text"
-                 class="lookup-search"
-                 list="kategorieList"
-                 autocomplete="off"
-                 placeholder="Tippen zum Suchen…"
-                 value="<?= htmlspecialchars($selKatLabel, ENT_QUOTES, 'UTF-8') ?>"
-                 data-hidden-target="Kategorie_hidden">
-          <input type="hidden" name="Kategorie" id="Kategorie_hidden" value="<?= $selKat ?>">
-          <datalist id="kategorieList">
-            <?php
-              $katOpt = $conn->query("SELECT ID, Kategorie FROM Kategorie ORDER BY Kategorie");
-              while ($kr = $katOpt->fetch_assoc()):
-            ?>
-              <option value="<?= htmlspecialchars($kr['Kategorie'] . ' (#' . $kr['ID'] . ')', ENT_QUOTES, 'UTF-8') ?>">
-            <?php endwhile; ?>
-          </datalist>
-        </div>
+        <details class="form-group" open>
+          <summary>Fortschritt</summary>
+          <div class="form-grid">
+            <div class="field checkbox-field">
+              <label class="label" for="f_Foto_erstellt">Foto erstellt</label>
+              <input type="checkbox" id="f_Foto_erstellt" name="Foto_erstellt" value="1" <?= !empty($data['Foto_erstellt']) ? 'checked' : '' ?>>
+            </div>
+            <div class="field checkbox-field">
+              <label class="label" for="f_DB_Eintrag_erstellt">DB-Eintrag erstellt</label>
+              <input type="checkbox" id="f_DB_Eintrag_erstellt" name="DB_Eintrag_erstellt" value="1" <?= !empty($data['DB_Eintrag_erstellt']) ? 'checked' : '' ?>>
+            </div>
+            <div class="field checkbox-field">
+              <label class="label" for="f_Foto_Website">Foto auf Website</label>
+              <input type="checkbox" id="f_Foto_Website" name="Foto_Website" value="1" <?= !empty($data['Foto_Website']) ? 'checked' : '' ?>>
+            </div>
+          </div>
+        </details>
 
-        <div class="field">
-          <span class="label">Verkäufer</span>
-          <input type="text"
-                 name="Verkaeufer_text"
-                 class="lookup-search"
-                 list="verkaeuferList"
-                 autocomplete="off"
-                 placeholder="Tippen zum Suchen…"
-                 value="<?= htmlspecialchars($selVLabel, ENT_QUOTES, 'UTF-8') ?>"
-                 data-hidden-target="Verkaeufer_hidden">
-          <input type="hidden" name="Verkaeufer" id="Verkaeufer_hidden" value="<?= $selV ?>">
-          <datalist id="verkaeuferList">
-            <?php
-              $vOpt = $conn->query("SELECT ID, `Verkäufer` FROM `Verkäufer` ORDER BY `Verkäufer`");
-              while ($vr = $vOpt->fetch_assoc()):
-            ?>
-              <option value="<?= htmlspecialchars($vr['Verkäufer'] . ' (#' . $vr['ID'] . ')', ENT_QUOTES, 'UTF-8') ?>">
-            <?php endwhile; ?>
-          </datalist>
-        </div>
+        <details class="form-group" open>
+          <summary>Notizen</summary>
+          <div class="form-grid">
+            <div class="field wide">
+              <label class="label" for="f_Notizen">Notizen</label>
+              <textarea id="f_Notizen" name="Notizen" rows="4"><?= $e($data['Notizen'] ?? '') ?></textarea>
+            </div>
+          </div>
+        </details>
 
-        <div class="field">
-          <span class="label">Preis</span>
-          <input type="text" name="Preis"
-                 value="<?php $pv = parse_decimal($data['Preis'] ?? ''); echo htmlspecialchars($pv !== null ? fmt_dec($pv) : (string)($data['Preis'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
-                 inputmode="decimal" autocomplete="off" placeholder="z.B. 12,50">
-        </div>
-
-        <div class="field">
-          <span class="label">Lieferdatum</span>
-          <input type="date" name="Lieferdatum" value="<?= htmlspecialchars((string)($data['Lieferdatum'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-        </div>
-
-        <div class="field">
-          <span class="label">Menge</span>
-          <input type="number" name="Menge" min="1" value="<?= (int)($data['Menge'] ?? 1) ?>">
-        </div>
-
-        <div class="field">
-          <span class="label">Foto erstellt</span>
-          <input type="checkbox" name="Foto_erstellt" value="1" <?= !empty($data['Foto_erstellt']) ? 'checked' : '' ?>>
-        </div>
-
-        <div class="field">
-          <span class="label">DB-Eintrag erstellt</span>
-          <input type="checkbox" name="DB_Eintrag_erstellt" value="1" <?= !empty($data['DB_Eintrag_erstellt']) ? 'checked' : '' ?>>
-        </div>
-
-        <div class="field">
-          <span class="label">Foto auf Website</span>
-          <input type="checkbox" name="Foto_Website" value="1" <?= !empty($data['Foto_Website']) ? 'checked' : '' ?>>
-        </div>
-
-        <div class="field">
-          <span class="label">Kickstarter</span>
-          <input type="checkbox" name="Kickstarter" value="1" <?= !empty($data['Kickstarter']) ? 'checked' : '' ?>>
-        </div>
-
-        <div class="field">
-          <span class="label">Geplantes Lieferdatum Kickstarter</span>
-          <input type="date" name="Kickstarter_Lieferdatum" value="<?= htmlspecialchars((string)($data['Kickstarter_Lieferdatum'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-        </div>
-
-        <div class="field">
-          <span class="label">Notizen</span>
-          <textarea name="Notizen" rows="4"><?= htmlspecialchars((string)($data['Notizen'] ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
-        </div>
-
-        <div class="field readonly">
-          <span class="label">Erstellt am</span>
-          <input type="text" value="<?= htmlspecialchars($erstellt, ENT_QUOTES, 'UTF-8') ?>" readonly tabindex="-1">
-        </div>
-
-        <div class="field readonly">
-          <span class="label">Geändert am</span>
-          <input type="text" value="<?= htmlspecialchars($geaendert, ENT_QUOTES, 'UTF-8') ?>" readonly tabindex="-1">
-        </div>
+        <details class="form-group" open>
+          <summary>Verwaltung</summary>
+          <div class="form-grid">
+            <div class="field readonly">
+              <label class="label" for="f_erstellt">Erstellt am</label>
+              <input type="text" id="f_erstellt" value="<?= $e($erstellt) ?>" readonly tabindex="-1">
+            </div>
+            <div class="field readonly">
+              <label class="label" for="f_geaendert">Geändert am</label>
+              <input type="text" id="f_geaendert" value="<?= $e($geaendert) ?>" readonly tabindex="-1">
+            </div>
+          </div>
+        </details>
 
       </div>
     </div>
