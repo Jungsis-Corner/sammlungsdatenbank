@@ -11,16 +11,17 @@ function admin_e($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, '
 
 /**
  * Obere Leiste + Pfad. $krumen: Pfad nach „Einstellungen“, z. B. [['Material', '']] (leer = aktuelle Seite).
+ * $navOpt: Optionen für nav_appnav() (Standard: Admin); $unterEinstellungen=false lässt „Einstellungen“ im Pfad weg (z. B. Statistik).
  */
-function admin_header(array $krumen = []): string {
+function admin_header(array $krumen = [], ?array $navOpt = null, bool $unterEinstellungen = true): string {
     $title = defined('APP_TITLE') ? (string)APP_TITLE : 'Sammlung';
     $out  = '<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>';
     $out .= '<header class="appbar"><p class="appbar-titel"><a href="index.php">' . admin_e($title) . '</a></p>'
-          . nav_appnav(['is_guest' => false, 'is_admin' => true, 'museum' => false, 'export' => true, 'params' => []])
+          . nav_appnav($navOpt ?? ['is_guest' => false, 'is_admin' => true, 'museum' => false, 'export' => true, 'params' => []])
           . '<button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button></header>';
     $out .= '<nav class="krumen" aria-label="Pfad"><ol><li><a href="index.php">Sammlung</a></li>';
     if ($krumen) {
-        $out .= '<li><a href="einstellungen.php">Einstellungen</a></li>';
+        if ($unterEinstellungen) $out .= '<li><a href="einstellungen.php">Einstellungen</a></li>';
         foreach ($krumen as $i => [$text, $href]) {
             $letzte = ($i === count($krumen) - 1);
             $out .= '<li>' . ($letzte || $href === '' ? '<span aria-current="page">' . admin_e($text) . '</span>' : '<a href="' . admin_e($href) . '">' . admin_e($text) . '</a>') . '</li>';

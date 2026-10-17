@@ -3,6 +3,8 @@ require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_filter.php';   // kategorie_baum()
+require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
@@ -32,8 +34,9 @@ $mat_res = $conn->query("
      ORDER BY M.Material
 ");
 while ($row = $mat_res->fetch_assoc()) {
-    $material_stats[] = $row;
+    $material_stats[] = ['name' => (string)($row['Name'] ?? '(ohne Material)'), 'n' => (int)$row['Anzahl']];
 }
+usort($material_stats, fn($a, $b) => ($b['n'] <=> $a['n']) ?: strcasecmp($a['name'], $b['name']));
 
 // 4) Kategorie-Statistik: Einträge je Kategorie (flach) und Gruppierung nach Marke, Plattform und Typ
 $kategorien = [];
@@ -95,22 +98,31 @@ $nachMarke = $sortiere(array_values($nachMarke));
 $nachPlattform = $sortiere(array_values($nachPlattform));
 $topN = 15;
 
-/** Tabelle mit den ersten $topN Zeilen, der Rest hinter "Alle anzeigen"; $linkAlle = Namen zur Liste verlinken */
-function stat_tabelle(array $zeilen, string $kopf, int $topN, bool $links): void {
-    $zeile = function (array $z) use ($links) {
-        $name = htmlspecialchars($z['name']);
-        if ($links && ($z['link'] ?? true) && $z['id'] > 0) {
+/** Balken als Inline-SVG (Breite als Attribut, kein style=): $anteil 0..100 */
+function sb_balken(float $anteil): string {
+    $w = max(0.0, min(100.0, $anteil));
+    return '<svg class="sb-balken" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect width="' . round($w, 2) . '" height="1"/></svg>';
+}
+
+/** Liste mit Balken: die ersten $topN Zeilen sichtbar, der Rest hinter „Alle anzeigen“; $links = Namen zur Liste verlinken */
+function stat_liste(array $zeilen, int $topN, bool $links): void {
+    $max = 0;
+    foreach ($zeilen as $z) { $max = max($max, (int)$z['n']); }
+    $zeile = function (array $z) use ($links, $max) {
+        $name = htmlspecialchars((string)$z['name']);
+        if ($links && ($z['link'] ?? true) && ($z['id'] ?? 0) > 0) {
             $name = '<a href="index.php?kat=' . (int)$z['id'] . '&amp;inkl=1">' . $name . '</a>';
         }
-        echo '<tr><td>' . $name . '</td><td style="text-align:right;">' . number_format((int)$z['n'], 0, ',', '.') . '</td></tr>';
+        echo '<li><span class="sb-name">' . $name . '</span><span class="sb-zahl">' . number_format((int)$z['n'], 0, ',', '.') . '</span>'
+           . sb_balken($max > 0 ? 100 * (int)$z['n'] / $max : 0) . '</li>';
     };
-    echo '<table><tr><th>' . htmlspecialchars($kopf) . '</th><th style="text-align:right;">Anzahl</th></tr>';
+    echo '<ol class="sb-liste">';
     foreach (array_slice($zeilen, 0, $topN) as $z) $zeile($z);
-    echo '</table>';
+    echo '</ol>';
     if (count($zeilen) > $topN) {
-        echo '<details style="width:60%; margin:0 auto 20px;"><summary>Alle anzeigen (' . count($zeilen) . ')</summary><table style="width:100%;">';
+        echo '<details class="sb-mehr"><summary>Alle anzeigen (' . count($zeilen) . ')</summary><ol class="sb-liste">';
         foreach (array_slice($zeilen, $topN) as $z) $zeile($z);
-        echo '</table></details>';
+        echo '</ol></details>';
     }
 }
 
@@ -134,6 +146,10 @@ if (!$is_guest) {
     $wert = $sum_res->fetch_assoc()['s'];
 }
 
+// 6b) Zuwachs aus Erstellt_am (letzte 12 Monate / 30 Tage)
+$neu12 = (int)$conn->query("SELECT COUNT(*) FROM Sammlung WHERE Erstellt_am >= (NOW() - INTERVAL 12 MONTH)")->fetch_row()[0];
+$neu30 = (int)$conn->query("SELECT COUNT(*) FROM Sammlung WHERE Erstellt_am >= (NOW() - INTERVAL 30 DAY)")->fetch_row()[0];
+
 // 7) Gast-Login-Statistik (Museum-Zugang) - nur für Admin sichtbar
 $loginTotal   = null;
 $loginByMonth = [];
@@ -151,170 +167,141 @@ if (!$is_guest) {
         while ($row = $lm->fetch_assoc()) $loginByMonth[] = $row;
     }
 }
+$isMuseum = !empty($_SESSION['museum_mode']);
+$navOpt = ['is_guest' => $is_guest, 'is_admin' => is_admin(), 'museum' => $isMuseum, 'export' => (!$isMuseum && (!$is_guest || (function_exists('guest_export_allowed') && guest_export_allowed()))), 'params' => []];
+$fmt = fn($n) => number_format((int)$n, 0, ',', '.');
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+$markenAnzahl = count(array_filter($nachMarke, fn($m) => ($m['id'] ?? 0) > 0));
+$plattformAnzahl = count(array_filter($nachPlattform, fn($m) => ($m['link'] ?? false)));
+$spielAnteil = $total_cnt > 0 ? round(100 * $spiel_cnt / $total_cnt) : 0;
+
+// Typ-Zeilen
+$typZeilen = [
+    ['name' => 'Spiele', 'n' => $nachTyp['spiele']],
+    ['name' => 'Anwendungen', 'n' => $nachTyp['anwendungen']],
+    ['name' => 'Plattform/Marke (Hardware, Zubehör, Literatur)', 'n' => $nachTyp['hardware']],
+    ['name' => 'Sonstiges', 'n' => $nachTyp['sonstiges']],
+];
+if ($nachTyp['ohne'] > 0) $typZeilen[] = ['name' => '(ohne Kategorie)', 'n' => $nachTyp['ohne']];
+
+// Jahres-Säulen (Inline-SVG): Breite pro Jahrgang 16 Einheiten, Höhe der Säulen 110
+$jahrMax = 0;
+foreach ($jahre as $j) { $jahrMax = max($jahrMax, (int)$j['Anzahl']); }
+$sBreite = 16; $sHoehe = 110; $svgH = 150; $svgW = max(1, count($jahre)) * $sBreite + 8;
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Statistik – Sammlung</title>
-  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-  <style>
-    body { font-family: Arial; font-size: 10pt; padding: 20px; }
-    h1 { text-align: center; margin-bottom: 30px; }
-    h2 { margin-top: 30px; }
-    table { border-collapse: collapse; width: 60%; margin: 0 auto 20px; }
-    th, td { border: 1px solid #888; padding: 6px 10px; text-align: left; }
-    th { background: #eee; }
-    p.center { text-align: center; }
-    a { text-decoration: none; color: #007bff; }
-
-    /* =========================================================
-       DARK MODE (echte Farben statt Invertierungs-Trick)
-       ========================================================= */
-    html[data-theme="dark"]{
-      background: #121212 !important;
-    }
-    html[data-theme="dark"] body{
-      background: #121212 !important;
-      color: #e8e8e8 !important;
-    }
-    html[data-theme="dark"] table,
-    html[data-theme="dark"] th,
-    html[data-theme="dark"] td{
-      background: #1a1a1a !important;
-      color: #e8e8e8 !important;
-      border-color: #444 !important;
-    }
-    html[data-theme="dark"] th{
-      background: #2a2a2a !important;
-    }
-    html[data-theme="dark"] a{
-      color: #8ab4ff !important;
-    }
-    .theme-toggle{
-      background: #555 !important;
-      border-color: #333 !important;
-      color: #fff !important;
-    }
-    .theme-toggle-floating{
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      z-index: 9999;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      font-size: 20px;
-      line-height: 42px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      border: 1px solid #333;
-      cursor: pointer;
-    }
-  </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <?php $page_title = 'Statistik'; include __DIR__ . '/inc_head_admin.php'; ?>
+  <link rel="stylesheet" href="/sammlung/assets/statistik.css?v=1">
 </head>
-<body>
-<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<body class="admin-page statistik-page">
+<?= admin_header([['Statistik', '']], $navOpt, false) ?>
+
 <main id="inhalt">
-  <h1>📈 Statistik</h1>
+  <h1>Statistik</h1>
 
-  <!-- Übersicht -->
-  <h2>🔢 Übersicht</h2>
-  <table>
-    <tr><th>Beschreibung</th><th>Anzahl</th></tr>
-    <tr><td>Gesamtanzahl Datensätze</td><td><?= htmlspecialchars($total_cnt) ?></td></tr>
-    <tr><td>Davon „Spiel“</td><td><?= htmlspecialchars($spiel_cnt) ?></td></tr>
-  </table>
-
-  <!-- Materialverteilung -->
-  <h2>🧰 Materialverteilung</h2>
-  <table>
-    <tr><th>Material</th><th>Anzahl</th></tr>
-    <?php foreach ($material_stats as $m): ?>
-      <tr>
-        <td><?= htmlspecialchars($m['Name'] ?? '') ?></td>
-        <td><?= htmlspecialchars($m['Anzahl']) ?></td>
-      </tr>
-    <?php endforeach; ?>
-  </table>
-
-  <!-- Nach Marke (oberste Ebene der Kategorien, inkl. Unterkategorien) -->
-  <h2>🏷️ Nach Marke</h2>
-  <?php stat_tabelle($nachMarke, 'Marke', $topN, true); ?>
-
-  <!-- Nach Plattform (oberste Plattform, inkl. Unterkategorien) -->
-  <h2>🕹️ Nach Plattform</h2>
-  <?php stat_tabelle($nachPlattform, 'Plattform', $topN, true); ?>
-
-  <!-- Nach Typ -->
-  <h2>🗂️ Nach Typ</h2>
-  <table>
-    <tr><th>Typ</th><th style="text-align:right;">Anzahl</th></tr>
-    <tr><td>Spiele</td><td style="text-align:right;"><?= number_format($nachTyp['spiele'], 0, ',', '.') ?></td></tr>
-    <tr><td>Anwendungen</td><td style="text-align:right;"><?= number_format($nachTyp['anwendungen'], 0, ',', '.') ?></td></tr>
-    <tr><td>Plattform/Marke (Hardware, Zubehör, Literatur)</td><td style="text-align:right;"><?= number_format($nachTyp['hardware'], 0, ',', '.') ?></td></tr>
-    <tr><td>Sonstiges</td><td style="text-align:right;"><?= number_format($nachTyp['sonstiges'], 0, ',', '.') ?></td></tr>
-    <?php if ($nachTyp['ohne'] > 0): ?>
-      <tr><td>(ohne Kategorie)</td><td style="text-align:right;"><?= number_format($nachTyp['ohne'], 0, ',', '.') ?></td></tr>
+  <!-- Kennzahlen -->
+  <ul class="st-kacheln" aria-label="Kennzahlen">
+    <li><span class="st-zahl"><?= $fmt($total_cnt) ?></span><span class="st-text">Einträge insgesamt</span></li>
+    <li><span class="st-zahl"><?= $fmt($spiel_cnt) ?></span><span class="st-text">davon Spiele (<?= $spielAnteil ?> %)</span></li>
+    <li><span class="st-zahl"><?= $fmt($markenAnzahl) ?></span><span class="st-text">Marken</span></li>
+    <li><span class="st-zahl"><?= $fmt($plattformAnzahl) ?></span><span class="st-text">Plattformen</span></li>
+    <li><span class="st-zahl"><?= $fmt($neu12) ?></span><span class="st-text">neu in 12 Monaten<?= $neu30 > 0 ? ' (davon ' . $fmt($neu30) . ' in 30 Tagen)' : '' ?></span></li>
+    <?php if (!$is_guest): ?>
+      <li><span class="st-zahl"><?= number_format((float)$wert, 0, ',', '.') ?> €</span><span class="st-text">Gesamtwert</span></li>
     <?php endif; ?>
-  </table>
+  </ul>
+
+  <div class="st-raster">
+    <section class="v-karte" aria-labelledby="h_marke">
+      <h2 id="h_marke">Nach Marke</h2>
+      <?php stat_liste($nachMarke, $topN, true); ?>
+    </section>
+
+    <section class="v-karte" aria-labelledby="h_plattform">
+      <h2 id="h_plattform">Nach Plattform</h2>
+      <?php stat_liste($nachPlattform, $topN, true); ?>
+    </section>
+
+    <section class="v-karte" aria-labelledby="h_typ">
+      <h2 id="h_typ">Nach Typ</h2>
+      <?php stat_liste($typZeilen, 99, false); ?>
+    </section>
+
+    <section class="v-karte" aria-labelledby="h_material">
+      <h2 id="h_material">Materialverteilung</h2>
+      <?php stat_liste($material_stats, $topN, false); ?>
+    </section>
+  </div>
+
+  <!-- Anzahl pro Jahr -->
+  <section class="v-karte" aria-labelledby="h_jahr">
+    <h2 id="h_jahr">Anzahl pro Jahr</h2>
+    <?php if ($jahre): ?>
+      <div class="st-saeulen" role="region" aria-label="Diagramm: Anzahl pro Jahr (seitlich scrollbar)" tabindex="0">
+        <svg width="<?= $svgW ?>" height="<?= $svgH ?>" viewBox="0 0 <?= $svgW ?> <?= $svgH ?>" role="img" aria-label="Säulendiagramm: Anzahl der Einträge pro Jahr; die Zahlen stehen darunter als Tabelle.">
+          <?php foreach ($jahre as $i => $j):
+              $h = $jahrMax > 0 ? max(1, round($sHoehe * (int)$j['Anzahl'] / $jahrMax)) : 0;
+              $x = 4 + $i * $sBreite;
+          ?>
+            <rect class="st-saeule" x="<?= $x ?>" y="<?= $sHoehe - $h + 4 ?>" width="<?= $sBreite - 4 ?>" height="<?= $h ?>"><title><?= $e($j['Jahr'] . ': ' . $j['Anzahl']) ?></title></rect>
+            <text class="st-jahr" font-size="9" text-anchor="end" transform="rotate(-90 <?= $x + 8 ?> <?= $sHoehe + 10 ?>)" x="<?= $x + 8 ?>" y="<?= $sHoehe + 10 ?>"><?= $e($j['Jahr']) ?></text>
+          <?php endforeach; ?>
+        </svg>
+      </div>
+      <details class="sb-mehr">
+        <summary>Als Tabelle anzeigen</summary>
+        <table class="st-tabelle">
+          <thead><tr><th>Jahr</th><th class="is-numeric">Anzahl</th></tr></thead>
+          <tbody>
+            <?php foreach ($jahre as $j): ?>
+              <tr><td><?= $e($j['Jahr']) ?></td><td class="is-numeric"><?= $fmt($j['Anzahl']) ?></td></tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </details>
+    <?php else: ?>
+      <p class="v-unter">Keine Einträge mit Jahr.</p>
+    <?php endif; ?>
+  </section>
 
   <!-- Alle Kategorien einzeln (eingeklappt) -->
-  <h2>📂 Alle Kategorien einzeln</h2>
-  <details style="width:60%; margin:0 auto 20px;">
-    <summary>Alle anzeigen (<?= count($kategorien) ?>)</summary>
-    <table style="width:100%;">
-      <tr><th>Kategorie</th><th style="text-align:right;">Anzahl</th></tr>
-      <?php foreach ($kategorien as $k): ?>
-        <tr>
-          <td><?= htmlspecialchars($k['Name'] ?? '(ohne Kategorie)') ?></td>
-          <td style="text-align:right;"><?= number_format((int)$k['Anzahl'], 0, ',', '.') ?></td>
-        </tr>
-      <?php endforeach; ?>
-    </table>
-  </details>
-
-  <!-- Jahres-Statistik aus Feld 'Jahr' -->
-  <h2>📅 Anzahl pro Jahr</h2>
-  <table>
-    <tr><th>Jahr</th><th>Anzahl</th></tr>
-    <?php foreach ($jahre as $j): ?>
-      <tr>
-        <td><?= htmlspecialchars($j['Jahr']) ?></td>
-        <td><?= htmlspecialchars($j['Anzahl']) ?></td>
-      </tr>
-    <?php endforeach; ?>
-  </table>
-
-  <!-- Gast-Logins (Museum-Zugriffe) -->
-  <?php if (!$is_guest && $loginTotal !== null): ?>
-    <h2>🏛️ Museum-Zugriffe (Gast-Logins)</h2>
-    <table>
-      <tr><th>Beschreibung</th><th>Anzahl</th></tr>
-      <tr><td>Gesamtanzahl Gast-Logins</td><td><?= htmlspecialchars((string)$loginTotal) ?></td></tr>
-    </table>
-    <?php if ($loginByMonth): ?>
-      <table>
-        <tr><th>Monat</th><th>Anzahl</th></tr>
-        <?php foreach ($loginByMonth as $lm): ?>
-          <tr>
-            <td><?= htmlspecialchars($lm['Monat']) ?></td>
-            <td><?= htmlspecialchars($lm['Anzahl']) ?></td>
-          </tr>
-        <?php endforeach; ?>
+  <section class="v-karte" aria-labelledby="h_kat">
+    <h2 id="h_kat">Alle Kategorien einzeln</h2>
+    <details class="sb-mehr">
+      <summary>Alle anzeigen (<?= count($kategorien) ?>)</summary>
+      <table class="st-tabelle">
+        <thead><tr><th>Kategorie</th><th class="is-numeric">Anzahl</th></tr></thead>
+        <tbody>
+          <?php foreach ($kategorien as $k): ?>
+            <tr><td><?= $e($k['Name'] ?? '(ohne Kategorie)') ?></td><td class="is-numeric"><?= $fmt($k['Anzahl']) ?></td></tr>
+          <?php endforeach; ?>
+        </tbody>
       </table>
-    <?php endif; ?>
-  <?php endif; ?>
+    </details>
+  </section>
 
-  <!-- Gesamtsumme -->
-  <?php if (!$is_guest): ?>
-    <h2>💰 Gesamtsumme</h2>
-    <p class="center"><strong><?= number_format((float)$wert, 2, ',', '.') ?> €</strong></p>
+  <?php /* Gast-Logins (Museum-Zugriffe): nur Admin */ ?>
+  <?php if (!$is_guest && $loginTotal !== null): ?>
+    <section class="v-karte" aria-labelledby="h_museum">
+      <h2 id="h_museum">Museum-Zugriffe (Gast-Logins)</h2>
+      <p><strong><?= $fmt($loginTotal) ?></strong> Gast-Logins insgesamt</p>
+      <?php if ($loginByMonth): ?>
+        <details class="sb-mehr">
+          <summary>Nach Monat (<?= count($loginByMonth) ?>)</summary>
+          <table class="st-tabelle">
+            <thead><tr><th>Monat</th><th class="is-numeric">Anzahl</th></tr></thead>
+            <tbody>
+              <?php foreach ($loginByMonth as $lm): ?>
+                <tr><td><?= $e($lm['Monat']) ?></td><td class="is-numeric"><?= $fmt($lm['Anzahl']) ?></td></tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </details>
+      <?php endif; ?>
+    </section>
   <?php endif; ?>
-
-  <p class="center"><a href="index.php"><?= icon('back') ?> Zurück</a></p>
 </main>
 </body>
 </html>

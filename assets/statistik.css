@@ -1,0 +1,46 @@
+/* =========================================================
+   statistik.css – Statistik (statistik.php), Phase 5e-4
+   Ergänzt verwaltung.css (Karten, Pfad, Tabellen). Tokens aus base.css.
+   Balken und Säulen sind Inline-SVG (Maße als Attribute), Farben über die Klassen hier.
+   ========================================================= */
+.statistik-page main{ max-width:1100px; }
+
+/* ---------- Kennzahlen ---------- */
+.st-kacheln{ list-style:none; margin:0 0 var(--s4); padding:0; display:grid; gap:var(--s3); grid-template-columns:repeat(2,minmax(0,1fr)); }
+.st-kacheln li{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--s3) var(--s4); display:flex; flex-direction:column; gap:2px; min-width:0; }
+.st-zahl{ font-size:var(--fs-xl); font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.st-text{ color:var(--muted); font-size:var(--fs-sm); }
+@media (min-width:700px){ .st-kacheln{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (min-width:1000px){ .st-kacheln{ grid-template-columns:repeat(6,minmax(0,1fr)); } .st-zahl{ font-size:24px; } }
+
+/* ---------- Raster der Verteilungen ---------- */
+.st-raster{ display:grid; gap:var(--s4); grid-template-columns:minmax(0,1fr); }
+@media (min-width:900px){ .st-raster{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.st-raster .v-karte{ margin:0; }
+.statistik-page .v-karte{ margin-bottom:var(--s4); }
+.statistik-page .v-karte > h2{ font-size:var(--fs-lg); }
+
+/* ---------- Balkenlisten ---------- */
+ol.sb-liste{ list-style:none; margin:0; padding:0; display:grid; gap:var(--s2); }
+ol.sb-liste li{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px var(--s3); align-items:baseline; }
+.sb-name{ overflow-wrap:anywhere; }
+.sb-name a{ color:var(--text); }
+.sb-zahl{ font-variant-numeric:tabular-nums; font-weight:700; }
+svg.sb-balken{ grid-column:1 / -1; width:100%; height:8px; display:block; background:var(--surface-2); border-radius:4px; overflow:hidden; }
+svg.sb-balken rect{ fill:var(--primary); }
+details.sb-mehr{ margin-top:var(--s3); }
+details.sb-mehr > summary{ cursor:pointer; min-height:var(--tap); display:flex; align-items:center; font-weight:600; }
+details.sb-mehr > ol, details.sb-mehr > table{ margin-top:var(--s2); }
+
+/* ---------- Jahres-Säulen ---------- */
+.st-saeulen{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:var(--s2); }
+.st-saeulen:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; }
+.st-saeulen svg{ display:block; max-width:none; }
+.st-saeule{ fill:var(--primary); }
+.st-jahr{ fill:var(--muted); }
+
+/* ---------- Tabellen ---------- */
+table.st-tabelle{ width:100%; border-collapse:collapse; }
+.st-tabelle th, .st-tabelle td{ padding:var(--s2) var(--s3); text-align:left; border-bottom:1px solid var(--border); }
+.st-tabelle thead th{ background:var(--surface-2); font-size:var(--fs-sm); }
+.st-tabelle .is-numeric{ text-align:right; font-variant-numeric:tabular-nums; }
