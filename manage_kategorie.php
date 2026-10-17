@@ -274,14 +274,14 @@ $loeschAction = $self . ($search !== '' ? '?q=' . urlencode($search) : '');
             if ($verw > 0)   $teile[] = 'wird noch in ' . $einTr($verw) . ' verwendet';
             $sperreText = $teile ? 'Die Kategorie ' . implode(' und ', $teile) . '. Räume sie erst auf.' : '';
         ?>
-          <tr>
+          <?php $editHref = $self . '?id=' . $n['id'] . ($search !== '' ? '&q=' . urlencode($search) : ''); ?>
+          <tr class="zeile-klick" data-href="<?= $e($editHref) ?>">
             <td class="col-id c-id is-numeric"><?= $n['id'] ?></td>
-            <td class="c-name"><span class="einzug"><?= str_repeat('&nbsp;&nbsp;&nbsp;', $search === '' ? $n['depth'] : 0) . ($n['depth'] && $search === '' ? '↳ ' : '') ?></span><?= $e($n['name']) ?>
+            <td class="c-name"><span class="einzug"><?= str_repeat('&nbsp;&nbsp;&nbsp;', $search === '' ? $n['depth'] : 0) . ($n['depth'] && $search === '' ? '↳ ' : '') ?></span><a class="zeilenlink" href="<?= $e($editHref) ?>" title="Bearbeiten"><?= $e($n['name']) ?></a>
               <?php if ($n['parent'] !== null && $search !== ''): ?><small>(in <?= $e($namen[$n['parent']] ?? '') ?>)</small><?php endif; ?></td>
             <td class="c-ebene"><?= $e(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></td>
             <td class="is-numeric c-info"><?= $verw ?><span class="sr-only"> Einträge</span><span class="nur-karte"> <?= $verw === 1 ? 'Eintrag' : 'Einträge' ?> · <?= $e(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></span></td>
             <td class="c-akt">
-              <a class="btn" href="<?= $e($self) ?>?id=<?= $n['id'] ?><?= $search !== '' ? '&amp;q=' . urlencode($search) : '' ?>"><?= icon('edit','Bearbeiten') ?></a>
               <button type="button" class="btn delete" data-loeschen data-id="<?= $n['id'] ?>" data-name="<?= $e($n['name']) ?>"
                       data-sperre="<?= $e($sperreText) ?>" data-hinweis=""><?= icon('trash','Löschen') ?></button>
             </td>

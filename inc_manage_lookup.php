@@ -289,12 +289,12 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             $sperreText = $sperr > 0 ? 'Der Eintrag wird noch in ' . $einTr($sperr) . ' verwendet. Stelle diese Einträge erst um oder führe „' . $rname . '“ mit einem anderen Eintrag zusammen (Bearbeiten).' : '';
             $hinweisText = ($sperr === 0 && $verw > 0) ? 'Er wird noch in ' . $verw . ' ' . ($verw === 1 ? 'Einkauf' : 'Einkäufen') . ' verwendet; die Verknüpfung dort entfällt.' : '';
         ?>
-          <tr>
+          <?php $editHref = $self . '?id=' . $rid . '&q=' . urlencode($search) . $pageParam; ?>
+          <tr class="zeile-klick" data-href="<?= $e($editHref) ?>">
             <td class="col-id c-id is-numeric"><?= $rid ?></td>
-            <td class="c-name"><?= $e($rname) ?></td>
+            <td class="c-name"><a class="zeilenlink" href="<?= $e($editHref) ?>" title="Bearbeiten"><?= $e($rname) ?></a></td>
             <td class="is-numeric c-info"><?= $verw ?><span class="sr-only"> Einträge</span><span class="nur-karte"> <?= $verw === 1 ? 'Eintrag' : 'Einträge' ?></span></td>
             <td class="c-akt">
-              <a class="btn" href="<?= $e($self) ?>?id=<?= $rid ?>&amp;q=<?= urlencode($search) ?><?= $pageParam ?>"><?= icon('edit','Bearbeiten') ?></a>
               <button type="button" class="btn delete" data-loeschen data-id="<?= $rid ?>" data-name="<?= $e($rname) ?>"
                       data-sperre="<?= $e($sperreText) ?>" data-hinweis="<?= $e($hinweisText) ?>"><?= icon('trash','Löschen') ?></button>
             </td>

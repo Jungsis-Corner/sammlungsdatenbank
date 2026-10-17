@@ -109,3 +109,9 @@ dialog.v-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
 .nur-karte{ display:none; }
 @media (max-width:599px){ .nur-karte{ display:inline; } .vtabelle td.c-info .sr-only{ display:none; } }
 @media (max-width:599px){ .vtabelle td.c-ebene{ display:none; } }
+
+/* Zeile antippen = Bearbeiten */
+.vtabelle tr.zeile-klick{ cursor:pointer; }
+.vtabelle a.zeilenlink{ color:var(--text); text-decoration:none; font-weight:600; }
+.vtabelle a.zeilenlink:hover{ text-decoration:underline; }
+@media (hover:hover){ .vtabelle tr.zeile-klick:hover{ background:var(--surface-2); } }

@@ -4,6 +4,7 @@
  *  - button[data-loeschen]: Löschen-Dialog (#loeschDialog) füllen und öffnen. data-id, data-name; data-sperre = Text, wenn Löschen gesperrt ist
  *    (Knopf „Löschen“ dann ausgeblendet); data-hinweis = Zusatztext, wenn gelöscht werden darf.
  *  - button[data-merge-pruefen]: Zusammenführen bestätigen (#mergeDialog); das Formular #mergeForm wird erst nach dem Dialog gesendet.
+ *  - tr.zeile-klick[data-href]: Tipp/Klick auf die Zeile öffnet den Eintrag zum Bearbeiten (der Name bleibt der echte Link)
  *  - [data-dialog-zu]: Dialog schließen; Tipp auf den Rand schließt ebenfalls.
  */
 (function () {
@@ -17,6 +18,16 @@
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-dialog-zu]'), function (b) {
     b.addEventListener('click', function () { var d = b.closest('dialog'); if (d) zu(d); });
+  });
+
+  /* ---------- Zeile antippen = Bearbeiten ---------- */
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var zeile = e.target.closest ? e.target.closest('tr.zeile-klick') : null;
+    if (!zeile || e.target.closest('a, button, input, select, textarea, summary, label')) return;
+    if (window.getSelection && String(window.getSelection())) return;   // Text markieren soll nicht navigieren
+    var href = zeile.getAttribute('data-href');
+    if (href) window.location.href = href;
   });
 
   /* ---------- Löschen ---------- */
