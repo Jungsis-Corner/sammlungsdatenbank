@@ -3,7 +3,7 @@ require_once __DIR__ . '/inc_errors.php';
 require __DIR__ . '/require_login.php';   // startet die Session (boot.php)
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_filter.php';   // db_select()
-if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
+if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 require_post_csrf();                       // Aktion nur per POST mit CSRF-Token
 
 require_once __DIR__ . '/config.php';
@@ -16,7 +16,7 @@ if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 // Original laden
 $res = db_select($conn, "SELECT * FROM Sammlung WHERE ID = ?", 'i', [$id]);
 $orig = $res ? $res->fetch_assoc() : null;
-if (!$orig) { http_response_code(404); exit('Datensatz nicht gefunden'); }
+if (!$orig) { error_page(404, 'Eintrag nicht gefunden', 'Diesen Eintrag gibt es nicht (mehr).'); }
 
 // Titel automatisch hochzählen: "Name (Kopie)" / "Name (Kopie 2)" / ...
 function next_copy_title(string $t): string {

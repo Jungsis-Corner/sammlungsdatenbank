@@ -12,8 +12,7 @@ require_once __DIR__ . '/inc_guest.php';
 
 // Gäste dürfen nur exportieren, wenn GUEST_EXPORT_ENABLED gesetzt ist (E1)
 if ($is_guest && !guest_export_allowed()) {
-    http_response_code(403);
-    exit('Der Export ist für Gäste nicht verfügbar.');
+    error_page(403, 'Export nicht verfügbar', 'Der Export ist für Gäste nicht verfügbar.');
 }
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);

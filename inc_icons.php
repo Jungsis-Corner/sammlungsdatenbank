@@ -22,6 +22,7 @@ const ICON_PATHS = [
     'stats'    => '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     'menu'     => '<path d="M4 6h16M4 12h16M4 18h16"/>',
     'eye'      => '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    'eye-off'  => '<path d="M3 3l18 18M10.6 5.1A9.9 9.9 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.6 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
     'copy'     => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
     'save'     => '<path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h8M8 21v-7h8v7"/>',
     'close'    => '<path d="M6 6l12 12M18 6 6 18"/>',

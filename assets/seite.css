@@ -1,0 +1,36 @@
+/* =========================================================
+   seite.css – schlanke Einzelseiten: Anmeldung, Fehlerseiten, Offline (Phase 5e-1)
+   Tokens aus base.css (wird danach geladen). Zentrierte Karte, große Felder.
+   ========================================================= */
+body.seite{
+  font-family:Arial,Helvetica,sans-serif; font-size:var(--fs-base); margin:0;
+  min-height:100vh; min-height:100dvh; box-sizing:border-box;
+  display:flex; align-items:center; justify-content:center;
+  padding:max(var(--s4),env(safe-area-inset-top)) max(var(--s4),env(safe-area-inset-right)) max(var(--s4),env(safe-area-inset-bottom)) max(var(--s4),env(safe-area-inset-left));
+}
+.seite main{ width:100%; max-width:440px; }
+.karte{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-2); padding:var(--s5); }
+.karte h1{ margin:0 0 var(--s3); font-size:var(--fs-xl); text-align:left; line-height:1.2; }
+.karte p{ margin:0 0 var(--s3); line-height:1.5; }
+.karte .code{ color:var(--muted); font-size:var(--fs-sm); margin:0 0 var(--s2); }
+.karte .aktionen{ display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s4); }
+.karte .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:10px 16px; min-height:var(--tap); box-sizing:border-box; border-radius:var(--r-sm); font:inherit; font-weight:600; text-decoration:none; cursor:pointer; }
+
+/* Formular */
+.karte form{ display:grid; gap:var(--s3); margin-top:var(--s3); }
+.karte label{ display:block; font-weight:600; font-size:var(--fs-sm); margin-bottom:var(--s1); }
+.karte input[type="text"], .karte input[type="password"]{
+  width:100%; box-sizing:border-box; padding:10px 12px; min-height:var(--tap); font:inherit; font-size:16px; color:var(--text);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
+}
+.karte input:focus{ outline:3px solid var(--focus); outline-offset:1px; }
+.passwort-zeile{ display:flex; gap:var(--s2); }
+.passwort-zeile input{ flex:1 1 auto; min-width:0; }
+.passwort-zeile .btn{ flex:0 0 auto; min-width:var(--tap); padding:0 12px; }
+.fehler{ margin:0 0 var(--s2); padding:var(--s2) var(--s3); border:1px solid var(--danger); border-radius:var(--r-sm); color:var(--danger); background:var(--surface-2); font-weight:600; }
+.karte .gast{ margin:var(--s4) 0 0; padding-top:var(--s3); border-top:1px solid var(--border); color:var(--muted); text-align:center; }
+.karte .gast a{ font-weight:600; }
+.seite [hidden]{ display:none !important; }
+
+/* Hell/Dunkel-Umschalter (wird von theme-toggle.js eingefügt, wenn die Seite keinen eigenen hat) */
+.theme-toggle-floating{ position:fixed; right:max(var(--s4),env(safe-area-inset-right)); bottom:max(var(--s4),env(safe-area-inset-bottom)); z-index:9999; border-radius:50%; width:var(--tap); height:var(--tap); padding:0; box-shadow:var(--shadow-2); cursor:pointer; }

@@ -2,7 +2,7 @@
 // logview.php (nur für Admin)
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/require_login.php';
-if (!function_exists('is_admin') || !is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
+if (!function_exists('is_admin') || !is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 require_once __DIR__ . '/config.php';
 
@@ -29,7 +29,7 @@ if (isset($_GET['login'])) {
 
 $file = (defined('ERROR_LOG_PATH') && ERROR_LOG_PATH !== '') ? ERROR_LOG_PATH : __DIR__ . '/php-error.log';
 $n = isset($_GET['n']) ? max(10, min(2000, (int)$_GET['n'])) : 400; // 10..2000 Zeilen
-if (!is_readable($file)) { http_response_code(404); exit('Logdatei nicht lesbar.'); }
+if (!is_readable($file)) { error_page(404, 'Log nicht lesbar', 'Die Logdatei ist nicht vorhanden oder nicht lesbar.', 'einstellungen.php', 'Zu den Einstellungen'); }
 
 function tail($filename, $lines = 200) {
   $f = fopen($filename, 'rb'); if (!$f) return '';

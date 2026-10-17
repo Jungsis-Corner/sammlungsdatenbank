@@ -109,8 +109,7 @@ if ($id <= 0) {
         header('Location: view.php?' . http_build_query(array_merge($params,['id'=>$first_id])));
         exit;
     } else {
-        http_response_code(404);
-        exit('Keine passenden Datensätze.');
+        error_page(404, 'Keine Treffer', 'Zu dieser Auswahl gibt es keine Einträge.', 'index.php', 'Zur Liste');
     }
 }
 
@@ -137,7 +136,7 @@ $sql = "
   LIMIT 1
 ";
 $data = db_select($conn, $sql, 'i', [$id])->fetch_assoc();
-if (!$data) { http_response_code(404); exit('Datensatz nicht gefunden.'); }
+if (!$data) { error_page(404, 'Eintrag nicht gefunden', 'Diesen Eintrag gibt es nicht (mehr). Vielleicht wurde er gelöscht.'); }
 
 // ---- VerbautIn: Name des übergeordneten Geräts ----
 $verbautInId   = (int)($data['VerbautIn'] ?? 0);

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
-if (!is_admin()) { http_response_code(403); exit('Nur für Admins.'); }
+if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 require_once __DIR__ . '/config.php';
 ?>
 <!DOCTYPE html>

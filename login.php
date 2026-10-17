@@ -11,6 +11,7 @@ require_once __DIR__ . '/inc_login_throttle.php';
 
 // 2b) Gast-Session und Gast-Zähler liegen zentral in inc_guest.php (start_guest_session()).
 require_once __DIR__ . '/inc_guest.php';
+require_once __DIR__ . '/inc_icons.php';
 
 // 3) Zielberechnung: nur interne absolute Pfade, niemals login.php
 function safe_target(?string $to): string {
@@ -118,66 +119,43 @@ $to = safe_target($_GET['to'] ?? null);
 <html lang="de">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Anmeldung – Sammlung</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-  <style>
-    html[data-theme="dark"]{
-      background: #121212 !important;
-    }
-    html[data-theme="dark"] body{
-      background: #121212 !important;
-      color: #e8e8e8 !important;
-    }
-    html[data-theme="dark"] input,
-    html[data-theme="dark"] button{
-      background: #2a2a2a !important;
-      color: #e8e8e8 !important;
-      border: 1px solid #444 !important;
-    }
-    html[data-theme="dark"] a{
-      color: #8ab4ff !important;
-    }
-    .theme-toggle-floating{
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      z-index: 9999;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      font-size: 20px;
-      line-height: 42px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      background: #555;
-      color: #fff;
-      border: 1px solid #333;
-      cursor: pointer;
-    }
-  </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <script src="/sammlung/assets/login.js?v=1" defer></script>
+  <link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
-<body style="font-family:system-ui,Arial,sans-serif; max-width:520px; margin:5vh auto; padding:0 16px;">
+<body class="seite">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
 <main id="inhalt">
-  <h1>Login</h1>
+  <div class="karte">
+    <h1>Anmeldung</h1>
 
-  <?php if ($error): ?>
-    <p style="color:#b00"><?=htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE)?></p>
-  <?php endif; ?>
+    <?php if ($error): ?>
+      <p class="fehler" role="alert" id="loginFehler"><?=htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE)?></p>
+    <?php endif; ?>
 
-  <form method="post" action="login.php" style="display:grid; gap:8px;">
-    <input type="hidden" name="to" value="<?=htmlspecialchars($to, ENT_QUOTES | ENT_SUBSTITUTE)?>">
-    <label>Benutzer<br><input name="username" required autofocus></label>
-    <label>Passwort<br><input type="password" name="password" required></label>
-    <button type="submit">Anmelden</button>
-  </form>
+    <form method="post" action="login.php">
+      <input type="hidden" name="to" value="<?=htmlspecialchars($to, ENT_QUOTES | ENT_SUBSTITUTE)?>">
+      <div>
+        <label for="f_username">Benutzer</label>
+        <input type="text" id="f_username" name="username" required autofocus autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"<?= $error ? ' aria-describedby="loginFehler"' : '' ?>>
+      </div>
+      <div>
+        <label for="f_password">Passwort</label>
+        <div class="passwort-zeile">
+          <input type="password" id="f_password" name="password" required autocomplete="current-password"<?= $error ? ' aria-describedby="loginFehler"' : '' ?>>
+          <button type="button" id="pwZeigen" class="btn" hidden aria-pressed="false" aria-label="Passwort anzeigen"><svg class="ico ico-solo" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg></button>
+        </div>
+      </div>
+      <button type="submit" class="btn save">Anmelden</button>
+    </form>
 
-  <p style="margin-top:1rem">
-    Oder <a href="login.php?autologin=gast&to=<?=rawurlencode($to)?>">als Gast fortfahren</a>
-  </p>
+    <p class="gast">
+      Nur ansehen? <a href="login.php?autologin=gast&amp;to=<?=rawurlencode($to)?>">Als Gast fortfahren</a>
+    </p>
+  </div>
 </main>
 </body>
 </html>
