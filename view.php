@@ -292,7 +292,7 @@ $hatBild = (bool)image_parse($bild);
 <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/detail.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
-<link rel="stylesheet" href="/sammlung/assets/print.css?v=1" media="print">
+<link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 <script src="/sammlung/assets/detail.js?v=1" defer></script>
 </head>
 <body class="view-page">

@@ -381,7 +381,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
   <link rel="stylesheet" href="/sammlung/assets/liste.css?v=10">
   <script src="/sammlung/assets/liste.js?v=6" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
-<link rel="stylesheet" href="/sammlung/assets/print.css?v=1" media="print">
+<link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>

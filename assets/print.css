@@ -6,7 +6,7 @@
   /* Navigation, Filter, Bedienelemente aus */
   header.appbar, nav.appnav, nav.bottomnav, nav.aktionsleiste, nav.krumen, nav.pagination, .skip-link,
   .filter-panel, .liste-kopf, .liste-werkzeug, .detail-werkzeug, .statleiste, .back-to-top, .theme-toggle,
-  .ico-sprite, dialog, button, .btn, .row-action, .c-akt, .ek-toggles, .ek-sortwahl, details.filterbox{ display:none !important; }
+  .ico-sprite, dialog, button:not(.bild-knopf), .btn, .row-action, .c-akt, .ek-toggles, .ek-sortwahl, details.filterbox{ display:none !important; }
   main{ max-width:none !important; }
   a{ color:#000 !important; text-decoration:none !important; }
   * { box-shadow:none !important; }
@@ -21,9 +21,12 @@
 
   /* Detailseite: einspaltig, Bild begrenzt */
   .detail{ display:block !important; }
-  .detail-bild{ position:static !important; max-width:8cm; margin:0 0 8pt; }
-  .detail-bild img{ max-height:8cm !important; width:auto !important; max-width:100% !important; }
-  .detail-gruppen, .dgruppe{ break-inside:avoid; }
+  .detail-bild{ position:static !important; margin:0 0 8pt; }
+  .bild-knopf{ display:block !important; width:auto !important; max-width:9cm; border:0 !important; background:none !important; }
+  .bild-knopf img{ max-height:8cm !important; width:auto !important; max-width:100% !important; height:auto !important; }
+  .detail-info h1{ font-size:18pt; margin:0 0 6pt; }
+  .dgruppe{ break-inside:avoid; margin-bottom:8pt; }   /* nur die einzelne Gruppe zusammenhalten, nicht den ganzen Block */
+  .dgruppe.verwandt{ display:none !important; }        /* „Mehr aus der Sammlung“: nur Links, im Druck sinnlos */
 
   /* Statistik */
   .st-kacheln li, .v-karte{ border:1px solid #888 !important; break-inside:avoid; }
