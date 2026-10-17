@@ -218,8 +218,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $msg = 'Bezeichnung darf nicht leer sein.';
   } else {
     try {
+      // „Als NEU speichern“: aktuelle Formularwerte (auch ungespeicherte Änderungen) als neuen Eintrag anlegen
+      $dup = (($_POST['action'] ?? '') === 'dup') && $id > 0;
+      if ($dup) {
+        $id = 0;
+        $v['Bezeichnung'] = trim((string)$v['Bezeichnung']) . ' (Kopie)';
+      }
       $id = insert_or_update($conn, $id, $v);
-      flash_set('Gespeichert.', 'success');
+      flash_set($dup ? 'Als neuer Eintrag gespeichert (Kopie).' : 'Gespeichert.', 'success');
       header('Location: einkauf_edit.php?id='.$id.'&back='.urlencode($backUrl));
       exit;
     } catch (mysqli_sql_exception $e) {
@@ -427,6 +433,8 @@ if ($selV > 0) {
 <div class="edit-leiste edit-nav">
   <?= $navLink($prevId > 0, 'einkauf_edit.php?id=' . (int)$prevId . '&back=' . urlencode($backUrl), 'Vorheriger Eintrag', icon('back') . ' Vorheriger') ?>
   <?= $navLink($nextId > 0, 'einkauf_edit.php?id=' . (int)$nextId . '&back=' . urlencode($backUrl), 'Nächster Eintrag', 'Nächster ' . icon('forward')) ?>
+  <button type="submit" form="f" name="action" value="dup" class="btn dup"
+          title="Aktuelle Angaben (auch ungespeicherte Änderungen) als neuen Eintrag speichern"><?= icon('copy') ?> Als NEU speichern</button>
 </div>
 <?php endif; ?>
 
