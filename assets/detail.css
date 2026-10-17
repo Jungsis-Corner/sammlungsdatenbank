@@ -5,7 +5,7 @@
      ab 900 px     zwei Spalten, Bild links (haftet beim Scrollen)
    Auf dem iPhone (unter 600 px) steht unten eine feste Aktionsleiste.
    ========================================================= */
-body{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:0; padding:20px; }
+body{ font-family:Arial,Helvetica,sans-serif; font-size:.9167rem; margin:0; padding:20px; }
 .appbar-titel{ color:var(--text); }
 main{ display:block; }
 .spacer{ flex:1 1 auto; }
@@ -82,10 +82,10 @@ dialog.loesch-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
   }
   nav.aktionsleiste a, nav.aktionsleiste button{
     flex:1 1 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:56px;
-    background:none; border:0; color:var(--text); font:inherit; font-size:12px; text-decoration:none; cursor:pointer;
+    background:none; border:0; color:var(--text); font:inherit; font-size:.75rem; text-decoration:none; cursor:pointer;
   }
   nav.aktionsleiste a.disabled{ opacity:.35; pointer-events:none; }
-  nav.aktionsleiste button[data-loeschen]{ color:var(--danger); }
+  nav.aktionsleiste button[data-loeschen]{ color:var(--danger-text); }
   nav.aktionsleiste .ico{ width:24px; height:24px; margin:0; }
   .detail-info h1{ font-size:var(--fs-lg); }
 }

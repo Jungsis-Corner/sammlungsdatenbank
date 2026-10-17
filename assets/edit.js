@@ -328,7 +328,8 @@ document.addEventListener('click', function(e){
     var t = e.target;
     if (!t.matches || !t.matches('input:not([type=checkbox]):not([type=hidden]), select, textarea')) return;
     // nach dem Einblenden der Tastatur (Größenänderung) in die Mitte holen
-    setTimeout(function(){ try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { t.scrollIntoView(); } }, 320);
+    var weniger = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(function(){ try { t.scrollIntoView({ block: 'center', behavior: weniger ? 'auto' : 'smooth' }); } catch (_) { t.scrollIntoView(); } }, 320);
   });
 })();
 

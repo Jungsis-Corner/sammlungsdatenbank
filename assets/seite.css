@@ -20,14 +20,14 @@ body.seite{
 .karte form{ display:grid; gap:var(--s3); margin-top:var(--s3); }
 .karte label{ display:block; font-weight:600; font-size:var(--fs-sm); margin-bottom:var(--s1); }
 .karte input[type="text"], .karte input[type="password"]{
-  width:100%; box-sizing:border-box; padding:10px 12px; min-height:var(--tap); font:inherit; font-size:16px; color:var(--text);
+  width:100%; box-sizing:border-box; padding:10px 12px; min-height:var(--tap); font:inherit; font-size:max(16px,1rem); color:var(--text);
   background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
 }
 .karte input:focus{ outline:3px solid var(--focus); outline-offset:1px; }
 .passwort-zeile{ display:flex; gap:var(--s2); }
 .passwort-zeile input{ flex:1 1 auto; min-width:0; }
 .passwort-zeile .btn{ flex:0 0 auto; min-width:var(--tap); padding:0 12px; }
-.fehler{ margin:0 0 var(--s2); padding:var(--s2) var(--s3); border:1px solid var(--danger); border-radius:var(--r-sm); color:var(--danger); background:var(--surface-2); font-weight:600; }
+.fehler{ margin:0 0 var(--s2); padding:var(--s2) var(--s3); border:1px solid var(--danger); border-radius:var(--r-sm); color:var(--danger-text); background:var(--surface-2); font-weight:600; }
 .karte .gast{ margin:var(--s4) 0 0; padding-top:var(--s3); border-top:1px solid var(--border); color:var(--muted); text-align:center; }
 .karte .gast a{ font-weight:600; }
 .seite [hidden]{ display:none !important; }

@@ -193,13 +193,13 @@ $sBreite = 16; $sHoehe = 110; $svgH = 150; $svgW = max(1, count($jahre)) * $sBre
 <html lang="de">
 <head>
   <?php $page_title = 'Statistik'; include __DIR__ . '/inc_head_admin.php'; ?>
-  <link rel="stylesheet" href="/sammlung/assets/statistik.css?v=2">
+  <link rel="stylesheet" href="/sammlung/assets/statistik.css?v=3">
   <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 </head>
 <body class="admin-page statistik-page">
 <?= admin_header([['Statistik', '']], $navOpt, false) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <div class="st-kopf">
     <h1>Statistik</h1>
     <button type="button" class="btn" data-drucken><?= icon('print') ?> Drucken</button>

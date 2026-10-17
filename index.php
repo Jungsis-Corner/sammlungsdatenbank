@@ -377,15 +377,15 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
-  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
-  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=10">
-  <script src="/sammlung/assets/liste.js?v=6" defer></script>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
+  <link rel="stylesheet" href="/sammlung/assets/liste.css?v=11">
+  <script src="/sammlung/assets/liste.js?v=7" defer></script>
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
 
 <div id="top-marker" aria-hidden="true"></div>
 
@@ -457,7 +457,7 @@ $gruppeOffen = fn(bool $aktiv, bool $standard = false) => ($aktiv || $standard) 
       <?= icon('filter') ?> Filter<?php if ($activeCount): ?> <span class="count-badge"><?= (int)$activeCount ?></span><?php endif; ?>
     </button>
 
-    <div class="chips" aria-label="Aktive Filter">
+    <div class="chips" role="group" aria-label="Aktive Filter">
       <?php foreach ($activeBadges as $badge):
         $removeLink = url_remove_only(array_keys($badge['remove'])); ?>
         <a class="chip-filter" href="<?= $removeLink ?>" title="Diesen Filter entfernen">

@@ -39,7 +39,7 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 <body class="admin-page">
 <?= admin_header() ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1>Einstellungen</h1>
   <?= admin_flash() ?>
 

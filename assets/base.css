@@ -19,6 +19,7 @@
   --on-primary:#ffffff;
   --danger:#b3261e;
   --danger-hover:#8f1d17;
+  --danger-text:#b3261e;   /* Fehlertext auf --bg/--surface (AA) */
   --on-danger:#ffffff;
   --neutral:#e9ecf1;
   --neutral-hover:#dde1e8;
@@ -33,7 +34,7 @@
   --shadow-1:0 1px 3px rgba(0,0,0,.12);
   --shadow-2:0 2px 8px rgba(0,0,0,.16);
   /* Schrift */
-  --fs-sm:14px; --fs-base:16px; --fs-lg:20px; --fs-xl:28px;
+  --fs-sm:.875rem; --fs-base:1rem; --fs-lg:1.25rem; --fs-xl:1.75rem;   /* rem: folgt der Schriftgröße des Geräts (Standard 16 px = 14/16/20/28 px) */
   /* Touch-Zielhöhe */
   --tap:44px;
 }
@@ -49,6 +50,7 @@ html[data-theme="dark"]{
   --on-primary:#ffffff;
   --danger:#c93c34;
   --danger-hover:#e0524a;
+  --danger-text:#ff8f86;   /* Fehlertext im Dunkelmodus (AA, --danger selbst ist dort zu dunkel für Text) */
   --on-danger:#ffffff;
   --neutral:#2d333d;
   --neutral-hover:#3a414d;
@@ -168,7 +170,7 @@ html{ -webkit-tap-highlight-color:rgba(26,95,180,.15); }
   /* Eingabefelder: mindestens 16 px (kein Zoom auf dem iPhone) und 44 px hoch */
   input[type="text"],input[type="search"],input[type="number"],input[type="date"],input[type="password"],
   input[type="email"],input[type="url"],select,textarea{
-    font-size:16px;
+    font-size:max(16px,1rem);
   }
   input[type="text"],input[type="search"],input[type="number"],input[type="date"],input[type="password"],select{
     min-height:var(--tap);
@@ -201,3 +203,13 @@ html{ -webkit-tap-highlight-color:rgba(26,95,180,.15); }
 /* Schwebender Hell/Dunkel-Knopf: Icon zentrieren */
 .theme-toggle-floating{ display:inline-flex; align-items:center; justify-content:center; }
 .theme-toggle-floating .ico{ width:22px; height:22px; margin:0; }
+
+/* ---------- Phase 6: Barrierefreiheit ---------- */
+/* Fokus nicht unter feste Leisten (obere Leiste, Aktions-/Speichern-Leiste, untere Navigation) scrollen lassen (WCAG 2.4.11) */
+html{ scroll-padding-top:5rem; scroll-padding-bottom:6.5rem; }
+/* Sprunglink-Ziel: Fokus ohne sichtbaren Rahmen (kein Bedienelement) */
+main:focus{ outline:none; }
+/* Weniger Bewegung: keine Übergänge, Animationen, weiches Scrollen */
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+}

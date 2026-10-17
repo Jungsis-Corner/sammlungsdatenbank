@@ -3,7 +3,7 @@
    Ersetzt admin.css. Tokens aus base.css (wird danach geladen); die obere Leiste kommt aus nav.css.
    Tabellen: ab 600 px normal, darunter als Kartenliste.
    ========================================================= */
-body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:0; padding:20px; -webkit-text-size-adjust:100%; }
+body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:.9167rem; margin:0; padding:20px; -webkit-text-size-adjust:100%; }
 .admin-page main{ display:block; max-width:1000px; }
 .admin-page h1{ margin:0 0 var(--s3); font-size:var(--fs-xl); text-align:left; }
 .admin-page h2{ margin:var(--s5) 0 var(--s2); font-size:var(--fs-lg); }
@@ -38,7 +38,7 @@ body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:
   .v-form.zeile{ grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); align-items:end; }
 }
 @media (pointer:coarse){
-  .v-feld input[type="text"], .v-feld input[type="search"], .v-feld select{ min-height:var(--tap); font-size:16px; }
+  .v-feld input[type="text"], .v-feld input[type="search"], .v-feld select{ min-height:var(--tap); font-size:max(16px,1rem); }
   .admin-page .btn{ min-height:var(--tap); }
 }
 
@@ -46,7 +46,7 @@ body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:
 .v-suche{ display:flex; gap:var(--s2); margin:0 0 var(--s4); }
 .v-suche input[type="search"]{ flex:1 1 auto; min-width:0; box-sizing:border-box; padding:8px 10px; min-height:40px; font:inherit; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); }
 .v-suche input:focus{ outline:3px solid var(--focus); outline-offset:1px; }
-@media (pointer:coarse){ .v-suche input[type="search"]{ min-height:var(--tap); font-size:16px; } }
+@media (pointer:coarse){ .v-suche input[type="search"]{ min-height:var(--tap); font-size:max(16px,1rem); } }
 
 /* ---------- Tabellen ---------- */
 .table-wrap{ overflow-x:auto; }

@@ -342,12 +342,12 @@ $toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_
   <?php $page_title = 'Einkäufe'; include __DIR__ . '/inc_head_admin.php'; ?>
   <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
   <script src="/sammlung/assets/einkauf.js?v=1" defer></script>
-  <link rel="stylesheet" href="/sammlung/assets/einkauf.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/einkauf.css?v=2">
 </head>
 <body class="admin-page einkauf-page">
 <?= admin_header([['Einkäufe', '']]) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1>Einkäufe</h1>
 
   <?= $flashHtml ?>

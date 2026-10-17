@@ -206,7 +206,7 @@ $loeschAction = $self . ($search !== '' ? '?q=' . urlencode($search) : '');
 <body class="admin-page">
 <?= admin_header([['Kategorien verwalten', '']]) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1>Kategorien verwalten</h1>
 
   <?= $flashHtml ?>

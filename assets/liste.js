@@ -174,7 +174,8 @@
     pruefen();
     oben.addEventListener('click', function (e) {
       e.preventDefault();
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) { window.scrollTo(0, 0); }
+      var weniger = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;   // weniger Bewegung: ohne weiches Scrollen
+      try { window.scrollTo({ top: 0, behavior: weniger ? 'auto' : 'smooth' }); } catch (_) { window.scrollTo(0, 0); }
       wurzel.scrollTop = 0; document.body.scrollTop = 0;   // Absicherung für Safari
       if (location.hash !== '#top-marker') setTimeout(function () { location.hash = '#top-marker'; }, 60);
     });

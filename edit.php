@@ -976,10 +976,10 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <title><?= $id === 0 ? 'Neuer Eintrag' : 'Bearbeiten: „' . htmlspecialchars(trim((string)($data['Bezeichnung'] ?? '')), ENT_QUOTES, 'UTF-8') . '“' ?> – Sammlung</title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
-<script src="/sammlung/assets/edit.js?v=1" defer></script>
-<link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
-<link rel="stylesheet" href="/sammlung/assets/edit.css?v=2">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<script src="/sammlung/assets/edit.js?v=2" defer></script>
+<link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/edit.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>
 
 
@@ -993,7 +993,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
   <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
 </header>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1><?= $id===0 ? 'Neuer Eintrag' : 'Eintrag bearbeiten' ?></h1>
 
   <?php if ($flashMsg !== ''): ?>

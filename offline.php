@@ -10,11 +10,11 @@ header('Cache-Control: no-cache');
 <meta name="robots" content="noindex">
 <title>Keine Verbindung – Sammlung</title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/seite.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>
 <body class="seite">
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <div class="karte">
     <h1>Keine Verbindung</h1>
     <p>Du bist gerade offline. Die Sammlung braucht eine Internetverbindung. Bitte versuche es erneut, sobald wieder eine besteht.</p>

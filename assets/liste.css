@@ -4,7 +4,7 @@
    base.css wird danach geladen und vereinheitlicht die Knöpfe.
    ========================================================= */
 
-body{ font-family:Arial,Helvetica,sans-serif; font-size:10pt; padding:20px; }
+body{ font-family:Arial,Helvetica,sans-serif; font-size:.8333rem; padding:20px; }
 h1{ color:#1a3a8a; text-align:center; }
 html[data-theme="dark"] h1{ color:#a9b8ff !important; }
 html{ scroll-behavior:smooth; }
@@ -300,7 +300,7 @@ nav.pagination a:hover{ background:var(--neutral-hover); }
 @media (pointer:coarse){ nav.pagination a, nav.pagination strong, nav.pagination .pg-btn{ min-height:var(--tap); min-width:var(--tap); } }
 .pg-optionen{ margin:6px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
 .pg-optionen input[type="number"]{
-  width:5em; min-height:36px; box-sizing:border-box; padding:4px 8px; font:inherit; font-size:16px;
+  width:5em; min-height:36px; box-sizing:border-box; padding:4px 8px; font:inherit; font-size:max(16px,1rem);
   border:1px solid var(--border); border-radius:var(--r-sm); background:var(--surface); color:var(--text);
 }
 .pg-optionen .btn{ min-height:36px; padding:4px 12px; }
@@ -332,7 +332,7 @@ nav.pagination a:hover{ background:var(--neutral-hover); }
   }
   nav.bottomnav a, nav.bottomnav button{
     flex:1 1 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:56px;
-    background:none; border:0; color:var(--muted); font:inherit; font-size:12px; text-decoration:none; cursor:pointer;
+    background:none; border:0; color:var(--muted); font:inherit; font-size:.75rem; text-decoration:none; cursor:pointer;
   }
   nav.bottomnav a[aria-current="page"]{ color:var(--primary); font-weight:600; }
   .bottomnav .ico{ width:24px; height:24px; margin:0; }

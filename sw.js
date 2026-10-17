@@ -1,4 +1,4 @@
-const CACHE_NAME = "sammlung-pwa-v10";
+const CACHE_NAME = "sammlung-pwa-v11";
 // Miniaturen (thumb.php) und lokale Bilder (medien/): eigener Cache mit Obergrenze, bleibt bei Updates bestehen
 const IMG_CACHE = "sammlung-img-v1";
 const IMG_CACHE_MAX = 200;
@@ -11,8 +11,8 @@ const STATIC_ASSETS = [
   "/sammlung/icons/apple-touch-icon.png",
   "/sammlung/offline.php",
   // Dateien der Offlineseite (genau diese URLs mit Version, sonst findet der Cache sie nicht)
-  "/sammlung/assets/seite.css?v=1",
-  "/sammlung/assets/base.css?v=3",
+  "/sammlung/assets/seite.css?v=2",
+  "/sammlung/assets/base.css?v=4",
   "/sammlung/assets/theme-toggle.js?v=6"
   // Hier deine echten Assets ergänzen, z.B.:
   // "/sammlung/assets/style.css",

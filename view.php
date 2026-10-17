@@ -289,9 +289,9 @@ $hatBild = (bool)image_parse($bild);
 <meta name="format-detection" content="telephone=no">
 <title><?= $e($pageTitle) ?></title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
-<link rel="stylesheet" href="/sammlung/assets/detail.css?v=2">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/detail.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 <script src="/sammlung/assets/detail.js?v=2" defer></script>
 </head>
@@ -304,7 +304,7 @@ $hatBild = (bool)image_parse($bild);
   <button type="button" id="themeToggle" class="btn theme-toggle appbar-icon" title="Hell/Dunkel umschalten"></button>
 </header>
 
-<main id="inhalt" data-prev="<?= $prev_id ? $e($prevHref) : '' ?>" data-next="<?= $next_id ? $e($nextHref) : '' ?>">
+<main id="inhalt" tabindex="-1" data-prev="<?= $prev_id ? $e($prevHref) : '' ?>" data-next="<?= $next_id ? $e($nextHref) : '' ?>">
 
   <!-- Werkzeugleiste (ab 600 px; auf dem iPhone steht die Aktionsleiste unten) -->
   <div class="detail-werkzeug">

@@ -31,12 +31,12 @@ function error_page_html(int $status, string $title, string $text, string $linkH
 <meta name="robots" content="noindex">
 <title>' . $e($title) . ' – ' . $e($appTitle) . '</title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/seite.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>
 <body class="seite">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <div class="karte">
     <p class="code">Fehler ' . $status . '</p>
     <h1>' . $e($title) . '</h1>

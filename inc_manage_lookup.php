@@ -215,7 +215,7 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 <body class="admin-page">
 <?= admin_header($kruemel) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1><?= $e($cfg['title']) ?></h1>
 
   <?= $flashHtml ?>

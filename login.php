@@ -123,12 +123,12 @@ $to = safe_target($_GET['to'] ?? null);
   <title>Anmeldung – Sammlung</title>
   <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
   <script src="/sammlung/assets/login.js?v=1" defer></script>
-  <link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
-  <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <link rel="stylesheet" href="/sammlung/assets/seite.css?v=2">
+  <link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>
 <body class="seite">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <div class="karte">
     <h1>Anmeldung</h1>
 

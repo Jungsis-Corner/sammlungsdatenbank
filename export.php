@@ -131,7 +131,7 @@ if (($_GET['download'] ?? '') !== '1') {
 <body class="admin-page">
 <?= admin_header([['Export', '']], $navOpt, false) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1>Export</h1>
 
   <section class="v-karte" aria-labelledby="h_umfang">

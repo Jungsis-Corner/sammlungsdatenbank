@@ -103,7 +103,7 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
 <body class="admin-page">
 <?= admin_header([['Bildprüfung', '']]) ?>
 
-<main id="inhalt">
+<main id="inhalt" tabindex="-1">
   <h1>Bildprüfung</h1>
   <?php if ($flash): ?>
     <div class="msg-box <?= $e($flash['type']) ?>" role="status"><?= $e($flash['text']) ?></div>

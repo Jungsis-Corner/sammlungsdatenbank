@@ -31,9 +31,11 @@ function nav_links(array $o): array {
 
 function nav_appnav(array $o): string {
     $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    $aktuell = basename((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));   // Seite, auf der wir sind
     $out = '<nav class="appnav" aria-label="Hauptnavigation">';
     foreach (nav_links($o) as $it) {
-        $out .= '<a href="' . $e($it['href']) . '">' . icon($it['icon']) . ' ' . $e($it['label']) . '</a>';
+        $hier = ($aktuell !== '' && basename(strtok((string)$it['href'], '?')) === $aktuell);
+        $out .= '<a href="' . $e($it['href']) . '"' . ($hier ? ' aria-current="page"' : '') . '>' . icon($it['icon']) . ' ' . $e($it['label']) . '</a>';
     }
     return $out . '</nav>';
 }
