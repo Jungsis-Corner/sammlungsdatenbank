@@ -52,6 +52,7 @@ body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:.9167rem; mar
 .table-wrap{ overflow-x:auto; }
 table.adm-table, table.vtabelle{ width:100%; border-collapse:collapse; background:var(--surface); }
 .adm-table th, .adm-table td, .vtabelle th, .vtabelle td{ padding:var(--s2) var(--s3); text-align:left; border-bottom:1px solid var(--border); vertical-align:middle; }
+.adm-table tbody th[scope="row"]{ font-weight:600; }
 .adm-table thead th, .vtabelle thead th{ position:sticky; top:0; background:var(--surface-2); font-size:var(--fs-sm); }
 .is-numeric{ text-align:right !important; font-variant-numeric:tabular-nums; }
 .col-id{ width:4.5em; color:var(--muted); }

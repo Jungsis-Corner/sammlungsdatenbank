@@ -81,13 +81,13 @@ $wpDir  = rtrim((string)IMAGE_WP_DIR, '/') . '/';
 $flash = flash_pull();
 
 /** Tabelle mit Einträgen (ID, Bezeichnung, Wert, optional Größe) */
-function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): void {
+function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false, string $caption = 'Einträge'): void {
     if (!$zeilen) { echo '<p class="center">Keine.</p>'; return; }
     $gesamt = count($zeilen);
-    echo '<div class="table-wrap"><table class="adm-table is-striped is-hover is-compact"><thead><tr><th class="col-id">ID</th><th>Bezeichnung</th><th>Wert in der Datenbank</th>'
-       . ($mitGroesse ? '<th class="is-numeric">Größe</th>' : '') . '<th></th></tr></thead><tbody>';
+    echo '<div class="table-wrap"><table class="adm-table is-striped is-hover is-compact"><caption class="sr-only">' . $e($caption) . '</caption><thead><tr><th scope="col" class="col-id">ID</th><th scope="col">Bezeichnung</th><th scope="col">Wert in der Datenbank</th>'
+       . ($mitGroesse ? '<th scope="col" class="is-numeric">Größe</th>' : '') . '<th scope="col"><span class="sr-only">Aktion</span></th></tr></thead><tbody>';
     foreach (array_slice($zeilen, 0, BILD_MAX_ZEILEN) as $z) {
-        echo '<tr><td class="col-id is-numeric">' . (int)$z['ID'] . '</td><td>' . $e($z['Bezeichnung'] ?? '') . '</td><td>' . $e($z['SammlungBild1']) . '</td>'
+        echo '<tr><th scope="row" class="col-id is-numeric">' . (int)$z['ID'] . '</th><td>' . $e($z['Bezeichnung'] ?? '') . '</td><td>' . $e($z['SammlungBild1']) . '</td>'
            . ($mitGroesse ? '<td class="is-numeric">' . number_format($z['groesse'] / 1048576, 1, ',', '.') . ' MB</td>' : '')
            . '<td><a class="btn is-small" href="edit.php?id=' . (int)$z['ID'] . '" title="Bearbeiten">' . icon('edit','Bearbeiten') . '</a></td></tr>';
     }
@@ -112,39 +112,39 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
     <p class="center">Nur zur Ansicht: Es wird nichts geändert oder gelöscht.</p>
 
     <h2>Status</h2>
-    <div class="table-wrap"><table class="adm-table"><tbody>
-      <tr><td>PHP-Version</td><td><?= $e(PHP_VERSION) ?></td></tr>
-      <tr><td>GD (Miniaturen)</td><td><?= $ja(!empty($gd)) ?><?= !empty($gd) ? ' · ' . $e($gd['GD Version'] ?? '') : '' ?></td></tr>
-      <tr><td>Formate: JPEG · PNG · GIF · WebP</td><td><?= $ja(!empty($gd['JPEG Support'])) ?> · <?= $ja(!empty($gd['PNG Support'])) ?> · <?= $ja(!empty($gd['GIF Read Support'])) ?> · <?= $ja(!empty($gd['WebP Support'])) ?></td></tr>
-      <tr><td>EXIF (Drehung von Fotos)</td><td><?= $ja(function_exists('exif_read_data')) ?></td></tr>
-      <tr><td>memory_limit</td><td><?= $e(ini_get('memory_limit')) ?></td></tr>
-      <tr><td>Bildquelle (IMAGE_SOURCE)</td><td><?= $e(IMAGE_SOURCE) ?></td></tr>
-      <tr><td>WordPress-Uploads, URL-Pfad (IMAGE_WP_BASE)</td><td><?= $e(IMAGE_WP_BASE) ?></td></tr>
-      <tr><td>WordPress-Uploads, Ordner auf dem Server (IMAGE_WP_DIR)</td><td><?= $e($wpDir) ?> · lesbar: <?= $ja($wpRoot !== null) ?></td></tr>
-      <tr><td>Lokaler Bildordner (<?= $e(IMAGE_LOCAL_DIR) ?>)</td><td>vorhanden: <?= $ja($lokalVorhanden) ?><?= $lokalVorhanden ? ' · ' . $lokalDateien . ' Bilddateien' : '' ?></td></tr>
-      <tr><td>Miniaturen eingeschaltet (IMAGE_THUMBS)</td><td><?= $ja((bool)IMAGE_THUMBS) ?></td></tr>
-      <tr><td>Miniatur-Cache (cache/thumbs/)</td><td>vorhanden: <?= $ja($cacheDa) ?> · beschreibbar: <?= $ja($cacheDa && is_writable($cacheDir)) ?> · <?= $cacheDateien ?> Dateien, <?= $mb($cacheBytes) ?></td></tr>
+    <div class="table-wrap"><table class="adm-table"><caption class="sr-only">Zustand der Bildquellen und Einstellungen</caption><tbody>
+      <tr><th scope="row">PHP-Version</th><td><?= $e(PHP_VERSION) ?></td></tr>
+      <tr><th scope="row">GD (Miniaturen)</th><td><?= $ja(!empty($gd)) ?><?= !empty($gd) ? ' · ' . $e($gd['GD Version'] ?? '') : '' ?></td></tr>
+      <tr><th scope="row">Formate: JPEG · PNG · GIF · WebP</th><td><?= $ja(!empty($gd['JPEG Support'])) ?> · <?= $ja(!empty($gd['PNG Support'])) ?> · <?= $ja(!empty($gd['GIF Read Support'])) ?> · <?= $ja(!empty($gd['WebP Support'])) ?></td></tr>
+      <tr><th scope="row">EXIF (Drehung von Fotos)</th><td><?= $ja(function_exists('exif_read_data')) ?></td></tr>
+      <tr><th scope="row">memory_limit</th><td><?= $e(ini_get('memory_limit')) ?></td></tr>
+      <tr><th scope="row">Bildquelle (IMAGE_SOURCE)</th><td><?= $e(IMAGE_SOURCE) ?></td></tr>
+      <tr><th scope="row">WordPress-Uploads, URL-Pfad (IMAGE_WP_BASE)</th><td><?= $e(IMAGE_WP_BASE) ?></td></tr>
+      <tr><th scope="row">WordPress-Uploads, Ordner auf dem Server (IMAGE_WP_DIR)</th><td><?= $e($wpDir) ?> · lesbar: <?= $ja($wpRoot !== null) ?></td></tr>
+      <tr><th scope="row">Lokaler Bildordner (<?= $e(IMAGE_LOCAL_DIR) ?>)</th><td>vorhanden: <?= $ja($lokalVorhanden) ?><?= $lokalVorhanden ? ' · ' . $lokalDateien . ' Bilddateien' : '' ?></td></tr>
+      <tr><th scope="row">Miniaturen eingeschaltet (IMAGE_THUMBS)</th><td><?= $ja((bool)IMAGE_THUMBS) ?></td></tr>
+      <tr><th scope="row">Miniatur-Cache (cache/thumbs/)</th><td>vorhanden: <?= $ja($cacheDa) ?> · beschreibbar: <?= $ja($cacheDa && is_writable($cacheDir)) ?> · <?= $cacheDateien ?> Dateien, <?= $mb($cacheBytes) ?></td></tr>
     </tbody></table></div>
 
     <h2>Einträge mit Bild</h2>
-    <div class="table-wrap"><table class="adm-table"><tbody>
-      <tr><td>Einträge mit einem Bildwert</td><td class="is-numeric"><?= $gesamt ?></td></tr>
-      <tr><td>Datei vorhanden</td><td class="is-numeric"><?= $vorhanden ?></td></tr>
-      <tr><td>Datei fehlt</td><td class="is-numeric"><?= count($fehlt) ?></td></tr>
-      <tr><td>Ungültiger Wert (zeigt den Platzhalter)</td><td class="is-numeric"><?= count($ungueltig) ?></td></tr>
-      <tr><td>Bild von einem fremden Server (nicht prüfbar)</td><td class="is-numeric"><?= $extern ?></td></tr>
-      <tr><td>WordPress-Ordner nicht lesbar (nicht prüfbar)</td><td class="is-numeric"><?= $nichtPruefbar ?></td></tr>
-      <tr><td>Originale über <?= $mb(BILD_GROSS) ?></td><td class="is-numeric"><?= count($gross) ?></td></tr>
+    <div class="table-wrap"><table class="adm-table"><caption class="sr-only">Auswertung der Einträge mit Bild</caption><tbody>
+      <tr><th scope="row">Einträge mit einem Bildwert</th><td class="is-numeric"><?= $gesamt ?></td></tr>
+      <tr><th scope="row">Datei vorhanden</th><td class="is-numeric"><?= $vorhanden ?></td></tr>
+      <tr><th scope="row">Datei fehlt</th><td class="is-numeric"><?= count($fehlt) ?></td></tr>
+      <tr><th scope="row">Ungültiger Wert (zeigt den Platzhalter)</th><td class="is-numeric"><?= count($ungueltig) ?></td></tr>
+      <tr><th scope="row">Bild von einem fremden Server (nicht prüfbar)</th><td class="is-numeric"><?= $extern ?></td></tr>
+      <tr><th scope="row">WordPress-Ordner nicht lesbar (nicht prüfbar)</th><td class="is-numeric"><?= $nichtPruefbar ?></td></tr>
+      <tr><th scope="row">Originale über <?= $mb(BILD_GROSS) ?></th><td class="is-numeric"><?= count($gross) ?></td></tr>
     </tbody></table></div>
 
     <h2>Datei fehlt (<?= count($fehlt) ?>)</h2>
-    <?php bild_tabelle($fehlt, $e); ?>
+    <?php bild_tabelle($fehlt, $e, false, 'Einträge, deren Bilddatei fehlt'); ?>
 
     <h2>Ungültiger Wert (<?= count($ungueltig) ?>)</h2>
-    <?php bild_tabelle($ungueltig, $e); ?>
+    <?php bild_tabelle($ungueltig, $e, false, 'Einträge mit ungültigem Bildwert'); ?>
 
     <h2>Originale über <?= $mb(BILD_GROSS) ?> (<?= count($gross) ?>)</h2>
-    <?php bild_tabelle($gross, $e, true); ?>
+    <?php bild_tabelle($gross, $e, true, 'Originale über 2 MB'); ?>
 
     <h2>Dateien in <?= $e(IMAGE_LOCAL_DIR) ?> ohne Eintrag (<?= count($verwaist) ?>)</h2>
     <?php if (!$lokalVorhanden): ?>
@@ -152,7 +152,7 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
     <?php elseif (!$verwaist): ?>
       <p class="center">Keine.</p>
     <?php else: ?>
-      <div class="table-wrap"><table class="adm-table is-striped is-compact"><thead><tr><th>Datei</th><th class="is-numeric">Größe</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="adm-table is-striped is-compact"><caption class="sr-only">Dateien ohne Eintrag</caption><thead><tr><th scope="col">Datei</th><th scope="col" class="is-numeric">Größe</th></tr></thead><tbody>
         <?php foreach (array_slice($verwaist, 0, BILD_MAX_ZEILEN) as $v): ?>
           <tr><td><?= $e($v['name']) ?></td><td class="is-numeric"><?= $mb($v['groesse']) ?></td></tr>
         <?php endforeach; ?>

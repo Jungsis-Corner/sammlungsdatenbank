@@ -356,7 +356,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<script src="/sammlung/assets/typeahead.js?v=1" defer></script>
+<script src="/sammlung/assets/typeahead.js?v=2" defer></script>
 
 <?php
 $isMuseum = !empty($_SESSION['museum_mode']);
@@ -379,7 +379,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
   <link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
   <link rel="stylesheet" href="/sammlung/assets/liste.css?v=11">
-  <script src="/sammlung/assets/liste.js?v=7" defer></script>
+  <script src="/sammlung/assets/liste.js?v=8" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
 </head>

@@ -45,17 +45,39 @@
   var breit = window.matchMedia ? window.matchMedia('(min-width: 1280px)') : { matches: true };
 
   function sheetOffen() { return panel && panel.classList.contains('is-open'); }
+
+  // Bottom-Sheet als modaler Dialog: Rolle setzen, Hintergrund per inert sperren (Tab bleibt im Sheet, Screenreader sehen nur das Sheet)
+  var HINTERGRUND = 'header.appbar, .liste-kopf, .liste-ergebnis, nav.bottomnav, .statleiste, .back-to-top';
+  function modalSetzen(an) {
+    if (!panel) return;
+    if (an) {
+      panel.setAttribute('role', 'dialog');
+      panel.setAttribute('aria-modal', 'true');
+    } else {
+      panel.removeAttribute('role');
+      panel.removeAttribute('aria-modal');
+    }
+    Array.prototype.forEach.call(document.querySelectorAll(HINTERGRUND), function (el) {
+      if (an) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+    });
+  }
   function sheetSchliessen() {
     if (!panel) return;
+    var warOffen = sheetOffen();
     panel.classList.remove('is-open');
     if (backdrop) backdrop.hidden = true;
     document.body.classList.remove('sheet-open');
-    if (toggle) { toggle.setAttribute('aria-expanded', 'false'); }
+    modalSetzen(false);
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+      if (warOffen && toggle.focus) toggle.focus();   // Fokus zurück an den Auslöser
+    }
   }
   function sheetOeffnen() {
     panel.classList.add('is-open');
     if (backdrop) backdrop.hidden = false;
     document.body.classList.add('sheet-open');
+    modalSetzen(true);
     if (toggle) toggle.setAttribute('aria-expanded', 'true');
     var f = panel.querySelector('summary, a, button, input, select');
     if (f && f.focus) f.focus();
@@ -75,11 +97,11 @@
       }
     });
     Array.prototype.forEach.call(document.querySelectorAll('[data-filter-close]'), function (b) {
-      b.addEventListener('click', function (e) { e.preventDefault(); sheetSchliessen(); if (toggle.focus) toggle.focus(); });
+      b.addEventListener('click', function (e) { e.preventDefault(); sheetSchliessen(); });
     });
     if (backdrop) backdrop.addEventListener('click', sheetSchliessen);
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && sheetOffen()) { sheetSchliessen(); if (toggle.focus) toggle.focus(); }
+      if (e.key === 'Escape' && sheetOffen()) { sheetSchliessen(); }
     });
     if (breit.addEventListener) breit.addEventListener('change', function () { if (breit.matches) sheetSchliessen(); });
 
@@ -95,6 +117,7 @@
         panel.classList.add('is-open', 'ohne-animation');
         if (backdrop) backdrop.hidden = false;
         document.body.classList.add('sheet-open');
+        modalSetzen(true);
         toggle.setAttribute('aria-expanded', 'true');
         // Animation erst danach wieder erlauben
         setTimeout(function () { panel.classList.remove('ohne-animation'); }, 50);

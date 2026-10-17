@@ -257,7 +257,8 @@ $sBreite = 16; $sHoehe = 110; $svgH = 150; $svgW = max(1, count($jahre)) * $sBre
       <details class="sb-mehr">
         <summary>Als Tabelle anzeigen</summary>
         <table class="st-tabelle">
-          <thead><tr><th>Jahr</th><th class="is-numeric">Anzahl</th></tr></thead>
+          <caption class="sr-only">Anzahl der Einträge pro Jahr</caption>
+          <thead><tr><th scope="col">Jahr</th><th scope="col" class="is-numeric">Anzahl</th></tr></thead>
           <tbody>
             <?php foreach ($jahre as $j): ?>
               <tr><td><?= $e($j['Jahr']) ?></td><td class="is-numeric"><?= $fmt($j['Anzahl']) ?></td></tr>
@@ -276,7 +277,8 @@ $sBreite = 16; $sHoehe = 110; $svgH = 150; $svgW = max(1, count($jahre)) * $sBre
     <details class="sb-mehr">
       <summary>Alle anzeigen (<?= count($kategorien) ?>)</summary>
       <table class="st-tabelle">
-        <thead><tr><th>Kategorie</th><th class="is-numeric">Anzahl</th></tr></thead>
+        <caption class="sr-only">Anzahl der Einträge je Kategorie</caption>
+        <thead><tr><th scope="col">Kategorie</th><th scope="col" class="is-numeric">Anzahl</th></tr></thead>
         <tbody>
           <?php foreach ($kategorien as $k): ?>
             <tr><td><?= $e($k['Name'] ?? '(ohne Kategorie)') ?></td><td class="is-numeric"><?= $fmt($k['Anzahl']) ?></td></tr>
@@ -295,7 +297,8 @@ $sBreite = 16; $sHoehe = 110; $svgH = 150; $svgW = max(1, count($jahre)) * $sBre
         <details class="sb-mehr">
           <summary>Nach Monat (<?= count($loginByMonth) ?>)</summary>
           <table class="st-tabelle">
-            <thead><tr><th>Monat</th><th class="is-numeric">Anzahl</th></tr></thead>
+            <caption class="sr-only">Gast-Logins je Monat</caption>
+            <thead><tr><th scope="col">Monat</th><th scope="col" class="is-numeric">Anzahl</th></tr></thead>
             <tbody>
               <?php foreach ($loginByMonth as $lm): ?>
                 <tr><td><?= $e($lm['Monat']) ?></td><td class="is-numeric"><?= $fmt($lm['Anzahl']) ?></td></tr>

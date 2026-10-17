@@ -88,8 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
   $stmt->bind_param('ii', $val, $id);
   $stmt->execute();
 
+  // Rückmeldung (role="status" in der Liste): „Foto: ja – Bezeichnung“
+  $labels = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'In Sammlung übernommen', 'Foto_Website' => 'Foto auf Website', 'Kickstarter' => 'Kickstarter'];
+  $bezRow = $conn->prepare("SELECT `Bezeichnung` FROM `Einkauf` WHERE `ID` = ?");
+  $bezRow->bind_param('i', $id);
+  $bezRow->execute();
+  $bezTxt = (string)(stmt_fetch_all_assoc($bezRow)[0]['Bezeichnung'] ?? '');
+  flash_set(($labels[$field] ?? $field) . ': ' . ($val ? 'ja' : 'nein') . ($bezTxt !== '' ? ' – ' . $bezTxt : ''), 'success');
+
   $back = safe_back_url($_POST['back'] ?? null, 'einkauf.php');
-  header('Location: '.$back);
+  header('Location: ' . $back . '#e' . $id);   // zurück zur Zeile
   exit;
 }
 
@@ -340,7 +348,7 @@ $toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_
 <html lang="de">
 <head>
   <?php $page_title = 'Einkäufe'; include __DIR__ . '/inc_head_admin.php'; ?>
-  <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
+  <script src="/sammlung/assets/typeahead.js?v=2" defer></script>
   <script src="/sammlung/assets/einkauf.js?v=1" defer></script>
   <link rel="stylesheet" href="/sammlung/assets/einkauf.css?v=2">
 </head>
@@ -445,17 +453,18 @@ $toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_
     <input type="hidden" name="action" value="toggle">
     <input type="hidden" name="back" value="<?= $e($self) ?>">
     <table class="ek-tabelle">
+      <caption class="sr-only">Einkäufe (<?= $total ?>), Seite <?= $page ?> von <?= $pages ?></caption>
       <thead>
         <tr>
-          <th class="c-datum"><?= sort_link('Bestellt','Bestelldatum',$sort,$dir) ?></th>
-          <th class="c-titel"><?= sort_link('Bezeichnung','Bezeichnung',$sort,$dir) ?></th>
-          <th class="c-kat"><?= sort_link('Kategorie','Kategorie',$sort,$dir) ?></th>
-          <th class="c-vk"><?= sort_link('Verkäufer','Verkaeufer',$sort,$dir) ?></th>
-          <th class="c-preis"><?= sort_link('Preis','Preis',$sort,$dir) ?></th>
-          <th class="c-liefer"><?= sort_link('Lieferung','Lieferdatum',$sort,$dir) ?></th>
-          <th class="c-menge"><?= sort_link('Menge','Menge',$sort,$dir) ?></th>
-          <th class="c-status">Stand</th>
-          <th class="c-akt"><span class="sr-only">Aktionen</span></th>
+          <th scope="col" class="c-datum"><?= sort_link('Bestellt','Bestelldatum',$sort,$dir) ?></th>
+          <th scope="col" class="c-titel"><?= sort_link('Bezeichnung','Bezeichnung',$sort,$dir) ?></th>
+          <th scope="col" class="c-kat"><?= sort_link('Kategorie','Kategorie',$sort,$dir) ?></th>
+          <th scope="col" class="c-vk"><?= sort_link('Verkäufer','Verkaeufer',$sort,$dir) ?></th>
+          <th scope="col" class="c-preis"><?= sort_link('Preis','Preis',$sort,$dir) ?></th>
+          <th scope="col" class="c-liefer"><?= sort_link('Lieferung','Lieferdatum',$sort,$dir) ?></th>
+          <th scope="col" class="c-menge"><?= sort_link('Menge','Menge',$sort,$dir) ?></th>
+          <th scope="col" class="c-status">Stand</th>
+          <th scope="col" class="c-akt"><span class="sr-only">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>
@@ -493,7 +502,7 @@ $toggleNamen = ['Foto_erstellt' => 'Foto', 'DB_Eintrag_erstellt' => 'DB', 'Foto_
           }
           $transferHref = 'edit.php?id=0&' . http_build_query($prefill);
       ?>
-        <tr class="zeile-klick" data-href="<?= $e($editHref) ?>">
+        <tr class="zeile-klick" id="e<?= $id ?>" data-href="<?= $e($editHref) ?>">
           <td class="c-datum" data-l="Bestellt"><?= $e($bestellt) ?></td>
           <td class="c-titel">
             <a class="zeilenlink" href="<?= $e($editHref) ?>"><?= $e($bez) ?></a>

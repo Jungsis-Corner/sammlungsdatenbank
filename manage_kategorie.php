@@ -257,13 +257,14 @@ $loeschAction = $self . ($search !== '' ? '?q=' . urlencode($search) : '');
   <p class="v-unter" aria-live="polite"><?= count($rows) ?> <?= count($rows) === 1 ? 'Kategorie' : 'Kategorien' ?><?= $search !== '' ? ' zu „' . $e($search) . '“' : '' ?></p>
   <div class="table-wrap">
     <table class="vtabelle">
+      <caption class="sr-only">Kategorien</caption>
       <thead>
         <tr>
-          <th class="col-id">ID</th>
-          <th>Kategorie</th>
-          <th>Ebene</th>
-          <th class="is-numeric">Einträge</th>
-          <th><span class="sr-only">Aktionen</span></th>
+          <th scope="col" class="col-id">ID</th>
+          <th scope="col">Kategorie</th>
+          <th scope="col">Ebene</th>
+          <th scope="col" class="is-numeric">Einträge</th>
+          <th scope="col"><span class="sr-only">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>

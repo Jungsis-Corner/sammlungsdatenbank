@@ -56,6 +56,12 @@
     list.setAttribute('role', 'listbox');
     list.hidden = true;
     wrap.appendChild(list);
+    // Ansage für Screenreader: „N Treffer“ / „Keine Treffer“ (die Liste selbst ändert sich nur optisch)
+    var ansage = document.createElement('span');
+    ansage.className = 'sr-only';
+    ansage.setAttribute('role', 'status');
+    ansage.setAttribute('aria-live', 'polite');
+    wrap.appendChild(ansage);
 
     input.setAttribute('role', 'combobox');
     input.setAttribute('aria-autocomplete', 'list');
@@ -72,6 +78,7 @@
     var gewaehlt = input.value;   // Text der letzten Auswahl (oder des Startwerts)
 
     function schliessen() {
+      ansage.textContent = '';
       list.hidden = true;
       input.setAttribute('aria-expanded', 'false');
       input.removeAttribute('aria-activedescendant');
@@ -110,6 +117,7 @@
       });
       list.hidden = false;
       input.setAttribute('aria-expanded', 'true');
+      ansage.textContent = items.length ? items.length + ' Treffer, mit Pfeiltasten wählen' : 'Keine Treffer';
       active = -1;
     }
 

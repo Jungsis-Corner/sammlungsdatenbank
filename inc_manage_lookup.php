@@ -210,7 +210,7 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 <html lang="de">
 <head>
   <?php $page_title = $cfg['title']; include __DIR__ . '/inc_head_admin.php'; ?>
-  <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
+  <script src="/sammlung/assets/typeahead.js?v=2" defer></script>
 </head>
 <body class="admin-page">
 <?= admin_header($kruemel) ?>
@@ -274,12 +274,13 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
   <p class="v-unter" aria-live="polite"><?= $e($total) ?> <?= $total === 1 ? 'Eintrag' : 'Einträge' ?><?= $search !== '' ? ' zu „' . $e($search) . '“' : '' ?></p>
   <div class="table-wrap">
     <table class="vtabelle">
+      <caption class="sr-only"><?= $e($cfg['title']) ?>, Seite <?= $page ?> von <?= $pages ?></caption>
       <thead>
         <tr>
-          <th class="col-id">ID</th>
-          <th><?= $e($cfg['th']) ?></th>
-          <th class="is-numeric">Einträge</th>
-          <th><span class="sr-only">Aktionen</span></th>
+          <th scope="col" class="col-id">ID</th>
+          <th scope="col"><?= $e($cfg['th']) ?></th>
+          <th scope="col" class="is-numeric">Einträge</th>
+          <th scope="col"><span class="sr-only">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>
