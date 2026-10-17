@@ -5,6 +5,8 @@ require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_filter.php';
+require_once __DIR__ . '/inc_icons.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 $is_guest = is_guest();
 
 require_once __DIR__ . '/config.php';
@@ -82,6 +84,86 @@ $where_sql = $flt['sql'];
 
 // Gast-Export ist auf GUEST_EXPORT_MAX_ROWS Zeilen begrenzt (int aus Konfiguration, kein Benutzerwert)
 $limit_sql = $is_guest ? ' LIMIT ' . guest_export_max_rows() : '';
+
+// ---------- Exportseite (ohne download=1): zeigt Umfang und aktive Filter, der Download steht hinter dem Knopf ----------
+if (($_GET['download'] ?? '') !== '1') {
+    $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    $cnt = (int)db_select($conn, "SELECT COUNT(*) FROM Sammlung LEFT JOIN Kategorie ON Sammlung.Kategorie = Kategorie.ID LEFT JOIN Material ON Sammlung.Material = Material.ID $where_sql", $flt['types'], $flt['values'])->fetch_row()[0];
+    $gastGrenze = $is_guest ? guest_export_max_rows() : 0;
+    $zeilen = ($gastGrenze > 0) ? min($cnt, $gastGrenze) : $cnt;
+    $name = function (string $tabelle, string $spalte, int $id) use ($conn): string {
+        [$t, $c] = lookup_ident($tabelle, $spalte);
+        $r = db_select($conn, "SELECT $c FROM $t WHERE ID = ?", 'i', [$id])->fetch_row();
+        return $r ? (string)$r[0] : '#' . $id;
+    };
+    $aktiv = [];   // [Bezeichnung, Wert]
+    $fl = (string)$filter;
+    if ($fl === 'spiel')               $aktiv[] = ['Typ', 'Spiele'];
+    elseif ($fl === 'spiel_original')  $aktiv[] = ['Typ', 'Spiele (Original)'];
+    elseif ($fl === 'spiel_homebrew')  $aktiv[] = ['Typ', 'Spiele (Homebrew)'];
+    elseif (is_numeric($fl))           $aktiv[] = ['Kategorie', $name('Kategorie', 'Kategorie', (int)$fl)];
+    if ($kat > 0)                      $aktiv[] = ['Kategorie', $name('Kategorie', 'Kategorie', $kat) . ($inkl ? ' (mit Unterkategorien)' : '')];
+    if ($oh === 'Original' || $oh === 'Homebrew') $aktiv[] = ['Original/Homebrew', $oh];
+    if ($material_filter !== '')       $aktiv[] = ['Material', $material_filter];
+    if ($search !== '')                $aktiv[] = ['Suche', $search];
+    if ($herstellerId > 0)             $aktiv[] = ['Hersteller', $name('Hersteller', 'Hersteller', $herstellerId)];
+    if ($publisherId > 0)              $aktiv[] = ['Publisher', $name('Publisher', 'Publisher', $publisherId)];
+    if (!$is_guest) {
+        if ($verkaeuferId > 0)         $aktiv[] = ['Verkäufer', $name('Verkäufer', 'Verkäufer', $verkaeuferId)];
+        if ($standortId > 0)           $aktiv[] = ['Standort', $name('Standort', 'Standort', $standortId)];
+        if ($boxId !== '' && ctype_digit($boxId)) $aktiv[] = ['Box', $name('Box', 'Box', (int)$boxId)];
+        if ($einkaufsdatumFilter !== '') $aktiv[] = ['Einkaufsdatum', date('d.m.Y', strtotime($einkaufsdatumFilter))];
+    }
+    if (($_GET['verkauf'] ?? '') === '1') $aktiv[] = ['Zum Verkauf', 'ja'];
+
+    $backParams = $_GET; unset($backParams['download']);
+    $dlParams = $_GET; $dlParams['download'] = '1';
+    $isMuseum = !empty($_SESSION['museum_mode']);
+    $navOpt = ['is_guest' => $is_guest, 'is_admin' => is_admin(), 'museum' => $isMuseum, 'export' => !$isMuseum, 'params' => $backParams];
+    $spalten = ['Bezeichnung', 'Kategorie', 'Jahr', 'Original/Homebrew', 'Material', 'Zustand', 'Verpackung'];
+    if (!$is_guest) { array_push($spalten, 'Standort', 'Box', 'Einkaufsdatum', 'Getestet am', 'Getestet Status', 'Wert'); }
+    ?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <?php $page_title = 'Export'; include __DIR__ . '/inc_head_admin.php'; ?>
+</head>
+<body class="admin-page">
+<?= admin_header([['Export', '']], $navOpt, false) ?>
+
+<main id="inhalt">
+  <h1>Export</h1>
+
+  <section class="v-karte" aria-labelledby="h_umfang">
+    <h2 id="h_umfang">Das wird exportiert</h2>
+    <p><strong><?= number_format($zeilen, 0, ',', '.') ?></strong> <?= $zeilen === 1 ? 'Eintrag' : 'Einträge' ?>
+      <?php if ($gastGrenze > 0 && $cnt > $gastGrenze): ?> (von <?= number_format($cnt, 0, ',', '.') ?>; für Gäste auf <?= number_format($gastGrenze, 0, ',', '.') ?> begrenzt)<?php endif; ?></p>
+
+    <h3 class="ex-h3">Filter</h3>
+    <?php if ($aktiv): ?>
+      <ul class="ex-filter">
+        <?php foreach ($aktiv as [$bez, $wert]): ?><li><span class="ex-bez"><?= $e($bez) ?></span> <?= $e($wert) ?></li><?php endforeach; ?>
+      </ul>
+      <p class="v-unter">Nur die gefilterten Einträge werden exportiert, in der Sortierung der Liste.</p>
+    <?php else: ?>
+      <p>Kein Filter aktiv: Es wird die <strong>gesamte Sammlung</strong> exportiert.</p>
+    <?php endif; ?>
+
+    <h3 class="ex-h3">Format</h3>
+    <p>CSV (Semikolon, UTF-8) – öffnet direkt in Excel.</p>
+    <p class="v-unter">Spalten: <?= $e(implode(', ', $spalten)) ?>.</p>
+
+    <div class="v-knoepfe ex-knoepfe">
+      <a class="btn save" href="export.php?<?= $e(http_build_query($dlParams)) ?>"><?= icon('export') ?> Herunterladen</a>
+      <a class="btn" href="index.php?<?= $e(http_build_query($backParams)) ?>"><?= icon('back') ?> Zurück zur Liste</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
+<?php
+    exit;
+}
 
 // ---------- Daten (wie index.php; gleiche Joins für „sprechende“ Namen) ----------
 $sql = "

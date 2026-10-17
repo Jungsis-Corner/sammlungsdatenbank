@@ -355,7 +355,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 
 <?php
@@ -370,7 +370,8 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 </title>
 
 <link rel="manifest" href="/sammlung/manifest.php">
-<meta name="theme-color" content="<?= $isMuseum ? '#000000' : '#111111'; ?>">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
 
 <link rel="apple-touch-icon" href="/sammlung/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -380,6 +381,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
   <link rel="stylesheet" href="/sammlung/assets/liste.css?v=10">
   <script src="/sammlung/assets/liste.js?v=6" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/print.css?v=1" media="print">
 </head>
 <body class="index-page <?= !empty($_SESSION['museum_mode']) ? 'museum' : '' ?>">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>

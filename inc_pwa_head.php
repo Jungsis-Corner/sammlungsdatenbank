@@ -1,6 +1,7 @@
 <!-- PWA -->
 <link rel="manifest" href="/sammlung/manifest.php">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">   <!-- theme-toggle.js ersetzt beides durch die gewählte App-Einstellung -->
 
 <!-- iOS PWA -->
 <link rel="apple-touch-icon" href="/sammlung/icons/apple-touch-icon.png">

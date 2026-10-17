@@ -121,7 +121,7 @@ $to = safe_target($_GET['to'] ?? null);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Anmeldung – Sammlung</title>
-  <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+  <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
   <script src="/sammlung/assets/login.js?v=1" defer></script>
   <link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
   <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">

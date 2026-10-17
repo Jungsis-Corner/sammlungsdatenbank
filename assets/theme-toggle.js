@@ -17,8 +17,21 @@
     btn.setAttribute('aria-label', theme === 'dark' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln');
   }
 
+  // Farbe der Browser-/Statusleiste passend zum gewählten Design (Tokens --bg aus base.css)
+  var BAR_FARBE = { light: '#ffffff', dark: '#121418' };
+  function applyThemeColor(theme){
+    var head = document.head;
+    if (!head) return;
+    // Varianten nach Gerätemodus (media) entfernen: die App-Einstellung gilt
+    Array.prototype.forEach.call(head.querySelectorAll('meta[name="theme-color"][media]'), function(m){ m.remove(); });
+    var meta = head.querySelector('meta[name="theme-color"]');
+    if (!meta) { meta = document.createElement('meta'); meta.setAttribute('name', 'theme-color'); head.appendChild(meta); }
+    meta.setAttribute('content', BAR_FARBE[theme === 'dark' ? 'dark' : 'light']);
+  }
+
   function setTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
+    applyThemeColor(theme);
     document.cookie = 'theme=' + theme + ';path=/;max-age=' + (60*60*24*365) + ';SameSite=Lax';
     var btn = document.getElementById('themeToggle');
     if (btn) paintToggle(btn, theme);
@@ -54,6 +67,7 @@
     }
     var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
     paintToggle(btn, current);
+    applyThemeColor(current);
     btn.addEventListener('click', function(){
       var now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
       setTheme(now === 'dark' ? 'light' : 'dark');

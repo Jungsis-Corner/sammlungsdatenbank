@@ -30,7 +30,7 @@ function error_page_html(int $status, string $title, string $text, string $linkH
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>' . $e($title) . ' – ' . $e($appTitle) . '</title>
-<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <link rel="stylesheet" href="/sammlung/assets/seite.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>

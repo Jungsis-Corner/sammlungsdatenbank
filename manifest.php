@@ -10,7 +10,7 @@ echo json_encode([
   "scope" => "/sammlung/",
   "display" => "standalone",
   "background_color" => "#ffffff",
-  "theme_color" => "#111111",
+  "theme_color" => "#ffffff",
   "description" => "Sammlungsverwaltung und Anzeige deiner Retro-Hardware und Spiele.",
   "icons" => [
     [
@@ -22,6 +22,12 @@ echo json_encode([
       "src" => "/sammlung/icons/icon-512.png",
       "sizes" => "512x512",
       "type" => "image/png"
+    ],
+    [
+      "src" => "/sammlung/icons/icon-maskable-512.png",
+      "sizes" => "512x512",
+      "type" => "image/png",
+      "purpose" => "maskable"
     ]
   ]
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

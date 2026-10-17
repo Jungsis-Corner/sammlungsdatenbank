@@ -1,0 +1,33 @@
+/* print.css – Drucken (Phase 5e-5, U23). Nur mit media="print" eingebunden (Liste, Detailseite, Statistik). */
+@media print{
+  html, body, html[data-theme="dark"], html[data-theme="dark"] body{ background:#fff !important; color:#000 !important; }
+  html[data-theme="dark"] :is(table, th, td, .v-karte, .st-kacheln li){ background:#fff !important; color:#000 !important; }
+  body{ padding:0 !important; margin:0 !important; font-size:11pt; }
+  /* Navigation, Filter, Bedienelemente aus */
+  header.appbar, nav.appnav, nav.bottomnav, nav.aktionsleiste, nav.krumen, nav.pagination, .skip-link,
+  .filter-panel, .liste-kopf, .liste-werkzeug, .detail-werkzeug, .statleiste, .back-to-top, .theme-toggle,
+  .ico-sprite, dialog, button, .btn, .row-action, .c-akt, .ek-toggles, .ek-sortwahl, details.filterbox{ display:none !important; }
+  main{ max-width:none !important; }
+  a{ color:#000 !important; text-decoration:none !important; }
+  * { box-shadow:none !important; }
+
+  /* Liste: schlichte Tabelle über die ganze Breite */
+  table.list{ width:100%; border-collapse:collapse; display:table !important; }
+  table.list thead{ display:table-header-group !important; position:static !important; clip:auto !important; width:auto !important; height:auto !important; }
+  table.list tbody{ display:table-row-group !important; }
+  table.list tr{ display:table-row !important; break-inside:avoid; }
+  table.list th, table.list td{ display:table-cell !important; border:1px solid #888 !important; padding:3pt 5pt !important; font-size:9pt; }
+  table.list td.c-bild{ display:none !important; }
+
+  /* Detailseite: einspaltig, Bild begrenzt */
+  .detail{ display:block !important; }
+  .detail-bild{ position:static !important; max-width:8cm; margin:0 0 8pt; }
+  .detail-bild img{ max-height:8cm !important; width:auto !important; max-width:100% !important; }
+  .detail-gruppen, .dgruppe{ break-inside:avoid; }
+
+  /* Statistik */
+  .st-kacheln li, .v-karte{ border:1px solid #888 !important; break-inside:avoid; }
+  .st-saeulen{ overflow:visible !important; }
+  svg.sb-balken rect, .st-saeule{ fill:#444 !important; }
+  svg.sb-balken{ background:#ddd !important; }
+}

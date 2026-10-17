@@ -115,3 +115,10 @@ dialog.v-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
 .vtabelle a.zeilenlink{ color:var(--text); text-decoration:none; font-weight:600; }
 .vtabelle a.zeilenlink:hover{ text-decoration:underline; }
 @media (hover:hover){ .vtabelle tr.zeile-klick:hover{ background:var(--surface-2); } }
+
+/* ---------- Exportseite ---------- */
+.ex-h3{ margin:var(--s4) 0 var(--s1); font-size:var(--fs-base); }
+.ex-filter{ margin:0 0 var(--s2); padding-left:var(--s5); }
+.ex-filter li{ margin:var(--s1) 0; }
+.ex-bez{ color:var(--muted); }
+.ex-knoepfe{ margin-top:var(--s4); }

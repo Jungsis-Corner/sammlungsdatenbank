@@ -288,10 +288,11 @@ $hatBild = (bool)image_parse($bild);
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title><?= $e($pageTitle) ?></title>
-<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/detail.css?v=1">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/print.css?v=1" media="print">
 <script src="/sammlung/assets/detail.js?v=1" defer></script>
 </head>
 <body class="view-page">

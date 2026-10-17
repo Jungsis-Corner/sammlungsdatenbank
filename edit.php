@@ -974,7 +974,7 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title><?= $id === 0 ? 'Neuer Eintrag' : 'Bearbeiten: „' . htmlspecialchars(trim((string)($data['Bezeichnung'] ?? '')), ENT_QUOTES, 'UTF-8') . '“' ?> – Sammlung</title>
-<script src="/sammlung/assets/theme-toggle.js?v=5"></script>
+<script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 <script src="/sammlung/assets/edit.js?v=1" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
