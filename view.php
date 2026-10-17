@@ -290,10 +290,10 @@ $hatBild = (bool)image_parse($bild);
 <title><?= $e($pageTitle) ?></title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
-<link rel="stylesheet" href="/sammlung/assets/detail.css?v=1">
+<link rel="stylesheet" href="/sammlung/assets/detail.css?v=2">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">
-<script src="/sammlung/assets/detail.js?v=1" defer></script>
+<script src="/sammlung/assets/detail.js?v=2" defer></script>
 </head>
 <body class="view-page">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
@@ -313,6 +313,7 @@ $hatBild = (bool)image_parse($bild);
     <?= $navBtn('btn btn-nav', (bool)$prev_id, $prevHref, $prev_id ? 'Vorheriger Datensatz' : 'Kein vorheriger Datensatz', icon('back') . ' Vorheriger') ?>
     <?= $navBtn('btn btn-nav', (bool)$next_id, $nextHref, $next_id ? 'Nächster Datensatz' : 'Kein nächster Datensatz', 'Nächster ' . icon('forward')) ?>
     <?= $navBtn('btn btn-nav', $hatLetzte, $lastHref, $hatLetzte ? 'Letzter Datensatz' : 'Kein letzter Datensatz', 'Letzte ' . icon('forward')) ?>
+    <button type="button" class="btn" data-drucken><?= icon('print') ?> Drucken</button>
     <?php if (!$is_guest): ?>
       <span class="spacer"></span>
       <a class="btn btn-edit" href="<?= $e($editHref) ?>"><?= icon('edit') ?> Bearbeiten</a>
@@ -440,6 +441,8 @@ tr_meta('Link zu YouTube', $ytHtml, true);
           tr_meta_close();
         ?>
       </div>
+
+      <div class="detail-drucken-unten"><button type="button" class="btn" data-drucken><?= icon('print') ?> Seite drucken</button></div>
 
       <?php if ($verwandt): ?>
       <section class="dgruppe verwandt">

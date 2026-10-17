@@ -69,10 +69,13 @@ dialog.loesch-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
 .loesch-knoepfe .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; }
 
 /* ---------- iPhone: Aktionsleiste unten, Werkzeugleiste aus ---------- */
+.detail-drucken-unten{ display:none; }
 .aktionsleiste{ display:none; }
 @media (max-width:599px){
   body{ padding:12px 12px calc(88px + env(safe-area-inset-bottom)); }
   .detail-werkzeug{ display:none; }
+  .detail-drucken-unten{ display:block; margin-top:var(--s4); }
+  .detail-drucken-unten .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; }
   .aktionsleiste{
     display:flex; position:fixed; left:0; right:0; bottom:0; z-index:1800; background:var(--surface);
     border-top:1px solid var(--border); padding-bottom:env(safe-area-inset-bottom);

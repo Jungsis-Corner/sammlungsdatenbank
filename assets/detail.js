@@ -1,5 +1,6 @@
 /*
  * detail.js – Detailseite (view.php), Phase 5c
+ *  - [data-drucken]: Druckdialog des Browsers (window.print), Darstellung in print.css
  *  - [data-lightbox]: Bild groß in <dialog id="lb"> (Schließen-Knopf, Esc und Tipp auf den Rand schließen; der Dialog fängt den Fokus selbst)
  *  - [data-loeschen] / [data-loeschen-zu]: Bestätigungsdialog zum Löschen (das Formular sendet per POST mit CSRF an delete.php)
  *  - Wischen nach links/rechts auf Touch-Geräten: nächster/vorheriger Eintrag (Ziele stehen in data-next/data-prev am <main>)
@@ -15,6 +16,11 @@
     if (!dlg) return;
     if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
   }
+
+  /* ---------- Drucken ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-drucken]'), function (b) {
+    b.addEventListener('click', function () { window.print(); });
+  });
 
   /* ---------- Bild groß ---------- */
   var lb = document.getElementById('lb');

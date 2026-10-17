@@ -28,6 +28,7 @@ const ICON_PATHS = [
     'layers'   => '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
     'file'     => '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
     'image'    => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 17-5-5-8 8"/>',
+    'print'    => '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
     'copy'     => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
     'save'     => '<path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h8M8 21v-7h8v7"/>',
     'close'    => '<path d="M6 6l12 12M18 6 6 18"/>',

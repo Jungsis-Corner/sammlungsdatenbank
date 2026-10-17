@@ -4,6 +4,7 @@
  *  - button[data-loeschen]: Löschen-Dialog (#loeschDialog) füllen und öffnen. data-id, data-name; data-sperre = Text, wenn Löschen gesperrt ist
  *    (Knopf „Löschen“ dann ausgeblendet); data-hinweis = Zusatztext, wenn gelöscht werden darf.
  *  - button[data-merge-pruefen]: Zusammenführen bestätigen (#mergeDialog); das Formular #mergeForm wird erst nach dem Dialog gesendet.
+ *  - [data-drucken]: Druckdialog des Browsers
  *  - tr.zeile-klick[data-href]: Tipp/Klick auf die Zeile öffnet den Eintrag zum Bearbeiten (der Name bleibt der echte Link)
  *  - [data-dialog-zu]: Dialog schließen; Tipp auf den Rand schließt ebenfalls.
  */
@@ -18,6 +19,11 @@
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-dialog-zu]'), function (b) {
     b.addEventListener('click', function () { var d = b.closest('dialog'); if (d) zu(d); });
+  });
+
+  /* ---------- Drucken (Statistik) ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-drucken]'), function (b) {
+    b.addEventListener('click', function () { window.print(); });
   });
 
   /* ---------- Zeile antippen = Bearbeiten ---------- */
