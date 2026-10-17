@@ -2,100 +2,57 @@
 require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
+require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 require_once __DIR__ . '/config.php';
+
+// [Überschrift => [[Titel, Zeile darunter, Ziel, Icon], …]]
+$gruppen = [
+    'Stammdaten' => [
+        ['Hersteller',  'Firmen, die Geräte und Spiele bauen', 'manage_hersteller.php', 'tag'],
+        ['Publisher',   'Firmen, die Spiele veröffentlichen',  'manage_publisher.php',  'export'],
+        ['Verkäufer',   'Händler und Privatverkäufer',         'manage_verkaeufer.php', 'cart'],
+        ['Kategorien',  'Marke, Plattform, Spiele, Anwendungen', 'manage_kategorie.php', 'layers'],
+    ],
+    'Zustand und Aufbewahrung' => [
+        ['Material',    'Kunststoff, Metall, Holz …',           'manage_material.php',     'box'],
+        ['Standort',    'Wo ein Stück liegt',                   'manage_standort.php',     'pin'],
+        ['Boxen',       'Box 1, Box 2, Regal …',                'manage_box.php',          'box'],
+        ['Verpackung',  'Original, Nachdruck, nicht vorhanden', 'manage_verpackung.php',   'box'],
+        ['Datenträger', 'Diskette, Kassette, Modul …',          'manage_datentraeger.php', 'save'],
+        ['Zustände',    'Erhaltungszustand',                    'manage_zustand.php',      'check'],
+    ],
+    'Werkzeuge' => [
+        ['Einkäufe',    'Bestellungen und Lieferungen',         'einkauf.php',       'cart'],
+        ['Bildprüfung', 'Fehlende und zu große Bilder',         'bildpruefung.php',  'image'],
+        ['Protokoll',   'Fehlerlog des Servers',                'logview.php',       'file'],
+    ],
+];
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Einstellungen – Sammlung</title>
-    <script src="/sammlung/assets/theme-toggle.js?v=5"></script>
-    <style>
-        body { font-family: Arial; font-size: 10pt; padding: 20px; }
-        h1 { text-align: center; color: #333; margin-bottom: 20px; }
-        .button-center { text-align: center; margin-bottom: 20px; }
-        .button-center a {
-            display: inline-block;
-            background: #007bff;
-            color: #fff;
-            padding: 8px 16px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 10pt;
-        }
-        .button-center a:hover { background: #0056b3; }
-        .nav { margin: 20px 0; text-align: center; }
-        .nav a {
-            display: inline-block;
-            background: #007bff;
-            color: #fff;
-            padding: 8px 16px;
-            margin: 0 10px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 10pt;
-        }
-        .nav a:hover { background: #0056b3; }
-
-        /* =========================================================
-           DARK MODE (echte Farben statt Invertierungs-Trick)
-           ========================================================= */
-        html[data-theme="dark"]{
-          background: #121212 !important;
-        }
-        html[data-theme="dark"] body{
-          background: #121212 !important;
-          color: #e8e8e8 !important;
-        }
-        html[data-theme="dark"] h1{
-          color: #e8e8e8 !important;
-        }
-        .theme-toggle{
-          background: #555 !important;
-          border-color: #333 !important;
-          color: #fff !important;
-        }
-        .theme-toggle-floating{
-          position: fixed;
-          bottom: 16px;
-          right: 16px;
-          z-index: 9999;
-          border-radius: 50%;
-          width: 44px;
-          height: 44px;
-          padding: 0;
-          font-size: 20px;
-          line-height: 42px;
-          text-align: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,.25);
-          border: 1px solid #333;
-          cursor: pointer;
-        }
-    </style>
-<link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
+  <?php $page_title = 'Einstellungen'; include __DIR__ . '/inc_head_admin.php'; ?>
 </head>
-<body>
-<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<body class="admin-page">
+<?= admin_header() ?>
+
 <main id="inhalt">
-    <h1>Einstellungen</h1>
-    <div class="button-center">
-        <a href="index.php"><?= icon('back') ?> Zurück zur Sammlung</a>
-    </div>
-    <div class="nav">
-        <a href="manage_hersteller.php">Hersteller verwalten</a>
-        <a href="manage_publisher.php">Publisher verwalten</a>
-        <a href="manage_verkaeufer.php">Verkäufer verwalten</a>
-        <a href="manage_datentraeger.php">Datenträger verwalten</a>
-        <a href="manage_kategorie.php">Kategorien verwalten</a>
-        <a href="manage_material.php">Material verwalten</a>
-        <a href="manage_standort.php">Standorte verwalten</a>
-        <a href="manage_verpackung.php">Verpackung verwalten</a>
-        <a href="manage_zustand.php">Zustände verwalten</a>
-        <a href="manage_box.php">Boxen verwalten</a>
-        <a href="einkauf.php">Einkäufe verwalten</a>
-        <a href="bildpruefung.php">Bildprüfung</a>
-    </div>
+  <h1>Einstellungen</h1>
+  <?= admin_flash() ?>
+
+  <?php foreach ($gruppen as $titel => $kacheln): ?>
+    <section class="kachel-gruppe" aria-labelledby="g_<?= $e(md5($titel)) ?>">
+      <h2 id="g_<?= $e(md5($titel)) ?>"><?= $e($titel) ?></h2>
+      <ul class="kacheln">
+        <?php foreach ($kacheln as [$t, $sub, $href, $ic]): ?>
+          <li><a href="<?= $e($href) ?>"><?= icon($ic) ?><span class="k-text"><span class="k-titel"><?= $e($t) ?></span><span class="k-sub"><?= $e($sub) ?></span></span></a></li>
+        <?php endforeach; ?>
+      </ul>
+    </section>
+  <?php endforeach; ?>
 </main>
 </body>
 </html>

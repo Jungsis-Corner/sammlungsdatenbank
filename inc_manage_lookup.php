@@ -26,6 +26,7 @@ require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 require_once __DIR__ . '/config.php';
@@ -185,7 +186,10 @@ $orderBy = $cfg['order'] ?? $col;   // feste Angabe aus $cfg, nie aus Benutzerei
 // Verwendungsanzahl je Eintrag (Tabellen/Spalten aus der festen Verweisliste)
 $useSql = '0';
 foreach ($refs as [$rt, $rc]) { $useSql .= " + (SELECT COUNT(*) FROM $rt WHERE $rt.$rc = $tbl.`ID`)"; }
-$stmt = $conn->prepare("SELECT `ID`, $col, ($useSql) AS `Verwendet` FROM $tbl $where ORDER BY $orderBy LIMIT ? OFFSET ?");
+// Nur Verweise aus Sammlung sperren das Löschen (Einkauf: ON DELETE SET NULL)
+$blockSql = '0';
+foreach ($refs as [$rt, $rc]) { if ($rt === '`Sammlung`') $blockSql .= " + (SELECT COUNT(*) FROM $rt WHERE $rt.$rc = $tbl.`ID`)"; }
+$stmt = $conn->prepare("SELECT `ID`, $col, ($useSql) AS `Verwendet`, ($blockSql) AS `Gesperrt` FROM $tbl $where ORDER BY $orderBy LIMIT ? OFFSET ?");
 if ($search !== '') {
     $stmt->bind_param('sii', $like, $limit, $offset);
 } else {
@@ -194,33 +198,13 @@ if ($search !== '') {
 $stmt->execute();
 $list = $stmt->get_result();
 
-/** Pagination wie index.php (Fenster = 2) */
-function render_admin_pagination(int $page, int $pages, array $params): void {
-  $window = 2;
-  echo '<div class="pagination">';
-  if ($page > 1) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>1])).'">« Erste</a> ';
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$page-1])).'">‹ Zurück</a> ';
-  }
-  if ($page - $window > 2) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>1])).'">1</a> … ';
-  }
-  for ($i = max(1, $page-$window); $i <= min($pages, $page+$window); $i++) {
-      if ($i === $page) {
-          echo "<strong>$i</strong> ";
-      } else {
-          echo '<a href="?'.http_build_query(array_merge($params,['page'=>$i])).'">'.$i.'</a> ';
-      }
-  }
-  if ($page + $window < $pages-1) {
-      echo '… <a href="?'.http_build_query(array_merge($params,['page'=>$pages])).'">'.$pages.'</a> ';
-  }
-  if ($page < $pages) {
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$page+1])).'">Weiter ›</a> ';
-      echo '<a href="?'.http_build_query(array_merge($params,['page'=>$pages])).'">Letzte »</a>';
-  }
-  echo '</div>';
-}
+$einTr = fn(int $n): string => $n . ' ' . ($n === 1 ? 'Eintrag' : 'Einträgen');   // Dativ: „in 3 Einträgen“
+$flashHtml = admin_flash();
+$kruemel = [[$cfg['title'], '']];
+$listParams = [];
+if ($search !== '') $listParams['q'] = $search;
+$loeschAction = $self . '?q=' . urlencode($search) . $pageParam;
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -229,98 +213,103 @@ function render_admin_pagination(int $page, int $pages, array $params): void {
   <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
 </head>
 <body class="admin-page">
+<?= admin_header($kruemel) ?>
 
-  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-  <main class="page" id="inhalt"><!-- zentriert & breite begrenzt -->
+<main id="inhalt">
+  <h1><?= $e($cfg['title']) ?></h1>
 
-    <header class="admin-header">
-      <h1><?= htmlspecialchars($cfg['title']) ?></h1>
-      <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
+  <?= $flashHtml ?>
+
+  <!-- Suche -->
+  <form method="get" class="v-suche" role="search" action="<?= $e($self) ?>">
+    <label class="sr-only" for="f_suche">Suchen</label>
+    <input type="search" id="f_suche" name="q" placeholder="<?= $e($cfg['search_ph']) ?>" value="<?= $e($search) ?>" autocomplete="off">
+    <button type="submit" class="btn"><?= icon('search') ?> Suchen</button>
+    <?php if ($search !== ''): ?><a class="btn" href="<?= $e($self) ?>"><?= icon('close') ?> Zurücksetzen</a><?php endif; ?>
+  </form>
+
+  <!-- Hinzufügen / Bearbeiten -->
+  <section class="v-karte" aria-labelledby="formTitel">
+    <h2 id="formTitel"><?= $id ? 'Eintrag bearbeiten' : 'Neuer Eintrag' ?></h2>
+    <form method="post" class="v-form zeile">
+      <?= csrf_field() ?>
+      <div class="v-feld">
+        <label for="f_name">Name</label>
+        <input type="text" id="f_name" name="<?= $e($postKey) ?>" placeholder="<?= $e($cfg['name_ph']) ?>" value="<?= $e($name) ?>" required autocomplete="off">
       </div>
-    </header>
+      <div class="v-knoepfe">
+        <button type="submit" class="btn save"><?= icon('save') ?> <?= $id ? 'Speichern' : 'Hinzufügen' ?></button>
+        <?php if ($id): ?><a class="btn" href="<?= $e($self . $backQuery) ?>">Abbrechen</a><?php endif; ?>
+      </div>
+    </form>
+  </section>
 
-    <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
-      <form method="get" class="top-bar-search">
-        <input type="text" name="q" placeholder="<?= htmlspecialchars($cfg['search_ph']) ?>" value="<?= htmlspecialchars($search) ?>">
-        <button type="submit" class="btn is-small" title="Suchen"><?= icon('search','Suchen') ?></button>
-        <?php if ($search !== ''): ?>
-          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'" title="Suche zurücksetzen"><?= icon('close','Zurücksetzen') ?></button>
-        <?php endif; ?>
-      </form>
-    </div>
-
-    <?php $flash = flash_pull(); ?>
-    <?php if ($flash): ?>
-      <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" role="status"><?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?></div>
-    <?php endif; ?>
-
-    <!-- Formular: Hinzufügen/Bearbeiten -->
-    <div class="form-line-center">
-      <form method="post" class="admin-inline-form">
+  <?php if ($canMerge): ?>
+    <!-- Zusammenführen: alle Verweise auf einen anderen Eintrag umstellen, diesen Eintrag löschen -->
+    <section class="v-karte" aria-labelledby="mergeTitel">
+      <h2 id="mergeTitel">In anderen Eintrag überführen</h2>
+      <p class="v-unter">Alle Einträge, die „<?= $e($name) ?>“ verwenden, wechseln zum gewählten Eintrag. Danach wird „<?= $e($name) ?>“ gelöscht.</p>
+      <form method="post" class="v-form zeile" id="mergeForm">
         <?= csrf_field() ?>
-        <input type="text" name="<?= htmlspecialchars($postKey) ?>" placeholder="<?= htmlspecialchars($cfg['name_ph']) ?>" value="<?= htmlspecialchars($name) ?>">
-        <input type="submit" class="btn btn-green is-small" value="<?= $id ? 'Speichern' : 'Hinzufügen' ?>">
+        <div class="v-feld">
+          <label for="f_merge">Ziel</label>
+          <input type="text" id="f_merge" name="merge_into" data-ta="<?= $e(['Verkäufer' => 'verkaeufer'][$cfg['table']] ?? strtolower($cfg['table'])) ?>" placeholder="Tippen zum Suchen…" autocomplete="off" required>
+        </div>
+        <div class="v-knoepfe">
+          <button type="button" class="btn delete" data-merge-pruefen data-name="<?= $e($name) ?>"><?= icon('copy') ?> Überführen und löschen</button>
+        </div>
       </form>
-    </div>
-
-    <?php if ($canMerge): ?>
-      <!-- Zusammenführen: alle Verweise auf einen anderen Eintrag umstellen, diesen Eintrag löschen -->
-      <div class="form-line-center">
-        <form method="post" class="admin-inline-form"
-              onsubmit="return confirm('Alle Verweise von „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ auf den gewählten Eintrag umstellen und „' + <?= htmlspecialchars(json_encode($name, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?> + '“ löschen?')">
-          <?= csrf_field() ?>
-          <input type="text" name="merge_into" data-ta="<?= htmlspecialchars(['Verkäufer' => 'verkaeufer'][$cfg['table']] ?? strtolower($cfg['table'])) ?>" placeholder="In diesen Eintrag überführen…" autocomplete="off" required>
-          <input type="submit" class="btn btn-red is-small" value="Überführen und löschen">
-        </form>
+    </section>
+    <dialog id="mergeDialog" class="v-dialog" aria-labelledby="mergeDlgTitel">
+      <h2 id="mergeDlgTitel">Zusammenführen?</h2>
+      <p id="mergeText"></p>
+      <div class="v-dialog-knoepfe">
+        <button type="button" class="btn" data-dialog-zu>Abbrechen</button>
+        <button type="submit" class="btn delete" form="mergeForm"><?= icon('check') ?> Überführen und löschen</button>
       </div>
-    <?php endif; ?>
+    </dialog>
+  <?php endif; ?>
 
-    <!-- Liste -->
-    <div class="table-wrap">
-      <table class="adm-table is-striped is-hover is-compact is-sticky">
-        <thead>
+  <!-- Liste -->
+  <p class="v-unter" aria-live="polite"><?= $e($total) ?> <?= $total === 1 ? 'Eintrag' : 'Einträge' ?><?= $search !== '' ? ' zu „' . $e($search) . '“' : '' ?></p>
+  <div class="table-wrap">
+    <table class="vtabelle">
+      <thead>
+        <tr>
+          <th class="col-id">ID</th>
+          <th><?= $e($cfg['th']) ?></th>
+          <th class="is-numeric">Einträge</th>
+          <th><span class="sr-only">Aktionen</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php while ($row = $list->fetch_assoc()):
+            $rid = (int)$row['ID']; $rname = (string)($row[$cfg['column']] ?? '');
+            $verw = (int)$row['Verwendet']; $sperr = (int)$row['Gesperrt'];
+            $sperreText = $sperr > 0 ? 'Der Eintrag wird noch in ' . $einTr($sperr) . ' verwendet. Stelle diese Einträge erst um oder führe „' . $rname . '“ mit einem anderen Eintrag zusammen (Bearbeiten).' : '';
+            $hinweisText = ($sperr === 0 && $verw > 0) ? 'Er wird noch in ' . $verw . ' ' . ($verw === 1 ? 'Einkauf' : 'Einkäufen') . ' verwendet; die Verknüpfung dort entfällt.' : '';
+        ?>
           <tr>
-            <th class="col-id">ID</th>
-            <th><?= htmlspecialchars($cfg['th']) ?></th>
-            <th class="is-numeric">Einträge</th>
-            <th class="is-center">Aktionen</th>
+            <td class="col-id c-id is-numeric"><?= $rid ?></td>
+            <td class="c-name"><?= $e($rname) ?></td>
+            <td class="is-numeric c-info"><?= $verw ?><span class="sr-only"> Einträge</span><span class="nur-karte"> <?= $verw === 1 ? 'Eintrag' : 'Einträge' ?></span></td>
+            <td class="c-akt">
+              <a class="btn" href="<?= $e($self) ?>?id=<?= $rid ?>&amp;q=<?= urlencode($search) ?><?= $pageParam ?>"><?= icon('edit','Bearbeiten') ?></a>
+              <button type="button" class="btn delete" data-loeschen data-id="<?= $rid ?>" data-name="<?= $e($rname) ?>"
+                      data-sperre="<?= $e($sperreText) ?>" data-hinweis="<?= $e($hinweisText) ?>"><?= icon('trash','Löschen') ?></button>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <?php while ($row = $list->fetch_assoc()): ?>
-            <tr>
-              <td class="col-id is-numeric"><?= (int)$row['ID'] ?></td>
-              <td><?= htmlspecialchars($row[$cfg['column']] ?? '') ?></td>
-              <td class="is-numeric"><?= (int)$row['Verwendet'] ?></td>
-              <td class="actions">
-                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= (int)$row['ID'] ?>&q=<?= urlencode($search) ?><?= $pageParam ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
-                <form method="post" action="<?= htmlspecialchars($self) ?>?q=<?= urlencode($search) ?><?= $pageParam ?>" style="display:inline; margin:0;"
-                      onsubmit="return confirm('Wirklich löschen?')">
-                  <?= csrf_field() ?>
-                  <input type="hidden" name="delete" value="<?= (int)$row['ID'] ?>">
-                  <button type="submit" class="btn is-small btn-red" title="Löschen"><?= icon('trash','Löschen') ?></button>
-                </form>
-              </td>
-            </tr>
-          <?php endwhile; ?>
-          <?php if ($list->num_rows === 0): ?>
-            <tr><td colspan="4" class="is-center">Keine Einträge gefunden.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
+        <?php endwhile; ?>
+        <?php if ($list->num_rows === 0): ?>
+          <tr class="leer"><td colspan="4" class="c-leer v-leer">Keine Einträge gefunden.</td></tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Pagination -->
-    <nav class="pagination">
-      <?php
-        $params = [];
-        if ($search !== '') $params['q'] = $search; // aktive Suche beibehalten
-        render_admin_pagination($page, $pages, $params);
-      ?>
-    </nav>
+  <?= admin_pagination($page, $pages, $listParams) ?>
+</main>
 
-  </main>
+<?= admin_loesch_dialog($loeschAction) ?>
 </body>
 </html>

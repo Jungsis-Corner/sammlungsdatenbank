@@ -11,6 +11,7 @@ require_once __DIR__ . '/inc_errors.php';
 require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 require_once __DIR__ . '/config.php';
@@ -100,26 +101,18 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
   <?php $page_title = 'Bildprüfung'; include __DIR__ . '/inc_head_admin.php'; ?>
 </head>
 <body class="admin-page">
-  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-  <main class="page" id="inhalt">
+<?= admin_header([['Bildprüfung', '']]) ?>
 
-    <header class="admin-header">
-      <h1>Bildprüfung</h1>
-      <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
-      </div>
-    </header>
-    <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
-    </div>
-    <?php if ($flash): ?>
-      <div class="msg-box <?= $e($flash['type']) ?>" role="status"><?= $e($flash['text']) ?></div>
-    <?php endif; ?>
+<main id="inhalt">
+  <h1>Bildprüfung</h1>
+  <?php if ($flash): ?>
+    <div class="msg-box <?= $e($flash['type']) ?>" role="status"><?= $e($flash['text']) ?></div>
+  <?php endif; ?>
 
     <p class="center">Nur zur Ansicht: Es wird nichts geändert oder gelöscht.</p>
 
     <h2>Status</h2>
-    <div class="table-wrap"><table class="adm-table is-compact"><tbody>
+    <div class="table-wrap"><table class="adm-table"><tbody>
       <tr><td>PHP-Version</td><td><?= $e(PHP_VERSION) ?></td></tr>
       <tr><td>GD (Miniaturen)</td><td><?= $ja(!empty($gd)) ?><?= !empty($gd) ? ' · ' . $e($gd['GD Version'] ?? '') : '' ?></td></tr>
       <tr><td>Formate: JPEG · PNG · GIF · WebP</td><td><?= $ja(!empty($gd['JPEG Support'])) ?> · <?= $ja(!empty($gd['PNG Support'])) ?> · <?= $ja(!empty($gd['GIF Read Support'])) ?> · <?= $ja(!empty($gd['WebP Support'])) ?></td></tr>
@@ -134,7 +127,7 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
     </tbody></table></div>
 
     <h2>Einträge mit Bild</h2>
-    <div class="table-wrap"><table class="adm-table is-compact"><tbody>
+    <div class="table-wrap"><table class="adm-table"><tbody>
       <tr><td>Einträge mit einem Bildwert</td><td class="is-numeric"><?= $gesamt ?></td></tr>
       <tr><td>Datei vorhanden</td><td class="is-numeric"><?= $vorhanden ?></td></tr>
       <tr><td>Datei fehlt</td><td class="is-numeric"><?= count($fehlt) ?></td></tr>
@@ -167,6 +160,6 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false): voi
       <?php if (count($verwaist) > BILD_MAX_ZEILEN): ?><p class="center">Angezeigt: <?= BILD_MAX_ZEILEN ?> von <?= count($verwaist) ?>.</p><?php endif; ?>
     <?php endif; ?>
 
-  </main>
+</main>
 </body>
 </html>

@@ -1,0 +1,111 @@
+/* =========================================================
+   verwaltung.css – Verwaltungsseiten (Einstellungen, Pflegeseiten, Kategorien, Bildprüfung), Phase 5e-2
+   Ersetzt admin.css. Tokens aus base.css (wird danach geladen); die obere Leiste kommt aus nav.css.
+   Tabellen: ab 600 px normal, darunter als Kartenliste.
+   ========================================================= */
+body.admin-page{ font-family:Arial,Helvetica,sans-serif; font-size:11pt; margin:0; padding:20px; -webkit-text-size-adjust:100%; }
+.admin-page main{ display:block; max-width:1000px; }
+.admin-page h1{ margin:0 0 var(--s3); font-size:var(--fs-xl); text-align:left; }
+.admin-page h2{ margin:var(--s5) 0 var(--s2); font-size:var(--fs-lg); }
+.admin-page .appbar-titel{ color:var(--text); }
+.admin-page [hidden]{ display:none !important; }
+.admin-page .center{ text-align:left; color:var(--muted); }
+
+/* ---------- Pfad ---------- */
+.krumen ol{ list-style:none; margin:0 0 var(--s3); padding:0; display:flex; flex-wrap:wrap; gap:var(--s1); font-size:var(--fs-sm); color:var(--muted); }
+.krumen li + li::before{ content:"›"; margin-right:var(--s1); }
+.krumen a{ color:var(--link); }
+
+/* ---------- Meldungen ---------- */
+.msg-box{ padding:var(--s2) var(--s3); margin:0 0 var(--s3); border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-2); color:var(--text); }
+.msg-box.error{ border-color:var(--danger); }
+.msg-box.success{ border-color:var(--primary); }
+
+/* ---------- Karten (Formulare, Abschnitte) ---------- */
+.v-karte{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--s4); margin:0 0 var(--s4); }
+.v-karte > h2{ margin-top:0; }
+.v-form{ display:grid; gap:var(--s3); grid-template-columns:minmax(0,1fr); }
+.v-feld{ display:flex; flex-direction:column; gap:var(--s1); min-width:0; }
+.v-feld label{ font-weight:600; font-size:var(--fs-sm); }
+.v-feld input[type="text"], .v-feld input[type="search"], .v-feld select{
+  width:100%; box-sizing:border-box; padding:8px 10px; min-height:40px; font:inherit; color:var(--text);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
+}
+.v-feld input:focus, .v-feld select:focus{ outline:3px solid var(--focus); outline-offset:1px; }
+.v-knoepfe{ display:flex; flex-wrap:wrap; gap:var(--s2); align-items:center; }
+.admin-page .btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; min-height:40px; box-sizing:border-box; border-radius:var(--r-sm); cursor:pointer; font:inherit; font-weight:600; text-decoration:none; }
+@media (min-width:700px){
+  .v-form.zeile{ grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); align-items:end; }
+}
+@media (pointer:coarse){
+  .v-feld input[type="text"], .v-feld input[type="search"], .v-feld select{ min-height:var(--tap); font-size:16px; }
+  .admin-page .btn{ min-height:var(--tap); }
+}
+
+/* Suche */
+.v-suche{ display:flex; gap:var(--s2); margin:0 0 var(--s4); }
+.v-suche input[type="search"]{ flex:1 1 auto; min-width:0; box-sizing:border-box; padding:8px 10px; min-height:40px; font:inherit; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); }
+.v-suche input:focus{ outline:3px solid var(--focus); outline-offset:1px; }
+@media (pointer:coarse){ .v-suche input[type="search"]{ min-height:var(--tap); font-size:16px; } }
+
+/* ---------- Tabellen ---------- */
+.table-wrap{ overflow-x:auto; }
+table.adm-table, table.vtabelle{ width:100%; border-collapse:collapse; background:var(--surface); }
+.adm-table th, .adm-table td, .vtabelle th, .vtabelle td{ padding:var(--s2) var(--s3); text-align:left; border-bottom:1px solid var(--border); vertical-align:middle; }
+.adm-table thead th, .vtabelle thead th{ position:sticky; top:0; background:var(--surface-2); font-size:var(--fs-sm); }
+.is-numeric{ text-align:right !important; font-variant-numeric:tabular-nums; }
+.col-id{ width:4.5em; color:var(--muted); }
+.vtabelle td.c-akt{ text-align:right; white-space:nowrap; }
+.vtabelle td.c-akt > *{ display:inline-block; vertical-align:middle; margin-left:var(--s1); }
+.vtabelle .einzug{ display:inline-block; }
+.vtabelle small, .v-unter{ color:var(--muted); font-size:var(--fs-sm); }
+.v-leer{ padding:var(--s4); color:var(--muted); }
+
+/* ---------- Seitenwechsel ---------- */
+.pagination{ display:flex; flex-direction:column; gap:var(--s2); align-items:center; margin:var(--s4) 0; }
+.pg-zeile{ display:flex; gap:var(--s3); align-items:center; flex-wrap:wrap; justify-content:center; }
+.pagination a, .pagination .pg-aus{ display:inline-flex; align-items:center; min-height:40px; padding:0 var(--s3); border:1px solid var(--border); border-radius:var(--r-sm); text-decoration:none; background:var(--neutral); color:var(--on-neutral); }
+.pagination .pg-aus{ opacity:.45; }
+.pagination .pg-info{ color:var(--muted); font-size:var(--fs-sm); }
+.pg-zahlen{ display:flex; gap:var(--s1); flex-wrap:wrap; justify-content:center; }
+.pg-zahlen a, .pg-zahlen strong{ min-width:36px; justify-content:center; padding:0 var(--s2); display:inline-flex; align-items:center; min-height:36px; border-radius:var(--r-sm); box-sizing:border-box; }
+.pg-zahlen strong{ background:var(--primary); color:var(--on-primary); }
+@media (pointer:coarse){ .pagination a, .pagination .pg-aus{ min-height:var(--tap); } .pg-zahlen a, .pg-zahlen strong{ min-height:var(--tap); min-width:var(--tap); } }
+
+/* ---------- Kacheln (Einstellungen) ---------- */
+.kachel-gruppe{ margin:0 0 var(--s5); }
+.kachel-gruppe > h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
+.kacheln{ display:grid; gap:var(--s3); grid-template-columns:minmax(0,1fr); list-style:none; margin:0; padding:0; }
+.kacheln a{ display:flex; align-items:center; gap:var(--s3); padding:var(--s3) var(--s4); min-height:56px; box-sizing:border-box; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); color:var(--text); text-decoration:none; }
+.kacheln a .ico{ width:28px; height:28px; margin:0; color:var(--primary); }
+.kacheln .k-text{ display:flex; flex-direction:column; min-width:0; }
+.kacheln .k-titel{ font-weight:700; }
+.kacheln .k-sub{ font-size:var(--fs-sm); color:var(--muted); }
+@media (hover:hover){ .kacheln a:hover{ background:var(--surface-2); } }
+@media (min-width:600px){ .kacheln{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:900px){ .kacheln{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+
+/* ---------- Dialoge ---------- */
+dialog.v-dialog{ border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); color:var(--text); padding:var(--s4); max-width:min(92vw,460px); }
+dialog.v-dialog::backdrop{ background:rgba(0,0,0,.55); }
+dialog.v-dialog h2{ margin:0 0 var(--s2); font-size:var(--fs-lg); }
+.v-dialog-knoepfe{ display:flex; gap:var(--s2); justify-content:flex-end; flex-wrap:wrap; margin-top:var(--s4); }
+
+/* ---------- Pflegeseiten: iPhone = Kartenliste ---------- */
+@media (max-width:599px){
+  body.admin-page{ padding:12px; }
+  .admin-page h1{ font-size:var(--fs-lg); }
+  .vtabelle thead{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  .vtabelle, .vtabelle tbody{ display:block; }
+  .vtabelle tr{ display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name akt" "info akt"; gap:2px var(--s3); padding:var(--s3); margin:0 0 var(--s2); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); }
+  .vtabelle td{ display:block; padding:0; border:0; text-align:left; }
+  .vtabelle td.c-id{ display:none; }
+  .vtabelle td.c-name{ grid-area:name; font-weight:700; overflow-wrap:anywhere; }
+  .vtabelle td.c-info{ grid-area:info; color:var(--muted); font-size:var(--fs-sm); text-align:left !important; }
+  .vtabelle td.c-akt{ grid-area:akt; align-self:center; text-align:right; }
+  .vtabelle td.c-leer{ grid-column:1 / -1; }
+  .vtabelle tr.leer{ display:block; }
+}
+.nur-karte{ display:none; }
+@media (max-width:599px){ .nur-karte{ display:inline; } .vtabelle td.c-info .sr-only{ display:none; } }
+@media (max-width:599px){ .vtabelle td.c-ebene{ display:none; } }

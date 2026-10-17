@@ -11,6 +11,7 @@ require_once __DIR__ . '/inc_icons.php';
 require __DIR__ . '/require_login.php';
 require_once __DIR__ . '/inc_security.php';
 require_once __DIR__ . '/inc_filter.php';
+require_once __DIR__ . '/inc_admin_ui.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 require_once __DIR__ . '/config.php';
@@ -190,7 +191,12 @@ if ($id) {
     $gesperrt = array_flip(array_column($stmt->get_result()->fetch_all(MYSQLI_NUM), 0));
 }
 $rows = array_values(array_filter($baum, fn($n) => $search === '' || mb_stripos($n['name'], $search) !== false));
-$flash = flash_pull();
+$flashHtml = admin_flash();
+$e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+$einTr = fn(int $n): string => $n . ' ' . ($n === 1 ? 'Eintrag' : 'Einträgen');   // Dativ: „in 3 Einträgen“
+$kinderZahl = [];
+foreach ($baum as $n) { if ($n['parent'] !== null) $kinderZahl[$n['parent']] = ($kinderZahl[$n['parent']] ?? 0) + 1; }
+$loeschAction = $self . ($search !== '' ? '?q=' . urlencode($search) : '');
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -198,93 +204,97 @@ $flash = flash_pull();
   <?php $page_title = 'Kategorien verwalten'; include __DIR__ . '/inc_head_admin.php'; ?>
 </head>
 <body class="admin-page">
+<?= admin_header([['Kategorien verwalten', '']]) ?>
 
-  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
-  <main class="page" id="inhalt">
+<main id="inhalt">
+  <h1>Kategorien verwalten</h1>
 
-    <header class="admin-header">
-      <h1>Kategorien verwalten</h1>
-      <div class="admin-header-actions">
-        <a href="index.php" class="btn btn-gray"><?= icon('back') ?> Zur Sammlung</a>
+  <?= $flashHtml ?>
+
+  <form method="get" class="v-suche" role="search" action="<?= $e($self) ?>">
+    <label class="sr-only" for="f_suche">Suchen</label>
+    <input type="search" id="f_suche" name="q" placeholder="Kategorien suchen…" value="<?= $e($search) ?>" autocomplete="off">
+    <button type="submit" class="btn"><?= icon('search') ?> Suchen</button>
+    <?php if ($search !== ''): ?><a class="btn" href="<?= $e($self) ?>"><?= icon('close') ?> Zurücksetzen</a><?php endif; ?>
+  </form>
+
+  <!-- Hinzufügen / Bearbeiten -->
+  <section class="v-karte" aria-labelledby="formTitel">
+    <h2 id="formTitel"><?= $id ? 'Kategorie bearbeiten' : 'Neue Kategorie' ?></h2>
+    <form method="post" class="v-form zeile" action="<?= $e($self) ?>?<?= $e(http_build_query(array_filter(['q' => $search, 'id' => $id]))) ?>">
+      <?= csrf_field() ?>
+      <div class="v-feld">
+        <label for="f_name">Name</label>
+        <input type="text" id="f_name" name="Kategorie" placeholder="Name der Kategorie" value="<?= $e($form['name']) ?>" required autocomplete="off">
       </div>
-    </header>
-
-    <div class="top-bar">
-      <a href="einstellungen.php" class="back-link btn btn-blue"><?= icon('back') ?> Zurück zu Einstellungen</a>
-      <form method="get" class="top-bar-search">
-        <input type="text" name="q" placeholder="Kategorien suchen…" value="<?= htmlspecialchars($search) ?>">
-        <button type="submit" class="btn is-small" title="Suchen"><?= icon('search','Suchen') ?></button>
-        <?php if ($search !== ''): ?>
-          <button type="button" class="btn btn-red is-small" onclick="location.href='<?= htmlspecialchars($self, ENT_QUOTES) ?>'" title="Suche zurücksetzen"><?= icon('close','Zurücksetzen') ?></button>
-        <?php endif; ?>
-      </form>
-    </div>
-
-    <?php if ($flash): ?>
-      <div class="msg-box <?= htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8') ?>" role="status"><?= htmlspecialchars($flash['text'], ENT_QUOTES, 'UTF-8') ?></div>
-    <?php endif; ?>
-
-    <!-- Formular: Hinzufügen/Bearbeiten -->
-    <div class="form-line-center">
-      <form method="post" class="admin-inline-form" action="<?= htmlspecialchars($self) ?>?<?= htmlspecialchars(http_build_query(array_filter(['q' => $search, 'id' => $id]))) ?>">
-        <?= csrf_field() ?>
-        <input type="text" name="Kategorie" placeholder="Name der Kategorie" value="<?= htmlspecialchars($form['name']) ?>" required>
-        <select name="parent" title="Übergeordnete Kategorie">
+      <div class="v-feld">
+        <label for="f_parent">Übergeordnete Kategorie</label>
+        <select id="f_parent" name="parent">
           <option value="0">— keine (oberste Ebene) —</option>
           <?php foreach ($baum as $n): if (isset($gesperrt[$n['id']])) continue; ?>
             <option value="<?= $n['id'] ?>" <?= $form['parent'] === $n['id'] ? 'selected' : '' ?>>
-              <?= str_repeat('&nbsp;&nbsp;&nbsp;', $n['depth']) . ($n['depth'] ? '↳ ' : '') . htmlspecialchars($n['name']) ?>
+              <?= str_repeat('&nbsp;&nbsp;&nbsp;', $n['depth']) . ($n['depth'] ? '↳ ' : '') . $e($n['name']) ?>
             </option>
           <?php endforeach; ?>
         </select>
-        <select name="ebene" title="Ebene">
+      </div>
+      <div class="v-feld">
+        <label for="f_ebene">Ebene</label>
+        <select id="f_ebene" name="ebene">
           <?php foreach (KAT_EBENEN as $k => $label): ?>
-            <option value="<?= $k ?>" <?= $form['ebene'] === $k ? 'selected' : '' ?>><?= $label ?></option>
+            <option value="<?= $k ?>" <?= $form['ebene'] === $k ? 'selected' : '' ?>><?= $e($label) ?></option>
           <?php endforeach; ?>
         </select>
-        <input type="submit" class="btn btn-green is-small" value="<?= $id ? 'Speichern' : 'Hinzufügen' ?>">
-        <?php if ($id): ?><a class="btn is-small" href="<?= htmlspecialchars($self) ?><?= $search !== '' ? '?q=' . urlencode($search) : '' ?>">Abbrechen</a><?php endif; ?>
-      </form>
-    </div>
+      </div>
+      <div class="v-knoepfe">
+        <button type="submit" class="btn save"><?= icon('save') ?> <?= $id ? 'Speichern' : 'Hinzufügen' ?></button>
+        <?php if ($id): ?><a class="btn" href="<?= $e($self) ?><?= $search !== '' ? '?q=' . urlencode($search) : '' ?>">Abbrechen</a><?php endif; ?>
+      </div>
+    </form>
+  </section>
 
-    <!-- Liste (Baum) -->
-    <div class="table-wrap">
-      <table class="adm-table is-striped is-hover is-compact is-sticky">
-        <thead>
+  <!-- Liste (Baum) -->
+  <p class="v-unter" aria-live="polite"><?= count($rows) ?> <?= count($rows) === 1 ? 'Kategorie' : 'Kategorien' ?><?= $search !== '' ? ' zu „' . $e($search) . '“' : '' ?></p>
+  <div class="table-wrap">
+    <table class="vtabelle">
+      <thead>
+        <tr>
+          <th class="col-id">ID</th>
+          <th>Kategorie</th>
+          <th>Ebene</th>
+          <th class="is-numeric">Einträge</th>
+          <th><span class="sr-only">Aktionen</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($rows as $n):
+            $verw = (int)($eigene[$n['id']] ?? 0); $kinder = (int)($kinderZahl[$n['id']] ?? 0);
+            $teile = [];
+            if ($kinder > 0) $teile[] = 'hat noch ' . $kinder . ' Unterkategorie' . ($kinder === 1 ? '' : 'n');
+            if ($verw > 0)   $teile[] = 'wird noch in ' . $einTr($verw) . ' verwendet';
+            $sperreText = $teile ? 'Die Kategorie ' . implode(' und ', $teile) . '. Räume sie erst auf.' : '';
+        ?>
           <tr>
-            <th class="col-id">ID</th>
-            <th>Kategorie</th>
-            <th>Ebene</th>
-            <th>Einträge</th>
-            <th class="is-center">Aktionen</th>
+            <td class="col-id c-id is-numeric"><?= $n['id'] ?></td>
+            <td class="c-name"><span class="einzug"><?= str_repeat('&nbsp;&nbsp;&nbsp;', $search === '' ? $n['depth'] : 0) . ($n['depth'] && $search === '' ? '↳ ' : '') ?></span><?= $e($n['name']) ?>
+              <?php if ($n['parent'] !== null && $search !== ''): ?><small>(in <?= $e($namen[$n['parent']] ?? '') ?>)</small><?php endif; ?></td>
+            <td class="c-ebene"><?= $e(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></td>
+            <td class="is-numeric c-info"><?= $verw ?><span class="sr-only"> Einträge</span><span class="nur-karte"> <?= $verw === 1 ? 'Eintrag' : 'Einträge' ?> · <?= $e(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></span></td>
+            <td class="c-akt">
+              <a class="btn" href="<?= $e($self) ?>?id=<?= $n['id'] ?><?= $search !== '' ? '&amp;q=' . urlencode($search) : '' ?>"><?= icon('edit','Bearbeiten') ?></a>
+              <button type="button" class="btn delete" data-loeschen data-id="<?= $n['id'] ?>" data-name="<?= $e($n['name']) ?>"
+                      data-sperre="<?= $e($sperreText) ?>" data-hinweis=""><?= icon('trash','Löschen') ?></button>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($rows as $n): ?>
-            <tr>
-              <td class="col-id is-numeric"><?= $n['id'] ?></td>
-              <td><?= str_repeat('&nbsp;&nbsp;&nbsp;', $search === '' ? $n['depth'] : 0) . ($n['depth'] && $search === '' ? '↳ ' : '') . htmlspecialchars($n['name']) ?>
-                <?php if ($n['parent'] !== null && $search !== ''): ?><small>(in <?= htmlspecialchars($namen[$n['parent']] ?? '') ?>)</small><?php endif; ?></td>
-              <td><?= htmlspecialchars(KAT_EBENEN[$n['ebene']] ?? $n['ebene']) ?></td>
-              <td class="is-numeric"><?= (int)($eigene[$n['id']] ?? 0) ?></td>
-              <td class="actions">
-                <a class="btn is-small" href="<?= htmlspecialchars($self) ?>?id=<?= $n['id'] ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" title="Bearbeiten"><?= icon('edit','Bearbeiten') ?></a>
-                <form method="post" action="<?= htmlspecialchars($self) ?><?= $search !== '' ? '?q=' . urlencode($search) : '' ?>" style="display:inline; margin:0;"
-                      onsubmit="return confirm('Wirklich löschen?')">
-                  <?= csrf_field() ?>
-                  <input type="hidden" name="delete" value="<?= $n['id'] ?>">
-                  <button type="submit" class="btn is-small btn-red" title="Löschen"><?= icon('trash','Löschen') ?></button>
-                </form>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (!$rows): ?>
-            <tr><td colspan="5" class="is-center">Keine Einträge gefunden.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
+        <?php endforeach; ?>
+        <?php if (!$rows): ?>
+          <tr class="leer"><td colspan="5" class="c-leer v-leer">Keine Einträge gefunden.</td></tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
+</main>
 
-  </main>
+<?= admin_loesch_dialog($loeschAction) ?>
 </body>
 </html>
