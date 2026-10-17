@@ -386,7 +386,7 @@ if ($selV > 0) {
   <script src="/sammlung/assets/typeahead.js?v=1" defer></script>
   <script src="/sammlung/assets/edit.js?v=1" defer></script>
   <link rel="stylesheet" href="/sammlung/assets/nav.css?v=1">
-  <link rel="stylesheet" href="/sammlung/assets/edit.css?v=1">
+  <link rel="stylesheet" href="/sammlung/assets/edit.css?v=2">
   <link rel="stylesheet" href="/sammlung/assets/base.css?v=3">
 </head>
 <body class="edit-page">

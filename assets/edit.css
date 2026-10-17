@@ -53,6 +53,10 @@ details.form-group[open] > summary{ border-bottom:1px solid var(--border); }
   background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
 }
 .field textarea{ min-height:96px; resize:vertical; }
+/* Datumsfelder (iOS/WebKit): sonst bringt das Feld eine eigene Mindestbreite mit und ragt über die Spalte hinaus */
+.field input[type="date"]{ -webkit-appearance:none; appearance:none; display:block; min-width:0; max-width:100%; text-align:left; line-height:1.4; }
+.field input[type="date"]::-webkit-date-and-time-value{ text-align:left; min-height:1.4em; }
+.field input[type="date"]::-webkit-datetime-edit{ padding:0; }
 .field input:focus, .field select:focus, .field textarea:focus{ outline:3px solid var(--focus); outline-offset:1px; }
 .field.readonly input[readonly]{ background:var(--surface-2); color:var(--muted); }
 .field.checkbox-field{ flex-direction:row; align-items:center; gap:var(--s3); min-height:var(--tap); }
