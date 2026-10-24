@@ -73,11 +73,11 @@ function boot_maintenance(): void {
        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
        . '<meta name="robots" content="noindex">'
        . '<title>Wartungsarbeiten – ' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</title>'
-       . '<style>body{font-family:system-ui,Arial,sans-serif;max-width:520px;margin:12vh auto 0;padding:0 16px;'
-       . 'background:#fff;color:#222}@media (prefers-color-scheme:dark){body{background:#121418;color:#e6e6e6}}</style>'
-       . '</head><body><h1>Wartungsarbeiten</h1>'
+       . '<link rel="stylesheet" href="/sammlung/assets/seite.css?v=2">'
+       . '<link rel="stylesheet" href="/sammlung/assets/base.css?v=4">'
+       . '</head><body class="seite"><main id="inhalt"><div class="karte"><h1>Wartungsarbeiten</h1>'
        . '<p>Die Sammlung wird gerade aktualisiert und ist in Kürze wieder erreichbar. Bitte versuche es in ein paar Minuten noch einmal.</p>'
-       . '</body></html>';
+       . '</div></main></body></html>';
     exit;
 }
 

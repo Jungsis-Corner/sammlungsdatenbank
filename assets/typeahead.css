@@ -1,0 +1,11 @@
+/* typeahead.css: Vorschlagsliste (von typeahead.js nachgeladen; hell und dunkel über html[data-theme="dark"]) */
+.ta-wrap{position:relative;display:block;}
+.ta-list{position:absolute;left:0;right:0;top:100%;z-index:1000;margin:2px 0 0;padding:0;list-style:none;max-height:min(50vh,320px);overflow:auto;background:#fff;color:#111;border:1px solid #888;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.ta-list li{padding:9px 12px;cursor:pointer;line-height:1.3;border-bottom:1px solid #eee;word-break:break-word;}
+.ta-list li:last-child{border-bottom:0;}
+.ta-list li[aria-selected="true"],.ta-list li:hover{background:#dbeaff;}
+.ta-list li.ta-leer{color:#666;cursor:default;font-style:italic;}
+html[data-theme="dark"] .ta-list{background:#1e1e1e;color:#e8e8e8;border-color:#555;}
+html[data-theme="dark"] .ta-list li{border-bottom-color:#333;}
+html[data-theme="dark"] .ta-list li[aria-selected="true"],html[data-theme="dark"] .ta-list li:hover{background:#2f4a73;}
+html[data-theme="dark"] .ta-list li.ta-leer{color:#aaa;}

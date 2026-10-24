@@ -162,6 +162,8 @@
       if (window.ZXing) { resolve(); return; }
       const s = document.createElement('script');
       s.src     = 'https://unpkg.com/@zxing/library@0.19.2/umd/index.min.js';
+      s.integrity = 'sha384-WosUcbEbThYunwwHxS01n91Dq055sAwsWD4B01T7ReKrmGBNa/XDw5yyI0QR85IA';   // Prüfsumme der Datei (CSP erlaubt nur unpkg.com)
+      s.crossOrigin = 'anonymous';
       s.onload  = resolve;
       s.onerror = () => reject(new Error('ZXing konnte nicht geladen werden.'));
       document.head.appendChild(s);

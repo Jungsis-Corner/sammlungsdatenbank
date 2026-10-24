@@ -153,7 +153,7 @@ function image_size($stored): ?array {
 function image_placeholder(int $height = 0, string $class = ''): string {
     $dim = $height > 0 ? ' width="' . $height . '" height="' . $height . '"' : ' width="96" height="96"';
     return '<svg class="img-placeholder' . ($class !== '' ? ' ' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') : '') . '"'
-         . $dim . ' viewBox="0 0 24 24" role="img" aria-label="Kein Bild" style="color:#9aa0a6;display:block;">'
+         . $dim . ' viewBox="0 0 24 24" role="img" aria-label="Kein Bild" color="#9aa0a6" display="block">'
          . '<rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>'
          . '<circle cx="9" cy="10" r="1.6" fill="currentColor"/>'
          . '<path d="M4 18l5-5 3.5 3.5L16 13l4 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>'

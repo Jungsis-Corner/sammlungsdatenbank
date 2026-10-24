@@ -356,7 +356,7 @@ $filterPanelOpen = ($_COOKIE['filterPanelOpen'] ?? '1') !== '0';
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<script src="/sammlung/assets/typeahead.js?v=2" defer></script>
+<script src="/sammlung/assets/typeahead.js?v=3" defer></script>
 
 <?php
 $isMuseum = !empty($_SESSION['museum_mode']);

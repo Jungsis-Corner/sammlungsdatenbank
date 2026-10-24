@@ -210,7 +210,7 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 <html lang="de">
 <head>
   <?php $page_title = $cfg['title']; include __DIR__ . '/inc_head_admin.php'; ?>
-  <script src="/sammlung/assets/typeahead.js?v=2" defer></script>
+  <script src="/sammlung/assets/typeahead.js?v=3" defer></script>
 </head>
 <body class="admin-page">
 <?= admin_header($kruemel) ?>
