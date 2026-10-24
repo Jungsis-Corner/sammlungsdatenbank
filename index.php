@@ -374,6 +374,7 @@ $isMuseum = !empty($_SESSION['museum_mode']);
 <meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
 
 <link rel="apple-touch-icon" href="/sammlung/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="<?= $isMuseum ? 'Museum' : 'Sammlung'; ?>">
