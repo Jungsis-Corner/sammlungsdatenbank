@@ -385,7 +385,7 @@ if ($selV > 0) {
   <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
   <script src="/sammlung/assets/typeahead.js?v=3" defer></script>
   <script src="/sammlung/assets/edit.js?v=2" defer></script>
-  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
+  <link rel="stylesheet" href="/sammlung/assets/nav.css?v=3">
   <link rel="stylesheet" href="/sammlung/assets/edit.css?v=3">
   <link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>

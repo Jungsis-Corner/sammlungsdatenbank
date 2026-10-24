@@ -289,7 +289,7 @@ $hatBild = (bool)image_parse($bild);
 <meta name="format-detection" content="telephone=no">
 <title><?= $e($pageTitle) ?></title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-<link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
+<link rel="stylesheet" href="/sammlung/assets/nav.css?v=3">
 <link rel="stylesheet" href="/sammlung/assets/detail.css?v=3">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 <link rel="stylesheet" href="/sammlung/assets/print.css?v=2" media="print">

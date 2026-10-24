@@ -11,3 +11,11 @@ nav.appnav a[aria-current="page"]{ font-weight:700; background:var(--surface-2);
 .appbar-icon .ico{ margin:0; width:22px; height:22px; }
 
 @media (max-width:599px){ .appnav{ display:none; } }
+
+/* ---------- Seitenspalte: obere Leiste, Pfad und Inhalt stehen in derselben, mittig zentrierten Spalte ----------
+   (sonst steht die Navigation auf breiten Bildschirmen weit rechts, der Inhalt links) */
+body.admin-page, body.edit-page, body.view-page{ --seite-breit:1000px; }
+body.statistik-page{ --seite-breit:1100px; }
+body.edit-page, body.view-page{ --seite-breit:1280px; }
+body.einkauf-page{ --seite-breit:1400px; }
+body > .appbar, body > nav.krumen, body > main{ max-width:var(--seite-breit,none); margin-left:auto; margin-right:auto; }
