@@ -99,7 +99,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Jungsi lädt per **FileZilla** (Verzeichnisvergleich) auf Strato hoch. Claude Code lädt nichts hoch und hat keinen Serverzugang.
 - Nach der Arbeit am Ende kurz auflisten, welche Dateien geändert wurden und hochgeladen werden müssen (inklusive Migration, falls vorhanden).
 - Repo-Stand und Serverstand müssen übereinstimmen. Nach jedem Upload committen.
-- **Beim Upload ausschließen** (liegen lokal im Projektordner, sind in `.gitignore`, gehören nie auf den Server): `config.php` (nur bewusst, sie ist serverspezifisch), `phpinfo.php`, `wp-config.php`, `debug_session.php`, `token_test.php`, `logtest.php`, `mini-finder.php`, `php-error.log`, `readme.txt`, `maintenance.flag` (nur zum Wartungsmodus bewusst anlegen), `var/` und `docs/bestand/`.
+- **Beim Upload ausschließen** (liegen lokal im Projektordner, sind in `.gitignore`, gehören nie auf den Server): `config.php` (nur bewusst, sie ist serverspezifisch), `phpinfo.php`, `wp-config.php`, `debug_session.php`, `token_test.php`, `logtest.php`, `mini-finder.php`, `php-error.log`, `readme.txt`, `maintenance.flag` (nur zum Wartungsmodus bewusst anlegen), `var/` und `docs/bestand/`. Ebenfalls nie hochladen: `tests/` und `docs/` (Entwicklungsmaterial; `tests/` liegt im Repo, aber nicht auf dem Server).
 - Ablauf bei Migrationen: Dump per phpMyAdmin, Migration einspielen, Kontrolle prüfen, Code hochladen, Stichprobe. Reihenfolge je nach Migration siehe Regeln Datenbank. Wartungsmodus nur, wenn dort verlangt.
 
 ## Git-Ablauf
@@ -110,6 +110,13 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - Pro Aufgabe ein Branch, kleine thematische Commits mit verständlicher deutscher Commit-Message.
 - Keine force-Pushes, kein `git reset --hard` ohne ausdrückliche Rückfrage.
 - Commits laufen mit der GitHub-noreply-Adresse (`git config user.email`), sonst lehnt GitHub den Push ab (GH007, E-Mail-Privatsphäre). Auf beiden Rechnern setzen.
+
+## Tests (Phase 7)
+
+- `tests/` (Anleitung `tests/README.md`): `smoke.sh` (Seiten, Anmeldung, CSRF, Weiterleitungen, kein Inline-CSS/-JS wegen CSP; `--header <URL>` und `--geschuetzt <Basis-URL>` auch gegen live, nur lesend), `db_checks.sql` (nur SELECT, auch in phpMyAdmin), `filter_check.sh` (Liste = Export = SQL-Zählung für 23 Filter). Läuft nur gegen die Testkopie mit Wegwerf-Datenbank, nie gegen die Produktion mit Zugangsdaten.
+- Vor jedem Rollout, der Seiten oder Filter berührt: `tests/smoke.sh` und `tests/filter_check.sh` ausführen, bei Datenbankänderungen zusätzlich `db_checks.sql` vorher und nachher.
+- Neue Seite = in `ADMIN_SEITEN` von `smoke.sh` eintragen; neuer Filter = Zeile in `filter_check.sh`. Die Prüfung der Seiten verlangt `<title>`, `id="inhalt"` und kein Inline-`<style>`/`<script>`/`style=`/`onclick`.
+- Manuelle Abnahme: `docs/abnahme.md`.
 
 ## Arbeitsweise
 
