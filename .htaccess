@@ -49,7 +49,6 @@ RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|export
   Header onsuccess unset Permissions-Policy
   Header onsuccess unset Strict-Transport-Security
   Header onsuccess unset Content-Security-Policy
-  Header onsuccess unset Content-Security-Policy-Report-Only
 
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
@@ -62,11 +61,9 @@ RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|export
   # jungsi.de, weil der Session-Cookie auf .jungsi.de liegt.
   Header always set Strict-Transport-Security "max-age=300"
 
-  # Vorsichtige CSP (lässt inline Styles/Skripte der bestehenden Seiten zu, bis S9)
-  Header always set Content-Security-Policy "default-src 'self' https: data:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' https: 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
-  # S9 Probelauf: strenge CSP ohne unsafe-inline nur melden (Konsole), nichts blockieren.
-  # Nach dem Klickdurchgang ersetzt sie die vorsichtige CSP oben.
-  Header always set Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: https:; style-src 'self'; script-src 'self' https://unpkg.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
+  # CSP (S9): ohne unsafe-inline, alle Seiten kommen ohne Inline-Stile und -Skripte aus.
+  # unpkg.com nur für den Barcode-Fallback (ZXing, mit Prüfsumme in edit.js). Bilder dürfen von https-Adressen kommen.
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self'; script-src 'self' https://unpkg.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
 </IfModule>
 
 # ---- Kompression ----
