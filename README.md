@@ -14,7 +14,7 @@ Eine selbstgebaute Web-Anwendung (PHP/MySQL) zur Verwaltung einer physischen Sam
 |---|---|
 | ![Detailansicht](docs/screenshots/view.png) | ![Statistik](docs/screenshots/statistik.png) |
 
-<!-- Bilder einfach als index.png / edit.png / view.png / statistik.png in docs/screenshots/ ablegen, dann werden sie hier automatisch angezeigt. Stand der Bilder: August 2026, vor der Überarbeitung der Oberfläche. -->
+<!-- Bilder einfach als index.png / edit.png / view.png / statistik.png in docs/screenshots/ ablegen, dann werden sie hier automatisch angezeigt. -->
 
 ## Was kann die App?
 
