@@ -56,10 +56,9 @@ RedirectMatch 404 ^/sammlung/(vendor|node_modules|bin|backup|backups|dump|export
   # Kamera nur für die eigene Seite (Barcode-Scanner in edit.php)
   Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(self)"
 
-  # HSTS stufenweise (E13): erst kurz. Nach einer Woche ohne Probleme (frühestens 20.10.2026)
-  # auf max-age=31536000 erhöhen. includeSubDomains nur nach Prüfung aller Subdomains von
-  # jungsi.de, weil der Session-Cookie auf .jungsi.de liegt.
-  Header always set Strict-Transport-Security "max-age=300"
+  # HSTS (E13): ein Jahr, seit 24.10.2026 (vorher 300 Sekunden ohne Probleme). Bewusst ohne includeSubDomains und ohne preload:
+  # der Session-Cookie liegt auf .jungsi.de, Subdomains würden sonst mit erzwungen. Zurücknehmen nur über max-age=0.
+  Header always set Strict-Transport-Security "max-age=31536000"
 
   # CSP (S9): ohne unsafe-inline, alle Seiten kommen ohne Inline-Stile und -Skripte aus.
   # unpkg.com nur für den Barcode-Fallback (ZXing, mit Prüfsumme in edit.js). Bilder dürfen von https-Adressen kommen.
