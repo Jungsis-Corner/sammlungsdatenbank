@@ -146,6 +146,16 @@ done
 # der Eintrag muss noch da sein
 check "$J" "Eintrag $ID1 nach POST-Versuchen" "$B/view.php?id=$ID1"
 
+# ---------- Bild-Upload und Medienliste (B5/B6) ----------
+code=$(curl -s -b "$J" -o /dev/null -w "%{http_code}" "$B/bild_upload.php");                       [ "$code" = "405" ] && ok || bad "bild_upload.php per GET: HTTP $code (erwartet 405)"
+code=$(curl -s -b "$J" -o /dev/null -w "%{http_code}" -F "csrf=" -F "bild=@/dev/null" "$B/bild_upload.php"); [ "$code" = "400" ] && ok || bad "bild_upload.php ohne Token: HTTP $code (erwartet 400)"
+code=$(curl -s -b "$J" -o /dev/null -w "%{http_code}" -F "csrf=falsch" "$B/bild_upload.php");     [ "$code" = "400" ] && ok || bad "bild_upload.php mit falschem Token: HTTP $code (erwartet 400)"
+code=$(curl -s -b "$G" -o /dev/null -w "%{http_code}" -F "csrf=falsch" "$B/bild_upload.php");     [ "$code" = "403" ] && ok || bad "bild_upload.php als Gast: HTTP $code (erwartet 403)"
+code=$(curl -s -o /dev/null -w "%{http_code}" -F "csrf=x" "$B/bild_upload.php");                  [ "$code" = "403" ] && ok || bad "bild_upload.php ohne Anmeldung: HTTP $code (erwartet 403)"
+code=$(curl -s -b "$G" -o /dev/null -w "%{http_code}" "$B/api_medien.php");                       [ "$code" = "403" ] && ok || bad "api_medien.php als Gast: HTTP $code (erwartet 403)"
+code=$(curl -s -o /dev/null -w "%{http_code}" "$B/api_medien.php");                               [ "$code" = "403" ] && ok || bad "api_medien.php ohne Anmeldung: HTTP $code (erwartet 403)"
+code=$(curl -s -b "$J" -o /dev/null -w "%{http_code}" "$B/api_medien.php");                       case "$code" in 200|404) ok;; *) bad "api_medien.php als Admin: HTTP $code";; esac
+
 # ---------- Filter-Seiten (Auszug, die vollständige Prüfung steht in tests/filter_check.sh) ----------
 for p in "index.php?filter=spiel" "index.php?verkauf=1" "index.php?standort=1" "index.php?box=1" "index.php?material=1"; do
   check "$J" "Filter $p" "$B/$p"

@@ -77,6 +77,17 @@ Die Cookie-Domain der Session kommt aus `SESSION_COOKIE_DOMAIN` in `config.php`.
 3. Datenbankschema importieren (`schema.sql`, z. B. über phpMyAdmin → Importieren). Sie enthält schon alle Migrationen und markiert sie als eingespielt.
 4. Auf einem PHP-fähigen Webserver bereitstellen.
 
+### Bilder (ohne WordPress)
+
+Standardmäßig liegen die Bilder im Upload-Ordner einer WordPress-Installation neben der App (`IMAGE_SOURCE` = `wordpress`). **Ohne WordPress** trägst du in `config.php` ein:
+
+```php
+define('IMAGE_SOURCE', 'local');          // Bilder liegen im Ordner medien/ der App
+define('IMAGE_UPLOAD_ENABLED', true);     // Upload im Bearbeiten-Formular
+```
+
+Dann gibt es im Bearbeiten-Formular unter dem Bildfeld die Knöpfe „Bild hochladen“ (auf dem Handy mit Kamera oder Fotos) und „Aus vorhandenen wählen“. Der Ordner `medien/` muss für den Webserver beschreibbar sein, PHP braucht die Erweiterung GD. Hochgeladene Bilder werden geprüft, gedreht und auf höchstens 2400 Pixel Kantenlänge verkleinert; Metadaten wie GPS-Daten fallen weg. Die Admin-Seite „Bildprüfung“ zeigt, was der Server erlaubt (Upload-Limit, GD). Der Modus `auto` sucht erst in `medien/` und dann bei WordPress (praktisch beim Umstieg). Bilder gehören nicht ins Git-Repository (`medien/` ist ausgeschlossen).
+
 ### Bestehende Installation aktualisieren
 
 Schemaänderungen liegen als nummerierte SQL-Dateien in [`migrations/`](migrations/README.md) und werden der Reihe nach in phpMyAdmin eingespielt (vorher Dump ziehen). Die Tabelle `schema_migrations` zeigt, welche schon gelaufen sind. Reihenfolge von Code-Upload und Migration, Wartungsmodus (`maintenance.flag`) und Rückbau (`DOWN`) stehen in `migrations/README.md`.

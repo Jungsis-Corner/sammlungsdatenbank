@@ -73,6 +73,15 @@ if (!defined('APP_DEBUG')) define('APP_DEBUG', false);
 // if (!defined('IMAGE_SOURCE'))   define('IMAGE_SOURCE', 'wordpress');
 // if (!defined('IMAGE_WP_BASE'))  define('IMAGE_WP_BASE', '/blog/wp-content/uploads/');
 // if (!defined('IMAGE_WP_DIR'))   define('IMAGE_WP_DIR', '/pfad/zum/webroot/blog/wp-content/uploads/');
+// Bilder ohne WordPress: IMAGE_SOURCE 'local' (Ordner medien/, muss beschreibbar sein). Dann lassen sich Bilder im Bearbeiten-Formular
+// hochladen und aus medien/ auswählen. 'auto' = erst medien/, sonst WordPress (praktisch beim Umstieg).
+//   IMAGE_UPLOAD_ENABLED   true = Upload im Formular (nur local/auto; braucht PHP-GD); Standard false
+//   IMAGE_UPLOAD_MAX_MB    größte erlaubte Datei, Standard 8 (zusätzlich gilt das PHP-Limit upload_max_filesize/post_max_size)
+//   IMAGE_UPLOAD_MAX_EDGE  längste Kante nach dem Upload in Pixel, Standard 2400 (größere Bilder werden verkleinert)
+// if (!defined('IMAGE_SOURCE'))         define('IMAGE_SOURCE', 'local');
+// if (!defined('IMAGE_UPLOAD_ENABLED')) define('IMAGE_UPLOAD_ENABLED', true);
+// if (!defined('IMAGE_UPLOAD_MAX_MB'))  define('IMAGE_UPLOAD_MAX_MB', 8);
+// if (!defined('IMAGE_UPLOAD_MAX_EDGE')) define('IMAGE_UPLOAD_MAX_EDGE', 2400);
 
 // --- App-Titel (zentral an EINER Stelle änderbar) ---
 if (!defined('APP_TITLE'))          define('APP_TITLE', 'Meine Sammlung');

@@ -412,3 +412,142 @@ document.addEventListener('click', function(e){
     }
   }, true);
 })();
+
+/* ---------- Bildfeld: hochladen (B5) und aus medien/ wählen (B6) ---------- */
+(function () {
+  'use strict';
+  var feld = document.getElementById('bildFeld');
+  if (!feld) return;
+  var input   = feld.querySelector('input[type="text"]');
+  var datei   = document.getElementById('bildDatei');
+  var status  = document.getElementById('bildStatus');
+  var vorschau = document.getElementById('bildVorschau');
+  var leeren  = document.getElementById('bildLeeren');
+  var wahl    = document.getElementById('bildWaehlen');
+  var uploadUrl = feld.getAttribute('data-upload');
+  var medienUrl = feld.getAttribute('data-medien');
+  var maxKante = parseInt(feld.getAttribute('data-max-edge') || '2400', 10);
+  var maxMb    = parseFloat(feld.getAttribute('data-max-mb') || '8');
+  if (!input) return;
+
+  function meldung(text, fehler) {
+    if (!status) return;
+    status.textContent = text || '';
+    status.classList.toggle('fehler', !!fehler);
+  }
+  // Vorschau über die Miniatur aus thumb.php (nur für Dateien in medien/); Wert nur setzen, wenn er ein einfacher Name ist
+  function zeigeVorschau(url) {
+    if (!vorschau) return;
+    if (url) { vorschau.src = url; vorschau.hidden = false; } else { vorschau.hidden = true; vorschau.removeAttribute('src'); }
+    if (leeren) leeren.hidden = input.value.trim() === '';
+  }
+  function setzeWert(name, url) {
+    input.value = name;
+    input.dispatchEvent(new Event('input', { bubbles: true }));      // Warnung bei ungespeicherten Änderungen
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    zeigeVorschau(url || '');
+  }
+  if (leeren) {
+    leeren.hidden = input.value.trim() === '';
+    leeren.addEventListener('click', function () { setzeWert('', ''); meldung('Bild entfernt. Mit „Speichern“ übernehmen.', false); });
+  }
+  input.addEventListener('input', function () { if (leeren) leeren.hidden = input.value.trim() === ''; });
+
+  /* ----- Upload ----- */
+  // Große Fotos im Browser verkleinern (längste Kante, JPEG bleibt JPEG): spart Datenvolumen und passt unter das Serverlimit.
+  function verkleinern(file) {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || typeof createImageBitmap !== 'function') return Promise.resolve(file);
+    return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+      var l = Math.max(bmp.width, bmp.height);
+      if (l <= maxKante && file.size <= maxMb * 1048576 * 0.9) { if (bmp.close) bmp.close(); return file; }
+      var s = Math.min(1, maxKante / l);
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * s)); c.height = Math.max(1, Math.round(bmp.height * s));
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      if (bmp.close) bmp.close();
+      var typ = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      return new Promise(function (ok) {
+        c.toBlob(function (b) { ok(b && b.size < file.size ? new File([b], file.name, { type: typ }) : file); }, typ, 0.9);
+      });
+    }).catch(function () { return file; });
+  }
+  if (datei && uploadUrl) {
+    datei.addEventListener('change', function () {
+      var f = datei.files && datei.files[0];
+      if (!f) return;
+      meldung('Bild wird vorbereitet …', false);
+      verkleinern(f).then(function (teil) {
+        meldung('Bild wird hochgeladen …', false);
+        var fd = new FormData();
+        fd.append('csrf', feld.getAttribute('data-csrf') || '');
+        fd.append('bild', teil, teil.name || f.name);
+        return fetch(uploadUrl, { method: 'POST', body: fd, credentials: 'same-origin' });
+      }).then(function (r) {
+        return r.json().catch(function () { return { ok: false, error: 'Unerwartete Antwort des Servers (HTTP ' + r.status + ').' }; });
+      }).then(function (d) {
+        if (d && d.ok) { setzeWert(d.name, d.url); meldung('Bild hochgeladen. Mit „Speichern“ übernehmen.', false); }
+        else meldung((d && d.error) || 'Der Upload ist fehlgeschlagen.', true);
+      }).catch(function () {
+        meldung('Der Upload ist fehlgeschlagen. Bitte die Verbindung prüfen.', true);
+      }).then(function () { datei.value = ''; });
+    });
+  }
+
+  /* ----- Auswahl aus medien/ ----- */
+  var dlg = document.getElementById('medienDialog');
+  if (wahl && dlg && medienUrl) {
+    var raster = document.getElementById('medienRaster');
+    var suche  = document.getElementById('medienSuche');
+    var mehr   = document.getElementById('medienMehr');
+    var zu     = document.getElementById('medienZu');
+    var stat   = document.getElementById('medienStatus');
+    var seite = 1, timer = null, lauf = 0;
+
+    function lade(neu) {
+      if (neu) { seite = 1; raster.textContent = ''; }
+      var mein = ++lauf;
+      stat.textContent = 'Lädt …'; stat.classList.remove('fehler');
+      fetch(medienUrl + '?q=' + encodeURIComponent(suche.value.trim()) + '&page=' + seite, { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (mein !== lauf) return;
+          (d.items || []).forEach(function (it) {
+            var li = document.createElement('li');
+            var b = document.createElement('button');
+            b.type = 'button';
+            var img = document.createElement('img');
+            img.src = it.url; img.alt = ''; img.loading = 'lazy';
+            var sp = document.createElement('span');
+            sp.textContent = it.name;
+            b.appendChild(img); b.appendChild(sp);
+            b.setAttribute('aria-label', 'Bild ' + it.name + ' wählen');
+            b.addEventListener('click', function () {
+              setzeWert(it.name, it.url);
+              meldung('Bild gewählt. Mit „Speichern“ übernehmen.', false);
+              if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+              input.focus();
+            });
+            li.appendChild(b); raster.appendChild(li);
+          });
+          mehr.hidden = !(d.page < d.pages);
+          stat.textContent = d.total ? d.total + ' Bild' + (d.total === 1 ? '' : 'er') : 'Keine Bilder gefunden.';
+        })
+        .catch(function () { stat.textContent = 'Die Liste konnte nicht geladen werden.'; stat.classList.add('fehler'); });
+    }
+    wahl.addEventListener('click', function () {
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+      suche.value = ''; lade(true); suche.focus();
+    });
+    suche.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { lade(true); }, 250); });
+    mehr.addEventListener('click', function () { seite++; lade(false); });
+    zu.addEventListener('click', function () { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) { if (dlg.close) dlg.close(); } });
+  }
+
+  // vorhandenen Wert als Vorschau zeigen (nur einfacher Dateiname, kein Pfad mit Host)
+  if (vorschau && input.value.trim() !== '' && feld.getAttribute('data-medien')) {
+    vorschau.src = 'thumb.php?f=' + encodeURIComponent(input.value.trim()).replace(/%2F/g, '/') + '&w=320';
+    vorschau.hidden = false;
+    vorschau.addEventListener('error', function () { vorschau.hidden = true; });
+  }
+})();

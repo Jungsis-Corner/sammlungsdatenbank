@@ -28,6 +28,9 @@ if (!defined('IMAGE_APP_BASE'))   define('IMAGE_APP_BASE', '/sammlung/');
 if (!defined('IMAGE_THUMB_WIDTHS')) define('IMAGE_THUMB_WIDTHS', [80, 160, 320, 640, 1200]);
 if (!defined('IMAGE_THUMBS'))     define('IMAGE_THUMBS', true);          // false = überall die Originale (Notbremse)
 if (!defined('IMAGE_THUMB_QUALITY')) define('IMAGE_THUMB_QUALITY', 82); // JPEG/WebP-Qualität der Miniaturen
+if (!defined('IMAGE_UPLOAD_ENABLED')) define('IMAGE_UPLOAD_ENABLED', false); // true = Bilder im Bearbeiten-Formular hochladen (nur Modus local/auto)
+if (!defined('IMAGE_UPLOAD_MAX_MB'))  define('IMAGE_UPLOAD_MAX_MB', 8);      // größte erlaubte Datei (zusätzlich gilt das PHP-Limit)
+if (!defined('IMAGE_UPLOAD_MAX_EDGE')) define('IMAGE_UPLOAD_MAX_EDGE', 2400); // längste Kante nach dem Upload in Pixel
 
 /** Endung (klein) -> Ausgabeformat der Miniaturen; nur diese Dateitypen werden verkleinert. */
 const IMAGE_EXT = ['jpg' => 'jpg', 'jpeg' => 'jpg', 'png' => 'png', 'gif' => 'png', 'webp' => 'webp'];
@@ -206,4 +209,135 @@ function image_img($stored, string $alt, array $o = []): string {
     if (!empty($o['id']))    $attr .= ' id="' . $e((string)$o['id']) . '"';
     if (!empty($o['class'])) $attr .= ' class="' . $e((string)$o['class']) . '"';
     return '<img' . $attr . '>';
+}
+
+
+/* ---------------------------------------------------------------------------------------------
+ * Upload (B5) und Auswahl vorhandener Bilder (B6) im lokalen Modus (medien/)
+ * ------------------------------------------------------------------------------------------- */
+
+/** Php-Größenangabe ("8M", "512K") in Byte; 0 = unbegrenzt. */
+function image_ini_bytes(string $v): int {
+    $v = trim($v);
+    if ($v === '' || $v === '-1') return 0;
+    $n = (int)$v;
+    return match (strtoupper(substr($v, -1))) { 'G' => $n * 1024 ** 3, 'M' => $n * 1024 ** 2, 'K' => $n * 1024, default => $n };
+}
+
+/** Auswahl aus medien/ gibt es nur, wenn der lokale Ordner zur Bildquelle gehört. */
+function image_local_mode(): bool {
+    return IMAGE_SOURCE === 'local' || IMAGE_SOURCE === 'auto';
+}
+
+/** Upload ist eingeschaltet, der Modus passt, GD ist da und medien/ ist beschreibbar. */
+function image_upload_available(): bool {
+    return IMAGE_UPLOAD_ENABLED && image_local_mode() && function_exists('imagecreatefromstring')
+        && is_dir(image_local_root()) && is_writable(image_local_root());
+}
+
+/** Größte Datei, die PHP wirklich annimmt (kleinster Wert aus Konfiguration, upload_max_filesize und post_max_size) in Byte. */
+function image_upload_limit(): int {
+    $l = [(int)IMAGE_UPLOAD_MAX_MB * 1048576];
+    foreach (['upload_max_filesize', 'post_max_size'] as $k) { $b = image_ini_bytes((string)ini_get($k)); if ($b > 0) $l[] = $b; }
+    return min($l);
+}
+
+/**
+ * Nimmt eine hochgeladene Datei aus $_FILES an und legt sie als neu kodiertes Bild in medien/ ab.
+ *  - echter Dateityp per finfo (JPEG, PNG, WebP, GIF), nicht die Endung; Pixelzahl begrenzt (Speicher)
+ *  - mit GD neu gespeichert: EXIF-Drehung angewendet, längste Kante höchstens IMAGE_UPLOAD_MAX_EDGE, Metadaten (GPS …) und
+ *    alles Eingebettete fallen weg; GIF wird zu PNG
+ *  - Dateiname zufällig (16 Hex-Zeichen), nie vom Nutzer
+ * @return array{ok:bool,name?:string,error?:string}
+ */
+function image_store_upload(array $f): array {
+    $err = (int)($f['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($err !== UPLOAD_ERR_OK) {
+        $msg = match ($err) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Die Datei ist größer als erlaubt (höchstens ' . number_format(image_upload_limit() / 1048576, 1, ',', '.') . ' MB).',
+            UPLOAD_ERR_PARTIAL   => 'Die Datei kam nicht vollständig an. Bitte noch einmal versuchen.',
+            UPLOAD_ERR_NO_FILE   => 'Es wurde keine Datei gewählt.',
+            default              => 'Der Server konnte die Datei nicht annehmen.',
+        };
+        return ['ok' => false, 'error' => $msg];
+    }
+    $tmp = (string)($f['tmp_name'] ?? '');
+    if ($tmp === '' || !is_uploaded_file($tmp)) return ['ok' => false, 'error' => 'Ungültiger Upload.'];
+    if (!image_upload_available()) return ['ok' => false, 'error' => 'Der Upload ist nicht eingeschaltet oder medien/ ist nicht beschreibbar.'];
+    $size = (int)filesize($tmp);
+    if ($size <= 0 || $size > image_upload_limit()) {
+        return ['ok' => false, 'error' => 'Die Datei ist größer als erlaubt (höchstens ' . number_format(image_upload_limit() / 1048576, 1, ',', '.') . ' MB).'];
+    }
+
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmp);
+    $erlaubt = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'png'];
+    if (!isset($erlaubt[$mime])) return ['ok' => false, 'error' => 'Nur JPEG-, PNG-, WebP- und GIF-Bilder sind erlaubt.'];
+    $ext = $erlaubt[$mime];
+    $info = @getimagesize($tmp);
+    if (!$info || $info[0] < 1 || $info[1] < 1) return ['ok' => false, 'error' => 'Die Datei ist kein lesbares Bild.'];
+    [$w, $h] = [(int)$info[0], (int)$info[1]];
+    $limit = image_ini_bytes((string)ini_get('memory_limit'));
+    if ($w * $h > 80000000 || ($limit > 0 && $w * $h * 5 > $limit * 0.8)) {
+        return ['ok' => false, 'error' => 'Das Bild hat zu viele Pixel für den Server. Bitte verkleinert hochladen.'];
+    }
+    if ($mime === 'image/webp' && !function_exists('imagewebp')) return ['ok' => false, 'error' => 'WebP wird auf diesem Server nicht unterstützt.'];
+
+    $img = @imagecreatefromstring((string)file_get_contents($tmp));
+    if (!$img) return ['ok' => false, 'error' => 'Das Bild konnte nicht gelesen werden.'];
+
+    // EXIF-Drehung (Handyfotos) anwenden
+    if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
+        $ex = @exif_read_data($tmp);
+        $o = (int)($ex['Orientation'] ?? 1);
+        $rot = [3 => 180, 6 => -90, 8 => 90][$o] ?? 0;
+        if (in_array($o, [2, 4, 5, 7], true)) imageflip($img, $o === 4 ? IMG_FLIP_VERTICAL : IMG_FLIP_HORIZONTAL);
+        if ($o === 5 || $o === 7) $rot = $o === 5 ? -90 : 90;
+        if ($rot !== 0) { $r = imagerotate($img, $rot, 0); if ($r) { imagedestroy($img); $img = $r; } }
+    }
+    // Größe begrenzen
+    $w = imagesx($img); $h = imagesy($img);
+    $max = max(200, (int)IMAGE_UPLOAD_MAX_EDGE);
+    if (max($w, $h) > $max) {
+        $s = $max / max($w, $h);
+        $nw = max(1, (int)round($w * $s)); $nh = max(1, (int)round($h * $s));
+        $n = imagecreatetruecolor($nw, $nh);
+        if ($ext !== 'jpg') { imagealphablending($n, false); imagesavealpha($n, true); imagefill($n, 0, 0, imagecolorallocatealpha($n, 0, 0, 0, 127)); }
+        imagecopyresampled($n, $img, 0, 0, 0, 0, $nw, $nh, $w, $h);
+        imagedestroy($img); $img = $n;
+    }
+    if ($ext !== 'jpg') imagesavealpha($img, true);
+
+    $dir = image_local_root();
+    $name = bin2hex(random_bytes(8)) . '.' . $ext;
+    $ziel = $dir . $name;
+    $ok = match ($ext) {
+        'jpg'  => imagejpeg($img, $ziel, 88),
+        'png'  => imagepng($img, $ziel, 6),
+        'webp' => imagewebp($img, $ziel, 85),
+    };
+    imagedestroy($img);
+    if (!$ok || !is_file($ziel)) { @unlink($ziel); return ['ok' => false, 'error' => 'Das Bild konnte nicht gespeichert werden.']; }
+    @chmod($ziel, 0644);
+    return ['ok' => true, 'name' => $name];
+}
+
+/**
+ * Bilddateien in medien/ (auch Unterordner), neueste zuerst, optional nach Namensteil gefiltert.
+ * @return array{total:int,items:array<int,array{name:string,mtime:int}>}
+ */
+function image_local_list(string $q = '', int $offset = 0, int $limit = 24): array {
+    $root = image_local_root();
+    $alle = [];
+    if (!is_dir($root)) return ['total' => 0, 'items' => []];
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+    $q = mb_strtolower(trim($q));
+    foreach ($it as $fi) {
+        if (!$fi->isFile() || !isset(IMAGE_EXT[strtolower($fi->getExtension())])) continue;
+        $rel = ltrim(str_replace('\\', '/', substr($fi->getPathname(), strlen($root))), '/');
+        if (image_safe_name($rel) === null) continue;
+        if ($q !== '' && mb_strpos(mb_strtolower($rel), $q) === false) continue;
+        $alle[] = ['name' => $rel, 'mtime' => (int)$fi->getMTime()];
+    }
+    usort($alle, fn($a, $b) => [$b['mtime'], $a['name']] <=> [$a['mtime'], $b['name']]);
+    return ['total' => count($alle), 'items' => array_slice($alle, max(0, $offset), max(1, $limit))];
 }

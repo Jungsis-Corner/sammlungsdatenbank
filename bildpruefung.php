@@ -122,6 +122,8 @@ function bild_tabelle(array $zeilen, callable $e, bool $mitGroesse = false, stri
       <tr><th scope="row">WordPress-Uploads, URL-Pfad (IMAGE_WP_BASE)</th><td><?= $e(IMAGE_WP_BASE) ?></td></tr>
       <tr><th scope="row">WordPress-Uploads, Ordner auf dem Server (IMAGE_WP_DIR)</th><td><?= $e($wpDir) ?> · lesbar: <?= $ja($wpRoot !== null) ?></td></tr>
       <tr><th scope="row">Lokaler Bildordner (<?= $e(IMAGE_LOCAL_DIR) ?>)</th><td>vorhanden: <?= $ja($lokalVorhanden) ?><?= $lokalVorhanden ? ' · ' . $lokalDateien . ' Bilddateien' : '' ?></td></tr>
+      <tr><th scope="row">Bild-Upload (IMAGE_UPLOAD_ENABLED)</th><td>eingeschaltet: <?= $ja((bool)IMAGE_UPLOAD_ENABLED) ?> · im Formular verfügbar: <?= $ja(image_upload_available()) ?><?= (IMAGE_UPLOAD_ENABLED && !image_upload_available()) ? ' (nötig: IMAGE_SOURCE local oder auto, GD, beschreibbares medien/)' : '' ?></td></tr>
+      <tr><th scope="row">Upload-Limit (kleinster Wert aus IMAGE_UPLOAD_MAX_MB, upload_max_filesize, post_max_size)</th><td><?= $mb(image_upload_limit()) ?> · PHP: <?= $e(ini_get('upload_max_filesize')) ?> / <?= $e(ini_get('post_max_size')) ?> · längste Kante: <?= (int)IMAGE_UPLOAD_MAX_EDGE ?> px</td></tr>
       <tr><th scope="row">Miniaturen eingeschaltet (IMAGE_THUMBS)</th><td><?= $ja((bool)IMAGE_THUMBS) ?></td></tr>
       <tr><th scope="row">Miniatur-Cache (cache/thumbs/)</th><td>vorhanden: <?= $ja($cacheDa) ?> · beschreibbar: <?= $ja($cacheDa && is_writable($cacheDir)) ?> · <?= $cacheDateien ?> Dateien, <?= $mb($cacheBytes) ?></td></tr>
     </tbody></table></div>

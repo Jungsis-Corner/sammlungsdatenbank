@@ -976,9 +976,9 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 <title><?= $id === 0 ? 'Neuer Eintrag' : 'Bearbeiten: „' . htmlspecialchars(trim((string)($data['Bezeichnung'] ?? '')), ENT_QUOTES, 'UTF-8') . '“' ?> – Sammlung</title>
 <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
 <script src="/sammlung/assets/typeahead.js?v=3" defer></script>
-<script src="/sammlung/assets/edit.js?v=2" defer></script>
+<script src="/sammlung/assets/edit.js?v=3" defer></script>
 <link rel="stylesheet" href="/sammlung/assets/nav.css?v=2">
-<link rel="stylesheet" href="/sammlung/assets/edit.css?v=3">
+<link rel="stylesheet" href="/sammlung/assets/edit.css?v=4">
 <link rel="stylesheet" href="/sammlung/assets/base.css?v=4">
 </head>
 
@@ -1246,8 +1246,28 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
 
   <?php elseif ($col === 'SammlungBild1'): ?>
 
-    <input type="text" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars((string)$value) ?>" autocomplete="off"
-           placeholder="Dateiname oder Pfad unter wp-content/uploads, z. B. 2014/11/bild.jpg (volle URL geht auch)">
+    <?php $bildUpload = image_upload_available(); $bildAuswahl = image_local_mode(); ?>
+    <div class="bild-feld" id="bildFeld"<?php if ($bildUpload): ?>
+         data-upload="bild_upload.php" data-csrf="<?= htmlspecialchars((string)($_SESSION['csrf'] ?? '')) ?>"
+         data-max-mb="<?= (int)floor(image_upload_limit() / 1048576) ?>" data-max-edge="<?= (int)IMAGE_UPLOAD_MAX_EDGE ?>"<?php endif; ?>
+         <?php if ($bildAuswahl): ?> data-medien="api_medien.php"<?php endif; ?>>
+      <input type="text" id="<?= $fid ?>" name="<?= $htmlName ?>" value="<?= htmlspecialchars((string)$value) ?>" autocomplete="off"
+             placeholder="<?= $bildAuswahl ? 'Dateiname in medien/, hochladen oder aus vorhandenen Bildern wählen' : 'Dateiname oder Pfad unter wp-content/uploads, z. B. 2014/11/bild.jpg (volle URL geht auch)' ?>">
+      <?php if ($bildUpload || $bildAuswahl): ?>
+        <div class="bild-knoepfe">
+          <?php if ($bildUpload): ?>
+            <label class="btn secondary bild-upload-label" for="bildDatei"><?= icon('camera') ?> Bild hochladen</label>
+            <input type="file" id="bildDatei" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif">
+          <?php endif; ?>
+          <?php if ($bildAuswahl): ?>
+            <button type="button" class="btn secondary" id="bildWaehlen"><?= icon('search') ?> Aus vorhandenen wählen</button>
+          <?php endif; ?>
+          <button type="button" class="btn secondary" id="bildLeeren" hidden>Bild entfernen</button>
+        </div>
+        <p class="bild-status" id="bildStatus" role="status" aria-live="polite"></p>
+        <img class="bild-vorschau" id="bildVorschau" alt="Vorschau des gewählten Bildes" hidden>
+      <?php endif; ?>
+    </div>
 
   <?php elseif ($col === 'Einkaufspreis' || $col === 'Wert'): ?>
 
@@ -1298,6 +1318,20 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_diag']);
   }
   $deleteParams['id'] = $id;
 ?>
+<?php if (image_local_mode()): ?>
+<!-- Auswahl vorhandener Bilder aus medien/ (Liste aus api_medien.php) -->
+<dialog id="medienDialog" class="medien-dialog" aria-labelledby="medienTitel">
+  <h2 id="medienTitel">Bild wählen</h2>
+  <label class="label sr-only" for="medienSuche">Suche im Dateinamen</label>
+  <input type="search" id="medienSuche" placeholder="Dateiname suchen" autocomplete="off">
+  <ul class="medien-raster" id="medienRaster"></ul>
+  <p class="bild-status" id="medienStatus" role="status" aria-live="polite"></p>
+  <div class="loesch-knoepfe">
+    <button type="button" class="btn secondary" id="medienMehr" hidden>Mehr laden</button>
+    <button type="button" class="btn" id="medienZu">Schließen</button>
+  </div>
+</dialog>
+<?php endif; ?>
 <!-- Löschen bestätigen (POST mit CSRF an delete.php) -->
 <dialog id="loeschDialog" class="loesch-dialog" aria-labelledby="loeschTitel">
   <form method="post" action="delete.php">
