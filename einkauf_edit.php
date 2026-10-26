@@ -383,7 +383,7 @@ if ($selV > 0) {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> – Sammlung</title>
   <script src="/sammlung/assets/theme-toggle.js?v=6"></script>
-  <script src="/sammlung/assets/typeahead.js?v=3" defer></script>
+  <script src="/sammlung/assets/typeahead.js?v=4" defer></script>
   <script src="/sammlung/assets/edit.js?v=2" defer></script>
   <link rel="stylesheet" href="/sammlung/assets/nav.css?v=3">
   <link rel="stylesheet" href="/sammlung/assets/edit.css?v=3">

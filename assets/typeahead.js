@@ -43,6 +43,8 @@
     list.id = id;
     list.setAttribute('role', 'listbox');
     list.hidden = true;
+    // Klick auf den Scrollbalken oder Leerraum der Liste: Fokus im Feld lassen, sonst schließt blur die Liste
+    list.addEventListener('mousedown', function (e) { e.preventDefault(); });
     wrap.appendChild(list);
     // Ansage für Screenreader: „N Treffer“ / „Keine Treffer“ (die Liste selbst ändert sich nur optisch)
     var ansage = document.createElement('span');
