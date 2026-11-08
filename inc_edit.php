@@ -375,3 +375,41 @@ function edit_neighbors(mysqli $conn, int $id, array $f, string $sort, string $d
     }
     return $out;
 }
+
+/* ---- Hilfen für die Ausgabe der Auswahlfelder (inc_edit_form.php) ---- */
+
+function get_options($table, $field, $selected='') {
+    global $conn;
+    [$t, $f] = lookup_ident($table, $field);
+    $opts = "<option value=''>— unbekannt —</option>\n";
+    $order = ($table === 'Box') ? box_sort_sql($t) . ", $f" : $f;   // Box: natürliche Reihenfolge
+    $res  = $conn->query("SELECT ID, $f FROM $t ORDER BY $order");
+    while ($r = $res->fetch_assoc()) {
+        $sel = ($r['ID'] == $selected) ? ' selected' : '';
+        $opts .= "<option value=\"{$r['ID']}\"{$sel}>"
+               . htmlspecialchars($r[$field] ?? '') . "</option>\n";
+    }
+    return $opts;
+}
+
+// Suchfeld mit Vorschlagsliste (assets/typeahead.js, Vorschläge aus api_lookup.php) statt eines Feldes mit allen Werten.
+// Das versteckte ID-Feld trägt die Auswahl; ohne JavaScript oder bei geändertem Text löst der Server den exakt getippten
+// Namen beim Speichern selbst auf (resolve_lookup_id).
+function lookup_api_key(string $table): string {
+    return ['Verkäufer' => 'verkaeufer'][$table] ?? strtolower($table);
+}
+function render_lookup_search($htmlName, $table, $field, $selectedId, $inputId = '') {
+    global $conn;
+    [$t, $f] = lookup_ident($table, $field);
+    $selectedId = (int)$selectedId;
+    $curLabel = '';
+    if ($selectedId > 0) {
+        $lr = db_select($conn, "SELECT $f FROM $t WHERE ID = ?", 'i', [$selectedId])->fetch_row();
+        if ($lr) $curLabel = (string)$lr[0];
+    }
+    echo '<input type="text"' . ($inputId !== '' ? ' id="' . htmlspecialchars($inputId, ENT_QUOTES, 'UTF-8') . '"' : '') . ' name="' . $htmlName . '_text" class="lookup-search ta-input" autocomplete="off"'
+       . ' placeholder="Tippen zum Suchen…"'
+       . ' value="' . htmlspecialchars($curLabel, ENT_QUOTES, 'UTF-8') . '"'
+       . ' data-ta="' . lookup_api_key($table) . '" data-ta-hidden="' . $htmlName . '_hidden">';
+    echo '<input type="hidden" name="' . $htmlName . '" id="' . $htmlName . '_hidden" value="' . $selectedId . '">';
+}
