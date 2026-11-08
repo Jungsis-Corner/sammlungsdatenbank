@@ -51,3 +51,6 @@ cache/thumbs/*
 medien/*
 !medien/.gitkeep
 !medien/.htaccess
+
+# --- PHPUnit-Programmdatei (wird nicht eingecheckt, siehe tests/README.md) ---
+tests/tools/

@@ -9,7 +9,21 @@ Entwicklungsmaterial: **gehört nicht auf den Server** (nicht per FileZilla hoch
 | `smoke.sh --geschuetzt <Basis-URL>` | interne Dateien (`schema.sql`, `config.php`, `migrations/` …) werden nicht ausgeliefert (auch live, braucht Apache) |
 | `db_checks.sql` | T3: nur lesende Datenbankprüfungen (verwaiste Verweise, 0 statt NULL, Geld, Kategorie-Pfade, Dubletten, Bilder, Struktur); auch in phpMyAdmin ausführbar |
 | `filter_check.sh` | T4: Trefferzahl in Liste, Export und unabhängiger SQL-Zählung für 23 feste Filter |
+| `unit.sh` | PHPUnit-Unit-Tests (97) für `inc_format`, `inc_filter`, `inc_image`, `inc_security`; ohne Datenbank und ohne Webserver, Einzelfälle statt ganzer Seiten (siehe unten) |
 | `../docs/abnahme.md` | T5/T6: manuelle Abnahme (Gerätematrix, Tastatur/VoiceOver, Lighthouse) |
+
+## Unit-Tests (PHPUnit)
+
+`tests/unit.sh` startet PHPUnit 12 (`tests/unit/*Test.php`, Konfiguration `phpunit.xml`). Das Skript kopiert nur die vier `inc_*.php` in einen Temp-Ordner mit leerer Test-`config.php` (die echte wird nie gelesen) und braucht weder MySQL noch den PHP-Server. Einzelne Klasse: `tests/unit.sh --filter FilterTest`.
+
+Einmalig einrichten:
+
+1. PHP-Erweiterungen `dom` und `xmlwriter` (Ubuntu: `sudo apt install php8.5-xml`, Version passend zu PHP; PHPUnit 12 braucht PHP 8.3 oder neuer).
+2. `phpunit.phar` nach `tests/tools/` legen (Ordner ist in `.gitignore`, die Datei kommt nicht ins Repo): `mkdir -p tests/tools && curl -sSL -o tests/tools/phpunit.phar https://phar.phpunit.de/phpunit-12.phar`.
+
+Abgedeckt: Geld (`parse_decimal`, `fmt_dec`, `fmt_eur`), alle Filter von `sammlung_filter_where()` (SQL, Typen, Werte, Joker, ungültige Eingaben), `page_size()`, Kategorie-Kaskade, Bildpfade und -URLs (Modus `wordpress`, `local`, `auto` je in eigenem Prozess, weil `IMAGE_SOURCE` beim Laden feststeht), Rücksprung-URLs, lokale Pfade, CSV-Formelschutz, CSRF-Token, Flash, Lookup-Whitelist. Nicht abgedeckt: Datenbankfunktionen (dafür `filter_check.sh`) und das Abbrechen von `lookup_ident()` bei unbekannten Namen (ruft `exit`).
+
+Neue oder geänderte Funktion in diesen Dateien = Testfall dazu.
 
 ## Testumgebung aufbauen (WSL, Ubuntu)
 

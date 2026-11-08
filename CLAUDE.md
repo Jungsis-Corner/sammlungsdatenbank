@@ -117,6 +117,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - `tests/` (Anleitung `tests/README.md`): `smoke.sh` (Seiten, Anmeldung, CSRF, Weiterleitungen, kein Inline-CSS/-JS wegen CSP; `--header <URL>` und `--geschuetzt <Basis-URL>` auch gegen live, nur lesend), `db_checks.sql` (nur SELECT, auch in phpMyAdmin), `filter_check.sh` (Liste = Export = SQL-Zählung für 23 Filter). Läuft nur gegen die Testkopie mit Wegwerf-Datenbank, nie gegen die Produktion mit Zugangsdaten.
 - Vor jedem Rollout, der Seiten oder Filter berührt: `tests/smoke.sh` und `tests/filter_check.sh` ausführen, bei Datenbankänderungen zusätzlich `db_checks.sql` vorher und nachher.
 - Neue Seite = in `ADMIN_SEITEN` von `smoke.sh` eintragen; neuer Filter = Zeile in `filter_check.sh`. Die Prüfung der Seiten verlangt `<title>`, `id="inhalt"` und kein Inline-`<style>`/`<script>`/`style=`/`onclick`.
+- Unit-Tests (PHPUnit, `tests/unit.sh`, ohne Datenbank): vor Änderungen an `inc_format.php`, `inc_filter.php`, `inc_image.php` oder `inc_security.php` ausführen; neue oder geänderte Funktion dort = Testfall in `tests/unit/`. `phpunit.phar` liegt in `tests/tools/` (nicht im Repo, Einrichtung siehe `tests/README.md`).
 - Manuelle Abnahme: `docs/abnahme.md`.
 
 ## Arbeitsweise
