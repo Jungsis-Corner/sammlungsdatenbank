@@ -141,109 +141,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
     edit_handle_post($conn, $id);
 }
 
-/* ======== Datensatz laden & Prev/Next ermitteln ======== */
-$data = [];
+/* ======== Datensatz laden & Prev/Next ermitteln (inc_edit.php) ======== */
+$data = edit_load_record($conn, $id, $_GET);
 if ($id > 0) {
-    $data = db_select($conn, "SELECT * FROM `Sammlung` WHERE ID = ?", 'i', [$id])->fetch_assoc();
-} elseif ($id === 0) {
-    // Vorbefüllung für einen neuen Eintrag, z.B. aus einkauf.php übernommen
-    $pfMap = [
-        'pf_Bezeichnung'   => 'Bezeichnung',
-        'pf_Kategorie'     => 'Kategorie',
-        'pf_Verkaeufer'    => 'Verkäufer',
-        'pf_Einkaufspreis' => 'Einkaufspreis',
-        'pf_Wert'          => 'Wert',
-        'pf_Einkaufsdatum' => 'Einkaufsdatum',
-        'pf_Anzahl'        => 'Anzahl',
-    ];
-    foreach ($pfMap as $getKey => $col) {
-        if (isset($_GET[$getKey]) && $_GET[$getKey] !== '') {
-            $data[$col] = $_GET[$getKey];
-        }
-    }
-}
-if ($id > 0) {
-    // Mapping für ORDER BY — analog index.php erweitert
-    $sort_map = [
-      'Bezeichnung'         => 'S.Bezeichnung',
-      'Jahr'                => 'S.Jahr',
-      'Kategorie'           => 'K.Kategorie',
-      'Original/Homebrew'   => 'S.`Original/Homebrew`',
-      'Material'            => 'M.Material',
-      'Zustand'             => 'Z.Zustand',
-      'Verpackung'          => 'VP.Verpackung',
-      'Anzahl'              => 'S.Anzahl',
-      'Standort'            => 'S.Standort',
-      'Box'                 => box_sort_sql('BX'),
-      'Einkaufsdatum'       => 'S.Einkaufsdatum',
-      'Wert'                => 'S.Wert',
-	  'Link zu YouTube' => 'S.`Link zu YouTube`',
-    ];
-
-    $base = $sort_map[$sort] ?? 'S.Bezeichnung';
-    $order_by_core = $base . ' ' . strtoupper($dir);
-
-    // Sonderfälle wie in index.php:
-    if ($sort === 'Einkaufsdatum') {
-        // NULL ans Ende
-        $order_by_core = 'S.Einkaufsdatum IS NULL, ' . $order_by_core;
-    }
-    if ($sort === 'Wert') {
-        // numerische Sortierung + NULL ans Ende
-        $order_by_core = 'S.Wert IS NULL, S.Wert ' . strtoupper($dir);
-    }
-
-    // stabile Zweitsortierung
-    $order_by = $order_by_core . ', S.Bezeichnung ASC, S.ID ASC';   // ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
-
-    // WHERE-Klausel (gemeinsam in inc_filter.php, mit Prepared Statements)
-    $flt = sammlung_filter_where([
+    $nb = edit_neighbors($conn, $id, [
         'filter' => $filter, 'kat' => $kat, 'inkl' => $inkl, 'oh' => $oh, 'material' => $material, 'q' => $q,
         'hersteller' => $hersteller_id, 'publisher' => $publisher_id, 'verkaeufer' => $verkaeufer_id,
         'standort' => $standort_id, 'box' => $box_id, 'verkauf' => $verkauf_filter,
         'einkaufsdatum' => $einkaufsdatum_filter,
-    ], ['s' => 'S', 'k' => 'K', 'm' => 'M']);
-    $where_sql = $flt['sql'];
+    ], $sort, $dir);
+    [$prev_id, $next_id, $first_id, $last_id] = [$nb['prev'], $nb['next'], $nb['first'], $nb['last']];
 
-    // Prev/Next/First/Last IDs holen – gleiche JOINs wie index.php
-$from_join = "
-  FROM Sammlung S
-  LEFT JOIN Kategorie   K  ON S.Kategorie   = K.ID
-  LEFT JOIN Material    M  ON S.Material    = M.ID
-  LEFT JOIN Zustand     Z  ON S.Zustand     = Z.ID
-  LEFT JOIN Verpackung  VP ON S.Verpackung  = VP.ID
-  LEFT JOIN Standort    ST ON S.Standort    = ST.ID
-  LEFT JOIN Box         BX ON S.Box         = BX.ID
-";
-
-$idres = db_select($conn, "
-  SELECT S.ID
-  $from_join
-  $where_sql
-  ORDER BY $order_by
-", $flt['types'], $flt['values']);
-$ids = array_column($idres->fetch_all(MYSQLI_ASSOC), 'ID');
-
-$prev_id = $next_id = $first_id = $last_id = null;
-if ($ids) {
-    $first_id = $ids[0];
-    $last_id  = $ids[count($ids)-1];
-    $pos = array_search($id, $ids); // nicht strict
-    if ($pos !== false) {
-        $prev_id = $ids[$pos - 1] ?? null;
-        $next_id = $ids[$pos + 1] ?? null;
-    }
-}
-
-// Helper-HREFs (immer gültig, disabled zeigt dann nur Styling)
-$makeHref = function(int $targetId) use ($params): string {
-  return 'edit.php?' . http_build_query(array_merge($params, ['id'=>$targetId]));
-};
-$selfHref  = $makeHref((int)$id);
-$prevHref  = $prev_id ? $makeHref((int)$prev_id) : $selfHref;
-$nextHref  = $next_id ? $makeHref((int)$next_id) : $selfHref;
-$firstHref = $first_id ? $makeHref((int)$first_id) : $selfHref;
-$lastHref  = $last_id  ? $makeHref((int)$last_id)  : $selfHref;
+    // Helper-HREFs (immer gültig, disabled zeigt dann nur Styling)
+    $makeHref = function (int $targetId) use ($params): string {
+        return 'edit.php?' . http_build_query(array_merge($params, ['id' => $targetId]));
+    };
+    $selfHref  = $makeHref((int)$id);
+    $prevHref  = $prev_id ? $makeHref((int)$prev_id) : $selfHref;
+    $nextHref  = $next_id ? $makeHref((int)$next_id) : $selfHref;
+    $firstHref = $first_id ? $makeHref((int)$first_id) : $selfHref;
+    $lastHref  = $last_id  ? $makeHref((int)$last_id)  : $selfHref;
 }
 
 /* ================ IGDB-Import-Action (robust) ================

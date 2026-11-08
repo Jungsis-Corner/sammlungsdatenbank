@@ -278,3 +278,100 @@ function edit_handle_post(mysqli $conn, int $id): void {
     header('Location: edit.php?' . http_build_query(array_merge($baseParams, ['id' => $id])));
     exit;
 }
+
+/**
+ * Datensatz für das Formular: bei id > 0 die Zeile aus Sammlung (oder null, wenn es sie nicht gibt), bei id = 0 ein leerer Eintrag,
+ * vorbefüllt aus den GET-Parametern pf_* (z. B. aus einkauf.php übernommen).
+ */
+function edit_load_record(mysqli $conn, int $id, array $get): ?array {
+    $data = [];
+    if ($id > 0) {
+        return db_select($conn, "SELECT * FROM `Sammlung` WHERE ID = ?", 'i', [$id])->fetch_assoc();
+    }
+    if ($id === 0) {
+        $pfMap = [
+            'pf_Bezeichnung'   => 'Bezeichnung',
+            'pf_Kategorie'     => 'Kategorie',
+            'pf_Verkaeufer'    => 'Verkäufer',
+            'pf_Einkaufspreis' => 'Einkaufspreis',
+            'pf_Wert'          => 'Wert',
+            'pf_Einkaufsdatum' => 'Einkaufsdatum',
+            'pf_Anzahl'        => 'Anzahl',
+        ];
+        foreach ($pfMap as $getKey => $col) {
+            if (isset($get[$getKey]) && $get[$getKey] !== '') {
+                $data[$col] = $get[$getKey];
+            }
+        }
+    }
+    return $data;
+}
+
+/**
+ * Vorheriger, nächster, erster und letzter Eintrag der gefilterten, sortierten Liste (IDs oder null).
+ * $f = Filterwerte für sammlung_filter_where(); Sortierung wie in index.php (stabil: Titel, dann ID).
+ * @return array{prev:?int,next:?int,first:?int,last:?int}
+ */
+function edit_neighbors(mysqli $conn, int $id, array $f, string $sort, string $dir): array {
+    // Mapping für ORDER BY — analog index.php
+    $sort_map = [
+      'Bezeichnung'         => 'S.Bezeichnung',
+      'Jahr'                => 'S.Jahr',
+      'Kategorie'           => 'K.Kategorie',
+      'Original/Homebrew'   => 'S.`Original/Homebrew`',
+      'Material'            => 'M.Material',
+      'Zustand'             => 'Z.Zustand',
+      'Verpackung'          => 'VP.Verpackung',
+      'Anzahl'              => 'S.Anzahl',
+      'Standort'            => 'S.Standort',
+      'Box'                 => box_sort_sql('BX'),
+      'Einkaufsdatum'       => 'S.Einkaufsdatum',
+      'Wert'                => 'S.Wert',
+      'Link zu YouTube'     => 'S.`Link zu YouTube`',
+    ];
+    $base = $sort_map[$sort] ?? 'S.Bezeichnung';
+    $order_by_core = $base . ' ' . strtoupper($dir);
+
+    // Sonderfälle wie in index.php:
+    if ($sort === 'Einkaufsdatum') {
+        // NULL ans Ende
+        $order_by_core = 'S.Einkaufsdatum IS NULL, ' . $order_by_core;
+    }
+    if ($sort === 'Wert') {
+        // numerische Sortierung + NULL ans Ende
+        $order_by_core = 'S.Wert IS NULL, S.Wert ' . strtoupper($dir);
+    }
+
+    // stabile Zweitsortierung; ID als letzter Schlüssel: gleiche Titel bleiben in fester Reihenfolge (Liste, Detail, Bearbeiten, Export)
+    $order_by = $order_by_core . ', S.Bezeichnung ASC, S.ID ASC';
+
+    // WHERE-Klausel (gemeinsam in inc_filter.php, mit Prepared Statements)
+    $flt = sammlung_filter_where($f, ['s' => 'S', 'k' => 'K', 'm' => 'M']);
+
+    // gleiche JOINs wie index.php
+    $idres = db_select($conn, "
+      SELECT S.ID
+      FROM Sammlung S
+      LEFT JOIN Kategorie   K  ON S.Kategorie   = K.ID
+      LEFT JOIN Material    M  ON S.Material    = M.ID
+      LEFT JOIN Zustand     Z  ON S.Zustand     = Z.ID
+      LEFT JOIN Verpackung  VP ON S.Verpackung  = VP.ID
+      LEFT JOIN Standort    ST ON S.Standort    = ST.ID
+      LEFT JOIN Box         BX ON S.Box         = BX.ID
+      {$flt['sql']}
+      ORDER BY $order_by
+    ", $flt['types'], $flt['values']);
+    $ids = array_column($idres->fetch_all(MYSQLI_ASSOC), 'ID');
+
+    $out = ['prev' => null, 'next' => null, 'first' => null, 'last' => null];
+    if ($ids) {
+        $out['first'] = $ids[0];
+        $out['last']  = $ids[count($ids) - 1];
+        $pos = array_search($id, $ids); // nicht strict
+        if ($pos !== false) {
+            $out['prev'] = $ids[$pos - 1] ?? null;
+            $out['next'] = $ids[$pos + 1] ?? null;
+        }
+    }
+    return $out;
+}
