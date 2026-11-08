@@ -75,6 +75,21 @@ function sammlung_filter_where(array $f, array $alias = ['s' => 'Sammlung', 'k' 
     ];
 }
 
+/** Parameter, die Liste, Detail, Bearbeiten, Löschen und Export an Rücksprung-Links weiterreichen (Filter, Sortierung, Seite). */
+const FILTER_KEEP_KEYS = ['page', 'sort', 'dir', 'filter', 'kat', 'inkl', 'oh', 'material', 'q', 'hersteller', 'publisher', 'verkaeufer', 'standort', 'box', 'verkauf', 'einkaufsdatum'];
+
+/**
+ * Die weiterzureichenden Parameter aus $_POST oder $_GET (nur gesetzte, nicht leere Werte, in der Reihenfolge von FILTER_KEEP_KEYS).
+ * @return array<string,mixed>
+ */
+function filter_keep_params(array $quelle): array {
+    $out = [];
+    foreach (FILTER_KEEP_KEYS as $k) {
+        if (isset($quelle[$k]) && $quelle[$k] !== '') $out[$k] = $quelle[$k];
+    }
+    return $out;
+}
+
 /** Führt eine Abfrage als Prepared Statement aus und liefert das Ergebnis (mysqli_result). */
 function db_select(mysqli $conn, string $sql, string $types = '', array $values = []): mysqli_result {
     $stmt = $conn->prepare($sql);

@@ -164,6 +164,21 @@ final class FilterTest extends TestCase
         $this->assertSame(substr_count($r['sql'], '?'), strlen($r['types']));
     }
 
+    public function testFilterKeepParams(): void
+    {
+        $post = ['q' => 'x', 'page' => '2', 'kat' => '5', 'inkl' => '1', 'leer' => '', 'id' => '9', 'csrf' => 'T', 'filter' => '', 'sort' => 'Jahr'];
+        $this->assertSame(['page' => '2', 'sort' => 'Jahr', 'kat' => '5', 'inkl' => '1', 'q' => 'x'], filter_keep_params($post));
+        $this->assertSame([], filter_keep_params([]));
+        $this->assertSame([], filter_keep_params(['id' => '1', 'csrf' => 'x', 'Bezeichnung' => 'y']));
+    }
+
+    public function testFilterKeepKeysEnthaeltAlleFilter(): void
+    {
+        foreach (['filter', 'kat', 'inkl', 'oh', 'material', 'q', 'hersteller', 'publisher', 'verkaeufer', 'standort', 'box', 'verkauf', 'einkaufsdatum', 'page', 'sort', 'dir'] as $k) {
+            $this->assertContains($k, FILTER_KEEP_KEYS);
+        }
+    }
+
     public function testLikeEscape(): void
     {
         $this->assertSame('a\%b\_c\\\\d', like_escape('a%b_c\\d'));

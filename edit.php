@@ -46,10 +46,7 @@ function execute_sammlung(mysqli_stmt $stmt, int $id): void {
         // gleiche Session-Schlüssel wie die IGDB-Meldung (wird weiter unten angezeigt und gelöscht)
         $_SESSION['flash_msg']  = 'Nicht gespeichert: Eine Auswahl (z. B. Kategorie, Box oder „Gehört zu“) ist ungültig. Bitte neu wählen.';
         $_SESSION['flash_diag'] = '';
-        $keep = ['id' => $id];
-        foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
-            if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
-        }
+        $keep = array_merge(['id' => $id], filter_keep_params($_POST));
         header('Location: edit.php?' . http_build_query($keep));
         exit;
     }
@@ -401,10 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
         $newId = (int)$conn->insert_id;
 
         // Redirect zurück in edit (mit Kontext)
-        $keep = [];
-        foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
-            if (isset($_POST[$k]) && $_POST[$k] !== '') $keep[$k] = $_POST[$k];
-        }
+        $keep = filter_keep_params($_POST);
         $keep['id']   = $newId;
         $keep['from'] = 'dup';
         header('Location: edit.php?'.http_build_query($keep));
@@ -447,10 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb'
     }
 
     // Redirect-Ziel bestimmen
-    $baseParams = [];
-    foreach (['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'] as $k) {
-        if (isset($_POST[$k]) && $_POST[$k] !== '') $baseParams[$k] = $_POST[$k];
-    }
+    $baseParams = filter_keep_params($_POST);
 
     // „Speichern & Nächster“
     if ($postAction === 'next') {

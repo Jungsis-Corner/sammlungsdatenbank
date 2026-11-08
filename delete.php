@@ -15,11 +15,7 @@ $id   = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 if ($id <= 0) { http_response_code(400); exit('Ungültige ID'); }
 
 // Diese Parameter zurück zu index.php geben (Filter/Sortierung/Seite)
-$keepKeys = ['page','sort','dir','filter','kat','inkl','oh','material','q','hersteller','publisher','verkaeufer','standort','box','verkauf','einkaufsdatum'];
-$return = [];
-foreach ($keepKeys as $k) {
-  if (isset($_POST[$k]) && $_POST[$k] !== '') $return[$k] = $_POST[$k];
-}
+$return = filter_keep_params($_POST);
 
 // 2) Datensatz löschen (prepared)
 $stmt = $conn->prepare("DELETE FROM Sammlung WHERE ID = ?");
