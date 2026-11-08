@@ -134,7 +134,7 @@ for p in index.php "view.php?id=$ID1" edit.php einkauf.php statistik.php export.
 done
 
 # ---------- POST ohne CSRF-Token ----------
-for ep in delete.php duplicate.php einkauf_delete.php edit.php; do
+for ep in delete.php einkauf_delete.php edit.php; do
   for tok in "" "csrf=" "csrf=falsch"; do
     code=$(curl -s -b "$J" -o /dev/null -w "%{http_code}" -d "id=$ID1" ${tok:+-d "$tok"} "$B/$ep")
     case "$code" in 400|403|405|302) ok;; *) bad "POST $ep ohne gültiges Token (${tok:-kein Token}): HTTP $code";; esac

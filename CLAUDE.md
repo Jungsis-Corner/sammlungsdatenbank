@@ -73,7 +73,7 @@ Eigene PHP/MySQL-Webanwendung zur Verwaltung einer Retro-Computing-Sammlung (1.3
 - **Kategorien** sind ein Baum (Marke → Plattform → Spiele / Anwendungen / Sonstiges) mit `ParentID`, `Ebene` und `Pfad` (z. B. `/288/53/`). „Spiel“ heißt `Ebene = 'spiele'`, nie `LIKE '%Spiel%'`. Kategorie-IDs stehen in Links (`go.php`, Blog) und dürfen sich nie ändern, deshalb gibt es für Kategorien kein Zusammenführen. Änderungen am Baum laufen über `manage_kategorie.php`, das den Pfad des Teilbaums neu berechnet. Die alte Spalte `Kategorie.Spiele` wird dort synchron gehalten und erst in D12 entfernt.
 - **Box** ist eine Lookup-Tabelle (Namen „Box 1“, „Box 2“, „Regal“); `Sammlung.Box` speichert die ID, Liste/Detail/Export zeigen den Namen per JOIN, der Filter vergleicht die ID.
 - **Leere Auswahlfelder** speichern `NULL`, nie `0` (Fremdschlüssel). **Geld** siehe `inc_format.php`.
-- Bei neuen oder geänderten Feldern immer mitziehen: `edit.php`, `view.php`, `duplicate.php` (Feldliste), Listen/Filter, `export.php`, `schema.sql`.
+- Bei neuen oder geänderten Feldern immer mitziehen: `edit.php`, `view.php`, `inc_edit.php` (`EDIT_FIELDS`, gilt auch für das Duplizieren in `edit.php`), Listen/Filter, `export.php`, `schema.sql`.
 
 ## Regeln: Datenbank
 
