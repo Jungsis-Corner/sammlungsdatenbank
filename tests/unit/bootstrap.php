@@ -6,6 +6,6 @@ if (!$src || !is_dir($src)) {
     exit(1);
 }
 define('UNIT_SRC', rtrim($src, '/'));
-foreach (['inc_format.php', 'inc_filter.php', 'inc_security.php'] as $datei) {
+foreach (['inc_format.php', 'inc_filter.php', 'inc_security.php', 'inc_edit.php'] as $datei) {
     require_once UNIT_SRC . '/' . $datei;
 }

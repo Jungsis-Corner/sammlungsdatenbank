@@ -13,6 +13,7 @@ require_once __DIR__ . '/inc_format.php';
 require_once __DIR__ . '/inc_image.php';
 require_once __DIR__ . '/inc_filter.php';
 require_once __DIR__ . '/inc_igdb.php';
+require_once __DIR__ . '/inc_edit.php';
 if (!is_admin()) { error_page(403, 'Kein Zugriff', 'Dieser Bereich ist nur für Administratoren.'); }
 
 // --- CSRF-Token initialisieren ---
@@ -33,24 +34,6 @@ if ($conn->connect_errno) {
 @$conn->query("SET time_zone = 'Europe/Berlin'");
 
 
-// Hilfsfunktion für Dropdowns
-/**
- * Führt INSERT/UPDATE auf Sammlung aus. Fehler 1452 (Fremdschlüssel: ungültige Auswahl, z. B. gelöschter
- * Eintrag oder manipuliertes Formular) wird als Hinweis gezeigt statt als Datenbankfehler.
- */
-function execute_sammlung(mysqli_stmt $stmt, int $id): void {
-    try {
-        $stmt->execute();
-    } catch (mysqli_sql_exception $e) {
-        if ((int)$e->getCode() !== 1452) { throw $e; }
-        // gleiche Session-Schlüssel wie die IGDB-Meldung (wird weiter unten angezeigt und gelöscht)
-        $_SESSION['flash_msg']  = 'Nicht gespeichert: Eine Auswahl (z. B. Kategorie, Box oder „Gehört zu“) ist ungültig. Bitte neu wählen.';
-        $_SESSION['flash_diag'] = '';
-        $keep = array_merge(['id' => $id], filter_keep_params($_POST));
-        header('Location: edit.php?' . http_build_query($keep));
-        exit;
-    }
-}
 
 function get_options($table, $field, $selected='') {
     global $conn;
@@ -88,25 +71,6 @@ function render_lookup_search($htmlName, $table, $field, $selectedId, $inputId =
     echo '<input type="hidden" name="' . $htmlName . '" id="' . $htmlName . '_hidden" value="' . $selectedId . '">';
 }
 
-// ID aus Such-Textfeld ermitteln, falls das versteckte ID-Feld leer ankommt
-// (z.B. veraltetes JavaScript im Browser-Cache): 1) Hidden-ID, 2) "(#ID)" im Text,
-// 3) exakter Name in der Lookup-Tabelle.
-function resolve_lookup_id($table, $field, $idRaw, $textRaw) {
-    global $conn;
-    $id = (int)$idRaw;
-    if ($id > 0) return $id;
-    $text = trim((string)$textRaw);
-    if ($text === '') return 0;
-    if (preg_match('/\(#(\d+)\)\s*$/', $text, $m)) return (int)$m[1];
-    [$t, $f] = lookup_ident($table, $field);
-    $stmt = $conn->prepare("SELECT ID FROM $t WHERE $f = ? LIMIT 1");
-    $stmt->bind_param('s', $text);
-    $stmt->execute();
-    $stmt->bind_result($foundId);
-    $res = $stmt->fetch() ? (int)$foundId : 0;
-    $stmt->close();
-    return $res;
-}
 
 // GET-Parameter
 $id             = intval($_GET['id']        ?? 0);
@@ -169,294 +133,13 @@ $lastHref  = $selfHref;
 
 // Spalten & Typen für das Formular (inkl. Anzahl)
 // >>> WICHTIG: KEINE Zeitstempel-Felder hier! <<<
-$inputs = [
-  'Bezeichnung'       => 'text',
-  'Kategorie'         => 'select',
-  'Jahr'              => 'text',
-  'Hersteller'        => 'select',
-  'Publisher'         => 'select',
-  'Seriennummer'      => 'text',
-  'Anzahl'            => 'number',
-  'Original/Homebrew' => 'select',
-  'Zustand'           => 'select',
-  'Verpackung Status' => 'select',
-  'Verpackung'        => 'select',
-  'Datenträger Status' => 'select',
-  'Datentraeger'      => 'select',
-  'Anleitung Status'  => 'select',
-  'Sonstiges'         => 'checkbox',
-  'Sonstiges Beschreibung' => 'text',
-  'Material'          => 'select',
-  'Standort'          => 'select',
-  'Zum Verkauf'       => 'checkbox',
-  'VerbautIn'         => 'select',
-  'Box'               => 'select',
-  'ISBN'              => 'text',
-  'Barcode'           => 'text',
-  'Einkaufsdatum'     => 'date',
-  'Verkäufer'         => 'select',
-  'Einkaufspreis'     => 'text',
-  'Wert'              => 'text',
-  'Getestet am'       => 'date',
-  'Getestet Status'   => 'select',
-  'Link zum Blog'     => 'text',
-  'Link zu YouTube'   => 'text',  
-  'Beschreibung'      => 'textarea',
-  'SammlungBild1'     => 'text'
-];
+$inputs = EDIT_FIELDS;   // Reihenfolge und Art der Felder (inc_edit.php)
 
-/* ============== Speichern-Logik (Update, Insert, Duplikat) ============== */
+
+/* ============== Speichern (Update, Insert, Duplikat): inc_edit.php ============== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'igdb') {
-    // --- CSRF-Check ---
-    require_post_csrf();
-
-    // Welche Felder hat dein Formular? (wie oben in $inputs definiert)
-    $inputs = [
-      'Bezeichnung'        => 'text',
-      'Jahr'               => 'text',
-      'Kategorie'          => 'select',
-      'Hersteller'         => 'select',
-      'Publisher'          => 'select',
-      'Seriennummer'       => 'text',
-      'Anzahl'             => 'number',
-      'Original/Homebrew'  => 'select',   // <-- wird unten auf "Original" voreingestellt
-      'Zustand'            => 'select',
-      'Verpackung Status'  => 'select',
-      'Verpackung'         => 'select',
-      'Datenträger Status' => 'select',
-      'Datentraeger'       => 'select',
-      'Anleitung Status'   => 'select',
-      'Sonstiges'          => 'checkbox',
-      'Sonstiges Beschreibung' => 'text',
-      'Material'           => 'select',
-      'Standort'           => 'select',
-      'Zum Verkauf'        => 'checkbox',
-      'VerbautIn'          => 'select',
-      'Box'                => 'select',
-      'ISBN'               => 'text',
-      'Barcode'            => 'text',
-      'Einkaufsdatum'      => 'date',
-      'Verkäufer'          => 'select',
-      'Einkaufspreis'      => 'text',
-      'Wert'               => 'text',
-      'Getestet am'        => 'date',
-      'Getestet Status'    => 'select',
-      'Link zum Blog'      => 'text',
-	  'Link zu YouTube'   => 'text',  
-      'Beschreibung'       => 'textarea',
-      'SammlungBild1'      => 'text',
-    ];
-
-    // Selects, die numerische IDs speichern (FK) -> als int behandeln
-    $selectIntCols = [
-      'Hersteller','Publisher','Kategorie','Zustand','Verpackung',
-      'Datentraeger','Material','Standort','Verkäufer','VerbautIn','Box'
-    ];
-
-    // Datumsfelder, die in YYYY-MM-DD gespeichert werden
-    $dateCols = ['Einkaufsdatum', 'Getestet am'];
-
-    // Formularwerte einsammeln
-    $vals   = [];
-    $types  = '';   // für bind_param
-    foreach ($inputs as $col => $kind) {
-        $name = str_replace(' ', '_', $col); // HTML-Name wie im Formular
-
-        if ($kind === 'checkbox') {
-            // Checkbox => 1 wenn gesetzt, sonst 0
-            $vals[$col] = isset($_POST[$name]) ? 1 : 0;
-            $types     .= 'i';
-            continue;
-        }
-
-        if ($kind === 'number') {
-            $vals[$col] = (int)($_POST[$name] ?? 0);
-            $types     .= 'i';
-            continue;
-        }
-
-        if ($kind === 'date') {
-            $raw = trim((string)($_POST[$name] ?? ''));
-            // Akzeptiere dd.mm.yyyy oder yyyy-mm-dd, speichere als yyyy-mm-dd
-            if ($raw === '') {
-                $vals[$col] = '';
-            } elseif (preg_match('~^\d{1,2}\.\d{1,2}\.\d{4}$~', $raw)) {
-                [$d,$m,$y] = explode('.', $raw);
-                $vals[$col] = sprintf('%04d-%02d-%02d', (int)$y, (int)$m, (int)$d);
-            } else {
-                // versuche strtotime-Fallback
-                $ts = strtotime($raw);
-                $vals[$col] = $ts ? date('Y-m-d', $ts) : '';
-            }
-            $types .= 's';
-            continue;
-        }
-
-        if ($kind === 'select') {
-            if ($col === 'Original/Homebrew') {
-                // Dropdown mit „Original | Homebrew“, Default = Original
-                $v = trim((string)($_POST[$name] ?? ''));
-                $v = ($v === 'Homebrew') ? 'Homebrew' : 'Original';
-                $vals[$col] = $v;
-                $types     .= 's';
-            } elseif (in_array($col, $selectIntCols, true)) {
-                // klassische FK-Selects -> als int
-                if (in_array($col, ['Kategorie','Hersteller','Publisher','Verkäufer'], true)) {
-                    // Such-Textfelder: ID notfalls aus dem sichtbaren Text nachschlagen
-                    $vals[$col] = resolve_lookup_id($col, $col, $_POST[$name] ?? '', $_POST[$name . '_text'] ?? '');
-                } else {
-                    $vals[$col] = (int)($_POST[$name] ?? 0);
-                }
-                // Keine Auswahl = NULL (nicht 0): "keine Angabe" für spätere Fremdschlüssel
-                if ((int)$vals[$col] <= 0) $vals[$col] = null;
-                $types     .= 'i';
-            } else {
-                // übrige selects als string
-                $vals[$col] = (string)($_POST[$name] ?? '');
-                $types     .= 's';
-            }
-            continue;
-        }
-
-        // Jahr (Zahlenspalte): leer, 0 oder keine ganze Zahl = NULL (nicht 0)
-        if ($col === 'Jahr') {
-            $t = trim((string)($_POST[$name] ?? ''));
-            $vals[$col] = (ctype_digit($t) && (int)$t > 0 && (int)$t <= 9999) ? (int)$t : null;
-            $types     .= 'i';
-            continue;
-        }
-
-        // Bild: eingefügte WordPress-URL als relativen Pfad speichern
-        if ($col === 'SammlungBild1') {
-            $vals[$col] = image_normalize_for_storage($_POST[$name] ?? '');
-            $types     .= 's';
-            continue;
-        }
-
-        // Geldbeträge (DECIMAL): Komma/Punkt, leer oder ungültig = NULL
-        if ($col === 'Einkaufspreis' || $col === 'Wert') {
-            $vals[$col] = parse_decimal($_POST[$name] ?? '');
-            $types     .= 's';
-            continue;
-        }
-
-        // text/textarea oder alles andere als String
-        $vals[$col] = (string)($_POST[$name] ?? '');
-        $types     .= 's';
-    }
-
-    // Aktions-Typ (optional)
-    $postAction = $_POST['post_action'] ?? 'stay';    // 'stay' | 'next'
-    $action     = $_POST['action']      ?? 'save';    // 'save' | 'dup' | 'dup_keepcost'
-
-    // Duplizieren?
-    if ($action === 'dup' || $action === 'dup_keepcost') {
-        // Titel duplizieren und kennzeichnen
-        $title = (string)($vals['Bezeichnung'] ?? '');
-        if ($title !== '') {
-            if (preg_match('/\s\(Kopie(?:\s(\d+))?\)$/u', $title, $m)) {
-                $n = isset($m[1]) ? ((int)$m[1] + 1) : 2;
-                $title = preg_replace('/\s\(Kopie(?:\s\d+)?\)$/u', ' (Kopie ' . $n . ')', $title);
-            } else {
-                $title .= ' (Kopie)';
-            }
-            $vals['Bezeichnung'] = $title;
-        }
-        // Bild leeren
-        if (array_key_exists('SammlungBild1', $vals)) $vals['SammlungBild1'] = '';
-        // Preis/Datum/Wert ggf. leeren
-        if ($action === 'dup') {
-            foreach (['Einkaufsdatum','Einkaufspreis','Wert'] as $c) {
-                if (array_key_exists($c, $vals)) $vals[$c] = ($c === 'Einkaufsdatum') ? '' : null;
-            }
-        }
-        // Testdaten werden bei JEDEM Duplikat zurückgesetzt (auch bei "dup_keepcost"),
-        // da ein neues Duplikat noch nicht getestet wurde.
-        foreach (['Getestet am','Getestet Status'] as $c) {
-            if (array_key_exists($c, $vals)) $vals[$c] = '';
-        }
-        // "Zum Verkauf" ebenfalls zurücksetzen - das Duplikat ist noch nicht
-        // bewusst als Verkaufsexemplar markiert worden.
-        if (array_key_exists('Zum Verkauf', $vals)) $vals['Zum Verkauf'] = 0;
-
-        // INSERT
-        $cols = array_map(fn($c) => "`$c`", array_keys($vals));
-        $ph   = array_fill(0, count($vals), '?');
-        $sql  = 'INSERT INTO `Sammlung` ('.implode(',', $cols).') VALUES ('.implode(',', $ph).')';
-        $stmt = $conn->prepare($sql);
-
-        // Typen neu aufbauen entsprechend $inputs (gleiches Muster wie oben)
-        $bindTypes = '';
-        $bindVals  = [];
-        foreach ($inputs as $c => $kind) {
-            if ($kind === 'number' || in_array($c, $selectIntCols, true)) $bindTypes .= 'i';
-            else $bindTypes .= 's';
-            $bindVals[] = $vals[$c];
-        }
-        $stmt->bind_param($bindTypes, ...$bindVals);
-        execute_sammlung($stmt, $id);
-        $newId = (int)$conn->insert_id;
-
-        // Redirect zurück in edit (mit Kontext)
-        $keep = filter_keep_params($_POST);
-        $keep['id']   = $newId;
-        $keep['from'] = 'dup';
-        header('Location: edit.php?'.http_build_query($keep));
-        exit;
-    }
-
-    // Normales Speichern: INSERT (id==0) oder UPDATE (id>0)
-    if ($id === 0) {
-        $cols = array_map(fn($c) => "`$c`", array_keys($vals));
-        $ph   = array_fill(0, count($vals), '?');
-        $stmt = $conn->prepare('INSERT INTO `Sammlung` ('.implode(',', $cols).') VALUES ('.implode(',', $ph).')');
-
-        $bindTypes = '';
-        $bindVals  = [];
-        foreach ($inputs as $c => $kind) {
-            if ($kind === 'number' || in_array($c, $selectIntCols, true)) $bindTypes .= 'i';
-            else $bindTypes .= 's';
-            $bindVals[] = $vals[$c];
-        }
-        $stmt->bind_param($bindTypes, ...$bindVals);
-        execute_sammlung($stmt, $id);
-        $id = (int)$conn->insert_id;
-
-    } else {
-        $sets = array_map(fn($c) => "`$c` = ?", array_keys($vals));
-        $stmt = $conn->prepare('UPDATE `Sammlung` SET '.implode(', ', $sets).' WHERE `ID` = ?');
-
-        $bindTypes = '';
-        $bindVals  = [];
-        foreach ($inputs as $c => $kind) {
-            if ($kind === 'number' || in_array($c, $selectIntCols, true)) $bindTypes .= 'i';
-            else $bindTypes .= 's';
-            $bindVals[] = $vals[$c];
-        }
-        $bindTypes .= 'i';
-        $bindVals[]  = $id;
-
-        $stmt->bind_param($bindTypes, ...$bindVals);
-        execute_sammlung($stmt, $id);
-    }
-
-    // Redirect-Ziel bestimmen
-    $baseParams = filter_keep_params($_POST);
-
-    // „Speichern & Nächster“
-    if ($postAction === 'next') {
-        $nid = (int)($_POST['next_id'] ?? 0);
-        if ($nid > 0 && $nid !== $id) {
-            header('Location: edit.php?'.http_build_query(array_merge($baseParams, ['id'=>$nid])));
-            exit;
-        }
-    }
-
-    // Default: auf aktuellen Datensatz bleiben
-    header('Location: edit.php?'.http_build_query(array_merge($baseParams, ['id'=>$id])));
-    exit;
+    edit_handle_post($conn, $id);
 }
-
 
 /* ======== Datensatz laden & Prev/Next ermitteln ======== */
 $data = [];

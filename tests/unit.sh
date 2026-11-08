@@ -10,7 +10,7 @@ PHAR="$HIER/tools/phpunit.phar"
 [ -f "$PHAR" ] || { echo "tests/tools/phpunit.phar fehlt (siehe tests/README.md)"; exit 1; }
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-for f in inc_format.php inc_filter.php inc_image.php inc_security.php; do cp "$ROOT/$f" "$TMP/$f"; done
+for f in inc_format.php inc_filter.php inc_image.php inc_security.php inc_edit.php; do cp "$ROOT/$f" "$TMP/$f"; done
 printf '<?php\n// Test-config: bewusst leer\n' > "$TMP/config.php"
 mkdir "$TMP/medien" && : > "$TMP/medien/vorhanden.jpg"
 export UNIT_SRC="$TMP"
